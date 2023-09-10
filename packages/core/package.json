@@ -1,0 +1,21 @@
+{
+  "name": "@taxi-kassede/core",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "sst bind vitest",
+    "typecheck": "tsc -noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.6.0",
+    "sst": "^2.24.27",
+    "vitest": "^0.34.4"
+  },
+  "dependencies": {
+    "@aws-sdk/client-rds-data": "^3.409.0",
+    "@aws-sdk/credential-providers": "^3.409.0",
+    "drizzle-kit": "^0.19.13",
+    "drizzle-orm": "^0.28.6",
+    "zod": "^3.22.2"
+  }
+}

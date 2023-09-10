@@ -1,0 +1,18 @@
+{
+  "name": "@taxi-kassede/functions",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "sst bind vitest",
+    "typecheck": "tsc -noEmit"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.119",
+    "@types/node": "^20.6.0",
+    "sst": "^2.24.27",
+    "vitest": "^0.34.4"
+  },
+  "dependencies": {
+    "zod": "^3.22.2"
+  }
+}
