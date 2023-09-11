@@ -6,7 +6,7 @@ import { users } from "../drizzle/sql/schema";
 
 export * as User from "./users";
 
-export const create = z.function(z.tuple([createInsertSchema(users)])).implement(async (input) => {
+export const create = z.function(z.tuple([createInsertSchema(users).array()])).implement(async (input) => {
   return db.insert(users).values(input).returning();
 });
 

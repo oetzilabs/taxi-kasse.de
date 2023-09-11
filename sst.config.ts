@@ -15,11 +15,11 @@ export default {
   },
   stacks(app) {
     app
-    .stack(DatabaseStack)
-    .stack(ApiStack)
-    // .stack(EventBusStack)
-    .stack(StorageStack)
-    .stack(AuthStack)
+      .stack(DatabaseStack)
+      .stack(ApiStack)
+      // .stack(EventBusStack)
+      .stack(StorageStack)
+      .stack(AuthStack)
       .stack(SolidStartStack);
   },
 } satisfies SSTConfig;

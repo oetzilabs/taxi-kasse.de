@@ -5,6 +5,7 @@ export function StorageStack({ stack, app }: StackContext) {
 
   stack.addOutputs({
     BucketName: bucket.bucketName,
+    BucketRegion: app.region,
   });
 
   return {
