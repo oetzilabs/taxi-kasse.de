@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "pg",
-  "id": "93fbbaf8-8cd6-4ec8-99bd-fbd5d3aebd1c",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "9d1dfd2e-a34f-492f-ae38-876b3bc229fb",
+  "prevId": "8e34c322-29ac-4e65-81e0-adc250d105a4",
   "tables": {
     "users": {
       "name": "users",
@@ -17,19 +17,6 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "deleted_at": {
-          "name": "deleted_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false

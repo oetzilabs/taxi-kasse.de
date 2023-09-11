@@ -4,7 +4,7 @@ import { users } from "../../core/src/drizzle/sql/schema";
 
 export const handler = ApiHandler(async (_evt) => {
   const response = await db.select().from(users);
-  
+
   return {
     statusCode: 200,
     headers: {

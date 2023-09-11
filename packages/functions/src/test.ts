@@ -4,7 +4,7 @@ import { z } from "zod";
 
 export const create = ApiHandler(async (_evt) => {
   const data = z.object({ name: z.string() }).safeParse(JSON.parse(_evt.body!));
-  if(!data.success) {
+  if (!data.success) {
     return {
       statusCode: 400,
       body: JSON.stringify(data.error),

@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "pg",
-  "id": "93fbbaf8-8cd6-4ec8-99bd-fbd5d3aebd1c",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "0adfd9f3-ea7e-4d51-b09e-1af6b3e75957",
+  "prevId": "9d1dfd2e-a34f-492f-ae38-876b3bc229fb",
   "tables": {
     "users": {
       "name": "users",

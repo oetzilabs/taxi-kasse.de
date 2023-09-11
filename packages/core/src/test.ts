@@ -15,12 +15,15 @@ interface UserCreateInfo {
   name: string;
 }
 
-export async function create({name}: UserCreateInfo) {
+export async function create({ name }: UserCreateInfo) {
   console.log("Creating user", name);
   // write to database
-  const [{ id }] = await db.insert(users).values({
-    name,
-  }).returning();
+  const [{ id }] = await db
+    .insert(users)
+    .values({
+      name,
+    })
+    .returning();
 
   await Events.Created.publish({
     id,
@@ -30,4 +33,3 @@ export async function create({name}: UserCreateInfo) {
 export async function list() {
   return db.select().from(users);
 }
-

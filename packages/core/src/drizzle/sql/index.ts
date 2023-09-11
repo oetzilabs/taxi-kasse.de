@@ -1,12 +1,14 @@
-import { drizzle } from 'drizzle-orm/aws-data-api/pg';
-import { migrate as mig } from 'drizzle-orm/aws-data-api/pg/migrator';
-import { RDSDataClient } from '@aws-sdk/client-rds-data';
+import { drizzle } from "drizzle-orm/aws-data-api/pg";
+import { migrate as mig } from "drizzle-orm/aws-data-api/pg/migrator";
+import { RDSDataClient } from "@aws-sdk/client-rds-data";
 import { RDS } from "sst/node/rds";
-import { join } from 'path';
- 
+import { join } from "path";
+import * as schema from "./schema";
+
 const rdsClient = new RDSDataClient({});
- 
+
 export const db = drizzle(rdsClient, {
+  schema,
   // @ts-ignore
   database: RDS.rds.defaultDatabaseName,
   // @ts-ignore
@@ -16,6 +18,5 @@ export const db = drizzle(rdsClient, {
 });
 
 export const migrate = async () => {
-  const p = join(process.cwd(), "packages/core/src/drizzle/migrations");
-  return mig(db, { migrationsFolder: p });
+  return mig(db, { migrationsFolder: join(process.cwd(), "packages/core/src/drizzle/migrations") });
 };

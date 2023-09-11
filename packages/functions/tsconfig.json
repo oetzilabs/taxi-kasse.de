@@ -5,7 +5,7 @@
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "@taxi-kassede/core/*": ["../core/src/*"],
+      "@taxi-kassede/core/*": ["../core/src/*"]
     }
   }
 }

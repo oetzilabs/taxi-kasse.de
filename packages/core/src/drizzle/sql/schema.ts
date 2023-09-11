@@ -1,1 +1,1 @@
-export * from "./schemas/users.sql";
+export * from "./schemas/users";
