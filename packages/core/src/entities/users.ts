@@ -23,6 +23,10 @@ export const findById = z.function(z.tuple([z.string()])).implement(async (input
   return db.select().from(users).where(eq(users.id, input));
 });
 
+export const findByEmail = z.function(z.tuple([z.string()])).implement(async (input) => {
+  return db.select().from(users).where(eq(users.email, input));
+});
+
 export const findByName = z.function(z.tuple([z.string()])).implement(async (input) => {
   return db.select().from(users).where(eq(users.name, input));
 });

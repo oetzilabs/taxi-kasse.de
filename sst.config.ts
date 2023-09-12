@@ -1,10 +1,8 @@
 import { SSTConfig } from "sst";
 import { ApiStack } from "./stacks/ApiStack";
-import { AuthStack } from "./stacks/AuthStack";
 import { DatabaseStack } from "./stacks/DatabaseStack";
-// import { EventBusStack } from "./stacks/EventBusStack";
-import { StorageStack } from "./stacks/StorageStack";
 import { SolidStartStack } from "./stacks/SolidStartStack";
+import { StorageStack } from "./stacks/StorageStack";
 
 export default {
   config(_input) {
@@ -14,12 +12,6 @@ export default {
     };
   },
   stacks(app) {
-    app
-      .stack(DatabaseStack)
-      .stack(ApiStack)
-      // .stack(EventBusStack)
-      .stack(StorageStack)
-      .stack(AuthStack)
-      .stack(SolidStartStack);
+    app.stack(DatabaseStack).stack(StorageStack).stack(ApiStack).stack(SolidStartStack);
   },
 } satisfies SSTConfig;

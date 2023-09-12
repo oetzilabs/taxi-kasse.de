@@ -1,4 +1,4 @@
-import { StackContext, Api, RDS, EventBus } from "sst/constructs";
+import { RDS, StackContext } from "sst/constructs";
 
 export function DatabaseStack({ stack, app }: StackContext) {
   const db = new RDS(stack, "rds", {

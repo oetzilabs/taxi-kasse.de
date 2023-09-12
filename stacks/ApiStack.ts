@@ -1,19 +1,28 @@
-import { StackContext, Api, RDS, EventBus, use } from "sst/constructs";
+import { Api, Config, StackContext, use } from "sst/constructs";
 import { DatabaseStack } from "./DatabaseStack";
-import { EventBusStack } from "./EventBusStack";
+import { Auth } from "sst/constructs/future";
 
-export function ApiStack({ stack, app }: StackContext) {
-  // const { bus } = use(EventBusStack);
+export function ApiStack({ stack }: StackContext) {
   const { db } = use(DatabaseStack);
 
+  const secrets = Config.Secret.create(stack, "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET");
+
+  const auth = new Auth(stack, "auth", {
+    authenticator: {
+      bind: [secrets.GOOGLE_CLIENT_ID, secrets.GOOGLE_CLIENT_SECRET],
+      handler: "packages/functions/src/auth.handler",
+    },
+  });
+
+  // Show the auth resources in the output
+  stack.addOutputs({
+    AuthUrl: auth.url,
+  });
   const api = new Api(stack, "api", {
     defaults: {
       function: {
         // handler: "packages/functions/src/migrator.handler",
-        bind: [
-          // bus,
-          db,
-        ],
+        bind: [secrets.GOOGLE_CLIENT_ID, db, auth],
         copyFiles: [
           {
             from: "packages/core/src/drizzle",
@@ -30,11 +39,23 @@ export function ApiStack({ stack, app }: StackContext) {
     },
   });
 
+  new Config.Parameter(stack, "APP_URL", {
+    value: api.url,
+  });
+
+  new Config.Parameter(stack, "AUTH_URL", {
+    value: auth.url,
+  });
+
   stack.addOutputs({
     ApiEndpoint: api.url,
+    AuthEndpoint: auth.url,
   });
 
   return {
     api,
+    auth,
+    GOOGLE_CLIENT_ID: secrets.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: secrets.GOOGLE_CLIENT_SECRET,
   };
 }
