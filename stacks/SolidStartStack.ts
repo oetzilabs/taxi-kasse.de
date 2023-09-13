@@ -20,7 +20,7 @@ export function SolidStartStack({ stack, app }: StackContext) {
   });
 
   stack.addOutputs({
-    SiteUrl: solidStartApp.url || "localhost",
+    SiteUrl: solidStartApp.url || "http://localhost:3000",
   });
 
   return {

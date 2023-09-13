@@ -1,6 +1,6 @@
 import { Api, Config, StackContext, use } from "sst/constructs";
 import { DatabaseStack } from "./DatabaseStack";
-import { Auth } from "sst/constructs";
+import { Auth } from "sst/constructs/future";
 
 export function ApiStack({ stack }: StackContext) {
   const { db } = use(DatabaseStack);
@@ -9,7 +9,7 @@ export function ApiStack({ stack }: StackContext) {
 
   const auth = new Auth(stack, "auth", {
     authenticator: {
-      bind: [secrets.GOOGLE_CLIENT_ID, secrets.GOOGLE_CLIENT_SECRET],
+      bind: [secrets.GOOGLE_CLIENT_ID, secrets.GOOGLE_CLIENT_SECRET, db],
       handler: "packages/functions/src/auth.handler",
     },
   });
@@ -29,15 +29,14 @@ export function ApiStack({ stack }: StackContext) {
     },
     routes: {
       "GET /": "packages/functions/src/lambda.handler",
+      "GET /session": "packages/functions/src/session.handler",
       "GET /open": "packages/functions/src/open.handler",
       "POST /migrate": "packages/functions/src/migrator.handler",
       "POST /create": "packages/functions/src/user.create",
     },
-  });
-
-  auth.attach(stack, {
-    api,
-    prefix: "/auth",
+    cors: {
+      allowOrigins: ["*"],
+    },
   });
 
   new Config.Parameter(stack, "APP_URL", {
@@ -45,12 +44,12 @@ export function ApiStack({ stack }: StackContext) {
   });
 
   new Config.Parameter(stack, "AUTH_URL", {
-    value: api.url + "/auth",
+    value: auth.url,
   });
 
   stack.addOutputs({
     ApiEndpoint: api.url,
-    AuthEndpoint: api.url + "/auth",
+    AuthEndpoint: auth.url,
   });
 
   return {
