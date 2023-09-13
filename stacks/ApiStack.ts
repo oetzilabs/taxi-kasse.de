@@ -1,6 +1,6 @@
 import { Api, Config, StackContext, use } from "sst/constructs";
 import { DatabaseStack } from "./DatabaseStack";
-import { Auth } from "sst/constructs/future";
+import { Auth } from "sst/constructs";
 
 export function ApiStack({ stack }: StackContext) {
   const { db } = use(DatabaseStack);
@@ -14,10 +14,6 @@ export function ApiStack({ stack }: StackContext) {
     },
   });
 
-  // Show the auth resources in the output
-  stack.addOutputs({
-    AuthUrl: auth.url,
-  });
   const api = new Api(stack, "api", {
     defaults: {
       function: {
@@ -39,17 +35,22 @@ export function ApiStack({ stack }: StackContext) {
     },
   });
 
+  auth.attach(stack, {
+    api,
+    prefix: "/auth",
+  });
+
   new Config.Parameter(stack, "APP_URL", {
     value: api.url,
   });
 
   new Config.Parameter(stack, "AUTH_URL", {
-    value: auth.url,
+    value: api.url + "/auth",
   });
 
   stack.addOutputs({
     ApiEndpoint: api.url,
-    AuthEndpoint: auth.url,
+    AuthEndpoint: api.url + "/auth",
   });
 
   return {
