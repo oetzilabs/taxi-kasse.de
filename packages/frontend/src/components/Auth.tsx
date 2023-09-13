@@ -64,11 +64,27 @@ export const Auth = () => {
       }
     }
   });
+  const signOut = () => {
+    localStorage.removeItem("session");
+    setAuthStore({
+      isLoading: false,
+      isAuthenticated: false,
+      token: null,
+      user: null,
+    });
+  };
   return (
     <>
       <Show when={!AuthStore().isLoading} fallback={<div>Loading...</div>}>
         <Show when={AuthStore().isAuthenticated && AuthStore().user}>
-          {(user) => <span class="text-sm text-gray-300">Welcome, {user().name}</span>}
+          {(user) => (
+            <div>
+              <span class="text-sm text-gray-300">Welcome, {user().name}</span>
+              <button onClick={signOut} class="ml-4 text-black py-1 px-2 rounded">
+                Sign out
+              </button>
+            </div>
+          )}
         </Show>
         <Show when={!AuthStore().isAuthenticated}>
           <div>
