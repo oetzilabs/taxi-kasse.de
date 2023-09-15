@@ -51,9 +51,8 @@ export const handler = AuthHandler({
           },
         ]);
         return response.session({
-          //@ts-ignore
           type: "user",
-          user: {
+          properties: {
             name: claims.name,
             email: claims.email,
             sub: claims.sub,
@@ -63,9 +62,8 @@ export const handler = AuthHandler({
         });
       } else {
         return response.session({
-          //@ts-ignore
           type: "user",
-          user: {
+          properties: {
             sub: claims.sub,
             id: userExists.id,
             name: userExists.name,
