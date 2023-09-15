@@ -9,6 +9,7 @@ type UseAuth = {
   user: {
     name: string;
     email: string;
+    image: string;
   } | null;
 };
 const [AuthStore, setAuthStore] = createSignal<UseAuth>({
@@ -87,17 +88,15 @@ export const Auth = () => {
           )}
         </Show>
         <Show when={!AuthStore().isAuthenticated}>
-          <div>
-            <A
-              href={`${
-                import.meta.env.VITE_AUTH_URL
-              }/authorize?provider=google&response_type=token&client_id=google&redirect_uri=http://localhost:3000/`}
-              rel="noreferrer"
-              class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            >
-              Sign in with Google
-            </A>
-          </div>
+          <A
+            href={`${
+              import.meta.env.VITE_AUTH_URL
+            }/authorize?provider=google&response_type=token&client_id=google&redirect_uri=http://localhost:3000/`}
+            rel="noreferrer"
+            class="text-black py-1 px-2 rounded hover:bg-gray-200 dark:hover:bg-gray-800"
+          >
+            Sign in with Google
+          </A>
         </Show>
       </Show>
     </>

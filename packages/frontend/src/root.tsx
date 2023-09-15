@@ -1,12 +1,12 @@
 // @refresh reload
 import { Suspense } from "solid-js";
-import { useLocation, A, Body, ErrorBoundary, FileRoutes, Head, Html, Meta, Routes, Scripts, Title } from "solid-start";
+import { Body, ErrorBoundary, FileRoutes, Head, Html, Meta, Routes, Scripts, Title } from "solid-start";
+import { Auth } from "./components/Auth";
 import "./root.css";
 
-export default function Root() {
-  const location = useLocation();
-  const active = (path: string) =>
-    path == location.pathname ? "border-sky-600" : "border-transparent hover:border-sky-600";
+export default function Root(props: any) {
+  console.log(props);
+
   return (
     <Html lang="en">
       <Head>
@@ -17,6 +17,9 @@ export default function Root() {
       <Body>
         <Suspense>
           <ErrorBoundary>
+            <nav class="flex items-center justify-between flex-wrap bg-white dark:bg-black p-2 border-b border-black/5 dark:border-white/5">
+              <Auth />
+            </nav>
             <Routes>
               <FileRoutes />
             </Routes>

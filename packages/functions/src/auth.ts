@@ -7,9 +7,13 @@ export const sessions = createSessionBuilder<{
     id: string;
     name: string;
     email: string;
+    image: string;
     sub: string;
   };
 }>();
+
+export type UserSession = ReturnType<typeof sessions.use>;
+export type UserSessionAuthenticated = Extract<UserSession, { type: "user" }>;
 
 export const handler = AuthHandler({
   sessions,
@@ -35,6 +39,7 @@ export const handler = AuthHandler({
     if (!claims.sub) throw new Error("No sub claim in token");
     if (!claims.name) throw new Error("No name claim in token");
     if (!claims.email) throw new Error("No email claim in token");
+    if (!claims.picture) throw new Error("No picture claim in token");
     const [userExists] = await User.findByEmail(claims.email);
 
     if (provider === "google") {
@@ -46,22 +51,26 @@ export const handler = AuthHandler({
           },
         ]);
         return response.session({
+          //@ts-ignore
           type: "user",
-          properties: {
+          user: {
             name: claims.name,
             email: claims.email,
             sub: claims.sub,
+            image: claims.picture,
             id: cu.id,
           },
         });
       } else {
         return response.session({
+          //@ts-ignore
           type: "user",
-          properties: {
+          user: {
             sub: claims.sub,
             id: userExists.id,
             name: userExists.name,
             email: userExists.email,
+            image: claims.picture,
           },
         });
       }
