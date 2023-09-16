@@ -1,4 +1,4 @@
-import { Config, SolidStartSite, StackContext, use } from "sst/constructs";
+import { SolidStartSite, StackContext, use } from "sst/constructs";
 import { ApiStack } from "./ApiStack";
 // import { DatabaseStack } from "./DatabaseStack";
 import { StorageStack } from "./StorageStack";
