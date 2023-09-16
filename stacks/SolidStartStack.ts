@@ -16,6 +16,7 @@ export function SolidStartStack({ stack, app }: StackContext) {
       VITE_API_URL: api.url,
       S3_BUCKET: bucket.bucketName,
       VITE_AUTH_URL: auth.url,
+      SESSION_SECRET: "If6GaTGzindzw04Zx/coub4Lk1gRLX2hO1CcFmkhKSs=",
     },
   });
 

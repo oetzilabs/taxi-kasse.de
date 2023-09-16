@@ -18,7 +18,7 @@ export type UserSessionAuthenticated = Extract<UserSession, { type: "user" }>;
 export const handler = AuthHandler({
   sessions,
   clients: async () => ({
-    google: "http://localhost:3000/",
+    google: "http://localhost:3000/api/auth/callback",
   }),
   providers: {
     google: GoogleAdapter({
@@ -31,7 +31,7 @@ export const handler = AuthHandler({
   },
   async onAuthorize(event) {
     // any code you want to run when auth begins
-    console.log({ onAuthorize: event });
+    // console.log({ onAuthorize: event });
   },
   onSuccess: async ({ tokenset, provider }, response) => {
     const claims = tokenset.claims();
@@ -44,12 +44,19 @@ export const handler = AuthHandler({
 
     if (provider === "google") {
       if (!userExists) {
-        let [cu] = await User.create([
+        let cu = await User.create(
           {
             name: claims.name,
             email: claims.email,
           },
-        ]);
+          {
+            birthdate: claims.birthdate,
+            image: claims.picture,
+            locale: claims.locale,
+            preferredUsername: claims.preferred_username,
+            phoneNumber: claims.phone_number,
+          }
+        );
         return response.session({
           type: "user",
           properties: {

@@ -4,9 +4,7 @@ import { Body, ErrorBoundary, FileRoutes, Head, Html, Meta, Routes, Scripts, Tit
 import { Auth } from "./components/Auth";
 import "./root.css";
 
-export default function Root(props: any) {
-  console.log(props);
-
+export default function Root() {
   return (
     <Html lang="en">
       <Head>

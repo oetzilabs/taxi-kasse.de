@@ -2,13 +2,30 @@ import { eq, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { db } from "../drizzle/sql";
-import { users } from "../drizzle/sql/schema";
+import { ProfileSelect, profiles, users } from "../drizzle/sql/schema";
 
 export * as User from "./users";
 
-export const create = z.function(z.tuple([createInsertSchema(users).array()])).implement(async (input) => {
-  return db.insert(users).values(input).returning();
-});
+export const create = z
+  .function(
+    z.tuple([
+      createInsertSchema(users),
+      createInsertSchema(profiles).omit({
+        userId: true,
+      }),
+    ])
+  )
+  .implement(async (userInput, profileInput) => {
+    const [x] = await db.insert(users).values(userInput).returning();
+    const [y] = await db
+      .insert(profiles)
+      .values({ ...profileInput, userId: x.id })
+      .returning();
+    return {
+      ...x,
+      profile: y,
+    };
+  });
 
 export const countAll = z.function(z.tuple([])).implement(async () => {
   const [x] = await db
@@ -61,3 +78,17 @@ export const updateName = z
   .implement(async (input) => {
     return update({ id: input.id, name: input.name });
   });
+
+export const findProfileById = z.function(z.tuple([z.string().uuid()])).implement(async (input) => {
+  const [x] = await db.select().from(profiles).where(eq(profiles.userId, input)).limit(1);
+  return x;
+});
+
+export type Frontend = {
+  name: string;
+  email: string;
+  image: string;
+  profile: ProfileSelect;
+};
+
+export type Profile = ProfileSelect;

@@ -28,11 +28,37 @@ export function ApiStack({ stack }: StackContext) {
       },
     },
     routes: {
-      "GET /": "packages/functions/src/lambda.handler",
-      "GET /session": "packages/functions/src/session.handler",
-      "GET /open": "packages/functions/src/open.handler",
-      "POST /migrate": "packages/functions/src/migrator.handler",
-      "POST /create": "packages/functions/src/user.create",
+      "GET /": {
+        function: {
+          handler: "packages/functions/src/lambda.handler",
+          description: "This is the default function",
+        },
+      },
+      "GET /session": {
+        function: {
+          handler: "packages/functions/src/session.handler",
+          description: "This is the session function",
+        },
+      },
+      "GET /open": {
+        function: {
+          handler: "packages/functions/src/open.handler",
+          description:
+            "This is the function to view all visible data about the application, since this will be an OpenSource Application at some point",
+        },
+      },
+      "POST /migrate": {
+        function: {
+          handler: "packages/functions/src/migrator.handler",
+          description: "This is the migrator function",
+        },
+      },
+      "POST /create": {
+        function: {
+          handler: "packages/functions/src/user.create",
+          description: "This is the user creation function",
+        },
+      },
     },
     cors: {
       allowOrigins: ["*"],
