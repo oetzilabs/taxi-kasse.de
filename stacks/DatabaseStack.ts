@@ -7,7 +7,7 @@ export function DatabaseStack({ stack, app }: StackContext) {
     scaling: {
       autoPause: true,
       minCapacity: "ACU_1",
-      maxCapacity: "ACU_2",
+      maxCapacity: "ACU_1",
     },
   });
 
