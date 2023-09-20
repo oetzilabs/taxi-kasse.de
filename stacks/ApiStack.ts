@@ -9,7 +9,7 @@ export function ApiStack({ stack }: StackContext) {
 
   const auth = new Auth(stack, "auth", {
     authenticator: {
-      bind: [secrets.GOOGLE_CLIENT_ID, secrets.GOOGLE_CLIENT_SECRET, db],
+      bind: [secrets.GOOGLE_CLIENT_ID, secrets.GOOGLE_CLIENT_SECRET],
       handler: "packages/functions/src/auth.handler",
     },
   });

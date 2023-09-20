@@ -7,9 +7,9 @@
     "typecheck": "tsc -noEmit"
   },
   "devDependencies": {
-    "@types/node": "^20.6.2",
+    "@types/node": "^20.6.3",
     "drizzle-kit": "^0.19.13",
-    "sst": "^2.25.2",
+    "sst": "^2.25.5",
     "vitest": "^0.34.4"
   },
   "dependencies": {

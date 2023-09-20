@@ -8,8 +8,8 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.121",
-    "@types/node": "^20.6.2",
-    "sst": "^2.25.2",
+    "@types/node": "^20.6.3",
+    "sst": "^2.25.5",
     "vitest": "^0.34.4"
   },
   "dependencies": {

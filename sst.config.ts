@@ -12,6 +12,11 @@ export default {
     };
   },
   stacks(app) {
-    app.stack(DatabaseStack).stack(StorageStack).stack(ApiStack).stack(SolidStartStack);
+    app
+      //
+      .stack(DatabaseStack)
+      .stack(StorageStack)
+      .stack(ApiStack)
+      .stack(SolidStartStack);
   },
 } satisfies SSTConfig;
