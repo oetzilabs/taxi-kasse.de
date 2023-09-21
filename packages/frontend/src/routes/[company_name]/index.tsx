@@ -1,10 +1,7 @@
-// Purpose: Company page.
-// Create a simple page for the given company
-
 import { A } from "@solidjs/router";
 import dayjs from "dayjs";
 import { For, Show, createSignal } from "solid-js";
-import { RouteDataArgs, useParams, useRouteData } from "solid-start";
+import { RouteDataArgs, useRouteData } from "solid-start";
 import { createServerData$ } from "solid-start/server";
 
 type Month =
