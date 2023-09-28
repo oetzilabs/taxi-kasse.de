@@ -1,6 +1,5 @@
 import { SSTConfig } from "sst";
 import { ApiStack } from "./stacks/ApiStack";
-import { DatabaseStack } from "./stacks/DatabaseStack";
 import { SolidStartStack } from "./stacks/SolidStartStack";
 import { StorageStack } from "./stacks/StorageStack";
 
@@ -12,11 +11,6 @@ export default {
     };
   },
   stacks(app) {
-    app
-      //
-      .stack(DatabaseStack)
-      .stack(StorageStack)
-      .stack(ApiStack)
-      .stack(SolidStartStack);
+    app.stack(StorageStack).stack(ApiStack).stack(SolidStartStack);
   },
 } satisfies SSTConfig;

@@ -1,20 +1,13 @@
-import { drizzle } from "drizzle-orm/aws-data-api/pg";
-import { migrate as mig } from "drizzle-orm/aws-data-api/pg/migrator";
-import { RDSDataClient } from "@aws-sdk/client-rds-data";
-import { RDS } from "sst/node/rds";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
+import { migrate as mig } from "drizzle-orm/libsql/migrator";
 import { join } from "path";
+import { Config } from "sst/node/config";
 import * as schema from "./schema";
 
-const rdsClient = new RDSDataClient({});
-
-export const db = drizzle(rdsClient, {
+const client = createClient({ url: Config.DATABASE_URL, authToken: Config.DATABASE_AUTH_TOKEN });
+export const db = drizzle(client, {
   schema,
-  // @ts-ignore
-  database: RDS.rds.defaultDatabaseName,
-  // @ts-ignore
-  secretArn: RDS.rds.secretArn,
-  // @ts-ignore
-  resourceArn: RDS.rds.clusterArn,
 });
 
 export const migrate = async () => {

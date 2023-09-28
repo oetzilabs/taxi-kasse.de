@@ -3,6 +3,8 @@ import dayjs from "dayjs";
 import { For, Show, createEffect, createSignal } from "solid-js";
 import { RouteDataArgs, useRouteData } from "solid-start";
 import { createServerData$ } from "solid-start/server";
+import advancedFormat from "dayjs/plugin/advancedFormat";
+dayjs.extend(advancedFormat);
 
 type Month =
   | "January"
@@ -24,6 +26,7 @@ type DistanceUnit = "km" | "mi";
 type MockData = {
   currency: Currency;
   distance: DistanceUnit;
+  number: string;
   locale: string;
   months: {
     [key in Month]?: {
@@ -94,7 +97,7 @@ const fillMonth = (month: Month) => {
       },
       cash: {
         type: "currency",
-        value: Math.floor(Math.random() * 1000),
+        value: Math.floor(Math.random() * 10000),
       },
     },
   })).sort((a, b) => dayjs(a.date).diff(b.date));
@@ -135,6 +138,7 @@ export function routeData({ params }: RouteDataArgs) {
   const rd = createServerData$(
     async ([companyName]) => {
       const mockData: MockData = {
+        number: "",
         currency: "CHF",
         distance: "km",
         locale: "de-CH",
@@ -146,6 +150,7 @@ export function routeData({ params }: RouteDataArgs) {
           page: companyName,
           data: mockData,
         },
+        lastUpdated: new Date(),
       };
     },
     {
@@ -163,7 +168,7 @@ export default function CompanyPage() {
   const cuMonth = () => dayjs(cuDate()).format("MMMM") as Month;
 
   return (
-    <div class="relative w-full h-screen flex flex-col gap-2 py-[49px]">
+    <div class="relative container mx-auto flex flex-col gap-2 py-[49px]">
       <div class="w-full h-screen px-8">
         <Show when={data() && data()} fallback={<div class="flex justify-center items-center p-10">Loading...</div>}>
           {(d) => (
@@ -313,7 +318,7 @@ export default function CompanyPage() {
                   </div>
                 </div>
               </div>
-              <div class="flex w-full flex-grow relative bg-black/[0.02] rounded-sm border border-black dark:border-white dark:bg-white/[0.02] !border-opacity-10 mb-[200px]">
+              <div class="flex w-full flex-grow relative bg-white rounded-sm border border-black dark:border-white dark:bg-black !border-opacity-10">
                 <Show when={d().company.data.months[cuMonth()]?.entries.length === 0}>
                   <div class="flex flex-col gap-2 items-center justify-center w-full h-full p-20">
                     <div class="opacity-10 flex flex-col items-center justify-center gap-2">
@@ -357,78 +362,69 @@ export default function CompanyPage() {
                   </div>
                 </Show>
                 <Show when={(d().company.data.months[cuMonth()]?.entries.length ?? 0) > 0}>
-                  <table class="border-collapse w-full table-fixed select-none">
-                    <thead class="border-b border-black/10 dark:border-white/10 h-2.5 bg-neutral-50 dark:bg-neutral-950">
-                      <tr>
-                        <th colspan="2" class="border-r border-black/10 dark:border-white/10 w-32 p-2">
-                          Date
-                        </th>
-                        <For each={Object.keys(d().company.data.months[cuMonth()]?.entries[0]?.fields ?? {})}>
-                          {(key, index) => (
-                            <th
-                              class={`p-2 ${
-                                index() <
-                                Object.keys(d().company.data.months[cuMonth()]?.entries[0]?.fields ?? {}).length - 1
-                                  ? "border-r"
-                                  : ""
-                              } border-black/10 dark:border-white/10 capitalize`}
-                            >
-                              {key}
-                            </th>
-                          )}
-                        </For>
-                      </tr>
-                    </thead>
-                    <tbody class="text-md">
-                      <For each={d().company.data.months[cuMonth()]?.entries}>
-                        {(day, dayindex) => (
-                          <tr
-                            class={`${
-                              dayindex() < Math.max((d().company.data.months[cuMonth()]?.entries.length ?? 0) - 1, 0)
-                                ? "border-b"
-                                : ""
-                            }  border-black/10 dark:border-white/10 hover:bg-black/[0.02] dark:hover:bg-white/[0.02]`}
-                          >
-                            <td class="border-r border-black/10 dark:border-white/10 p-1">
-                              {dayjs(day.date).format("ddd.")}
-                            </td>
-                            <td class="border-r border-black/10 dark:border-white/10 p-1">
-                              {dayjs(day.date).format("DD. MMM")}
-                            </td>
-                            <For each={Object.entries(day.fields)}>
-                              {([key, value], index) => (
-                                <td
-                                  class={`${
-                                    index() <
-                                    Object.keys(d().company.data.months[cuMonth()]?.entries[0]?.fields ?? {}).length - 1
-                                      ? "border-r"
-                                      : ""
-                                  } border-black/10 dark:border-white/10 p-1 text-right`}
-                                >
-                                  {value.value} {value.type !== "number" ? d().company.data[value.type] : ""}
-                                </td>
-                              )}
-                            </For>
-                          </tr>
-                        )}
-                      </For>
-                    </tbody>
-                  </table>
+                  <div class="flex flex-col gap-2 items-center justify-center w-full">
+                    <For each={d().company.data.months[cuMonth()]?.entries}>
+                      {(entry) => (
+                        <div class="flex flex-col gap-2 w-full p-2 last:border-none border-b border-neutral-200 dark:border-neutral-800">
+                          <div class="flex w-full justify-between">
+                            <div class="font-medium">{dayjs(entry.date).format("Do MMM. YYYY")}</div>
+                            <div class="">
+                              {entry.fields.total.value} {d().company.data[entry.fields.total.type]}
+                            </div>
+                          </div>
+                          <div class="flex w-full justify-between">
+                            <div class="font-medium">
+                              {entry.fields.taken.value} {d().company.data[entry.fields.taken.type]}
+                            </div>
+                            <div class="font-bold">
+                              {new Intl.NumberFormat(d().company.data.locale).format(entry.fields.cash.value ?? 0)}{" "}
+                              {d().company.data[entry.fields.cash.type]}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </For>
+                  </div>
                 </Show>
               </div>
-              <div class="left-0 bottom-0 fixed bg-neutral-100 dark:bg-neutral-900 w-screen py-2 px-8 border-t border-neutral-200 dark:border-neutral-800 justify-between items-center flex">
-                <div class="justify-start items-center gap-2.5 flex">
-                  <div class="text-xl font-bold">Total</div>
-                </div>
-                <div class="justify-end items-center gap-2.5 flex w-max">
-                  <div class="p-2.5 justify-center items-center gap-2.5 flex">
-                    <div class="text-xl font-bold flex gap-2">
-                      <span>
-                        {new Intl.NumberFormat(d().company.data.locale).format(
-                          d().company.data.months[cuMonth()]?.total ?? 0
-                        )}
-                      </span>
-                      <span>{d().company.data.currency}</span>
+              <div class="w-full flex flex-col opacity-70 items-center justify-center text-xs gap-2">
+                Last updated {dayjs(d().lastUpdated).format("Do MMM. YYYY, HH:mm:ss")}
+                <button class="text-md font-medium cursor-pointer flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-sm border border-black dark:border-white !border-opacity-10 p-1.5 px-2 hover:bg-black hover:bg-opacity-5 dark:hover:bg-white dark:hover:bg-opacity-5 active:bg-black active:bg-opacity-10 dark:active:bg-white dark:active:bg-opacity-10">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                    <path d="M3 3v5h5" />
+                    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                    <path d="M16 16h5v5" />
+                  </svg>
+                  <span>Refresh</span>
+                </button>
+              </div>
+              <div class="w-full flex flex-col text-opacity-50 items-center justify-center h-[200px]"></div>
+              <div class="left-0 bottom-0 fixed bg-neutral-100 dark:bg-neutral-900 w-screen py-0.5 border-t border-neutral-200 dark:border-neutral-800 justify-between items-center flex">
+                <div class="flex items-center justify-between flex-wrap container mx-auto px-8">
+                  <div class="justify-start items-center gap-2.5 flex">
+                    <div class="text-xl font-bold">Total</div>
+                  </div>
+                  <div class="justify-end items-center gap-2.5 flex w-max">
+                    <div class="p-2.5 justify-center items-center gap-2.5 flex">
+                      <div class="text-xl font-bold flex gap-2">
+                        <span>
+                          {new Intl.NumberFormat(d().company.data.locale).format(
+                            d().company.data.months[cuMonth()]?.total ?? 0
+                          )}
+                        </span>
+                        <span>{d().company.data.currency}</span>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -1,18 +1,22 @@
-import { timestamp, uuid } from "drizzle-orm/pg-core";
+import { integer, text } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
+import * as uuid from "uuid";
 
 export * as Entity from "./entity";
 
 export const defaults = {
-  id: uuid("id").primaryKey().defaultRandom(),
-  createdAt: timestamp("created_at", {
-    mode: "date",
+  id: text("id", { mode: "text" })
+    .primaryKey()
+    .$default(() => uuid.v4()),
+  createdAt: integer("created_at", {
+    mode: "timestamp",
   })
     .notNull()
-    .defaultNow(),
-  updatedAt: timestamp("updated_at", {
-    mode: "date",
+    .default(sql`(strftime('%s', 'now'))`),
+  updatedAt: integer("updated_at", {
+    mode: "timestamp",
   }),
-  deletedAt: timestamp("deleted_at", {
-    mode: "date",
+  deletedAt: integer("deleted_at", {
+    mode: "timestamp",
   }),
 };

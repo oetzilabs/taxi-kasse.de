@@ -1,15 +1,18 @@
 import { Api, Config, StackContext, use } from "sst/constructs";
-import { DatabaseStack } from "./DatabaseStack";
 import { Auth } from "sst/constructs/future";
 
 export function ApiStack({ stack }: StackContext) {
-  const { db } = use(DatabaseStack);
-
-  const secrets = Config.Secret.create(stack, "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET");
+  const secrets = Config.Secret.create(
+    stack,
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "DATABASE_URL",
+    "DATABASE_AUTH_TOKEN"
+  );
 
   const auth = new Auth(stack, "auth", {
     authenticator: {
-      bind: [secrets.GOOGLE_CLIENT_ID, secrets.GOOGLE_CLIENT_SECRET],
+      bind: [secrets.GOOGLE_CLIENT_ID, secrets.GOOGLE_CLIENT_SECRET, secrets.DATABASE_URL, secrets.DATABASE_AUTH_TOKEN],
       handler: "packages/functions/src/auth.handler",
     },
   });
@@ -18,7 +21,7 @@ export function ApiStack({ stack }: StackContext) {
     defaults: {
       function: {
         // handler: "packages/functions/src/migrator.handler",
-        bind: [secrets.GOOGLE_CLIENT_ID, db, auth],
+        bind: [secrets.GOOGLE_CLIENT_ID, auth, secrets.DATABASE_URL, secrets.DATABASE_AUTH_TOKEN],
         copyFiles: [
           {
             from: "packages/core/src/drizzle",

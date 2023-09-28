@@ -34,8 +34,10 @@ export default function Root() {
       <Body class="bg-white dark:bg-black text-black dark:text-white">
         <Suspense>
           <ErrorBoundary>
-            <nav class="flex items-center justify-between flex-wrap bg-white dark:bg-black p-2 border-b border-black/5 dark:border-white/5 fixed w-screen top-0 z-50">
-              <Auth />
+            <nav class="flex items-center justify-between flex-wrap bg-white dark:bg-black border-b border-black/5 dark:border-white/5 fixed w-screen top-0 z-50">
+              <div class="flex items-center justify-between flex-wrap  container mx-auto py-2 px-8">
+                <Auth />
+              </div>
             </nav>
             <Routes>
               <FileRoutes />

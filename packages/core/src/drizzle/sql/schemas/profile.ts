@@ -1,11 +1,11 @@
-import { pgTable, text, uuid } from "drizzle-orm/pg-core";
+import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { Entity } from "./entity";
 import { users } from "./users";
 import { relations } from "drizzle-orm";
 
-export const profiles = pgTable("profiles", {
+export const profiles = sqliteTable("profiles", {
   ...Entity.defaults,
-  userId: uuid("user_id")
+  userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   birthdate: text("birthdate"),
