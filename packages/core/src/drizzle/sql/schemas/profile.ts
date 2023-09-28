@@ -9,7 +9,9 @@ export const profiles = sqliteTable("profiles", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   birthdate: text("birthdate"),
-  image: text("image").notNull().default("/images/default-profile.png"),
+  image: text("image")
+    .notNull()
+    .$default(() => "/images/default-profile.png"),
   preferredUsername: text("preferred_username"),
   locale: text("locale").default("en"),
   phoneNumber: text("phone_number"),

@@ -13,14 +13,16 @@ export const Events = {
 
 interface UserCreateInfo {
   name: string;
+  email: string;
 }
 
-export async function create({ name }: UserCreateInfo) {
+export async function create({ name, email }: UserCreateInfo) {
   console.log("Creating user", name);
   // write to database
   const [{ id }] = await db
     .insert(users)
     .values({
+      email,
       name,
     })
     .returning();

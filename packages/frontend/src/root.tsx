@@ -1,7 +1,7 @@
 // @refresh reload
 import { Suspense, createEffect, createSignal, onCleanup } from "solid-js";
 import { Body, ErrorBoundary, FileRoutes, Head, Html, Meta, Routes, Scripts, Title } from "solid-start";
-import { Auth } from "./components/Auth";
+import { AuthC, AuthP } from "./components/Auth";
 import "./root.css";
 
 export default function Root() {
@@ -34,14 +34,16 @@ export default function Root() {
       <Body class="bg-white dark:bg-black text-black dark:text-white">
         <Suspense>
           <ErrorBoundary>
-            <nav class="flex items-center justify-between flex-wrap bg-white dark:bg-black border-b border-black/5 dark:border-white/5 fixed w-screen top-0 z-50">
-              <div class="flex items-center justify-between flex-wrap  container mx-auto py-2 px-8">
-                <Auth />
-              </div>
-            </nav>
-            <Routes>
-              <FileRoutes />
-            </Routes>
+            <AuthP>
+              <nav class="flex items-center justify-between flex-wrap bg-white dark:bg-black border-b border-black/5 dark:border-white/5 fixed w-screen top-0 z-50">
+                <div class="flex items-center justify-between flex-wrap  container mx-auto py-2 px-8">
+                  <AuthC />
+                </div>
+              </nav>
+              <Routes>
+                <FileRoutes />
+              </Routes>
+            </AuthP>
           </ErrorBoundary>
         </Suspense>
         <Scripts />

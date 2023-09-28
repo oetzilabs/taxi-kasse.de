@@ -37,19 +37,32 @@ export const countAll = z.function(z.tuple([])).implement(async () => {
 });
 
 export const findById = z.function(z.tuple([z.string()])).implement(async (input) => {
-  return db.select().from(users).where(eq(users.id, input));
+  return db.query.users.findFirst({
+    where: (users, operations) => operations.eq(users.id, input),
+    with: {
+      profile: true,
+      company: true,
+    },
+  });
 });
 
 export const findByEmail = z.function(z.tuple([z.string()])).implement(async (input) => {
-  return db.select().from(users).where(eq(users.email, input));
-});
-
-export const findByName = z.function(z.tuple([z.string()])).implement(async (input) => {
-  return db.select().from(users).where(eq(users.name, input));
+  return db.query.users.findFirst({
+    where: (users, operations) => operations.eq(users.email, input),
+    with: {
+      profile: true,
+      company: true,
+    },
+  });
 });
 
 export const all = z.function(z.tuple([])).implement(async () => {
-  return db.select().from(users);
+  return db.query.users.findMany({
+    with: {
+      profile: true,
+      company: true,
+    },
+  });
 });
 
 const update = z
@@ -79,16 +92,18 @@ export const updateName = z
     return update({ id: input.id, name: input.name });
   });
 
-export const findProfileById = z.function(z.tuple([z.string().uuid()])).implement(async (input) => {
-  const [x] = await db.select().from(profiles).where(eq(profiles.userId, input)).limit(1);
-  return x;
+export const getCompanyData = z.function(z.tuple([z.string().uuid()])).implement(async (input) => {
+  const cData = await db.query.users.findFirst({
+    where: (users, operations) => operations.eq(users.id, input),
+    with: {
+      company: true,
+      // calendar: true,
+    },
+  });
+
+  return cData;
 });
 
-export type Frontend = {
-  name: string;
-  email: string;
-  image: string;
-  profile: ProfileSelect;
-};
+export type Frontend = Awaited<ReturnType<typeof findById>>;
 
 export type Profile = ProfileSelect;

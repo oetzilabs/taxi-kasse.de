@@ -1,45 +1,38 @@
 import { ApiHandler } from "sst/node/api";
 import { sessions } from "./auth";
 import { User } from "@taxi-kassede/core/entities/users";
+import { getUser } from "./utils";
 
 export const handler = ApiHandler(async (x) => {
-  const authbearer = x.headers["authorization"];
-  if (!authbearer) {
+  const user = await getUser(x);
+  if (user instanceof Error) {
     return {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        error: user.message,
+      }),
       statusCode: 200,
     };
   }
-
-  const session = sessions.verify(authbearer.replace("Bearer ", ""));
-  if (!session || session.type !== "user") {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({}),
-      statusCode: 200,
-    };
-  }
-  const user = session.properties;
   if (!user || !user.id) {
     return {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        error: "No user found",
+      }),
       statusCode: 200,
     };
   }
-  const profile = await User.findProfileById(user.id);
+  const user_ = await User.findById(user.id);
   return {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ user: { ...user, profile } }),
+    body: JSON.stringify({ user: user_ }),
     statusCode: 200,
   };
 });

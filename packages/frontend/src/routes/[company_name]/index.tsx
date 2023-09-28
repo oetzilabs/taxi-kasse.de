@@ -4,6 +4,7 @@ import { For, Show, createEffect, createSignal } from "solid-js";
 import { RouteDataArgs, useRouteData } from "solid-start";
 import { createServerData$ } from "solid-start/server";
 import advancedFormat from "dayjs/plugin/advancedFormat";
+import { useAuth } from "../../components/Auth";
 dayjs.extend(advancedFormat);
 
 type Month =
@@ -24,7 +25,8 @@ type Currency = "CHF" | "EUR" | "USD";
 type DistanceUnit = "km" | "mi";
 
 type MockData = {
-  currency: Currency;
+  currency: Currency[];
+  selectedCurrency: Currency;
   distance: DistanceUnit;
   number: string;
   locale: string;
@@ -97,7 +99,7 @@ const fillMonth = (month: Month) => {
       },
       cash: {
         type: "currency",
-        value: Math.floor(Math.random() * 10000),
+        value: Math.floor(Math.random() * 400),
       },
     },
   })).sort((a, b) => dayjs(a.date).diff(b.date));
@@ -139,7 +141,8 @@ export function routeData({ params }: RouteDataArgs) {
     async ([companyName]) => {
       const mockData: MockData = {
         number: "",
-        currency: "CHF",
+        selectedCurrency: "CHF",
+        currency: ["CHF"],
         distance: "km",
         locale: "de-CH",
         months: fillYear(),
@@ -163,14 +166,43 @@ export function routeData({ params }: RouteDataArgs) {
 export default function CompanyPage() {
   // const { company_name } = useParams();
   const data = useRouteData<typeof routeData>();
+  const [companyData, setCompanyData] = createSignal(data());
   const [cuDate, setDate] = createSignal(dayjs().toDate());
-  const [user, setUser] = createSignal({ username: "testuser" });
   const cuMonth = () => dayjs(cuDate()).format("MMMM") as Month;
+  const [userAuth] = useAuth();
+
+  const dataRefresh = async () => {
+    const token = userAuth().token;
+    if (!token) {
+      console.error("No token found.");
+      return;
+    }
+    // calls the api endpoint again and updates the data
+    const newData = await fetch(import.meta.env.VITE_API_URL + "/data", {
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `Bearer ${token}`,
+      },
+    }).then(
+      async (r) =>
+        (await r.json()) as
+          | { error: string }
+          | { company: { name: string; page: string; data: MockData }; lastUpdated: Date }
+    );
+    if ("error" in newData) {
+      console.error(newData.error);
+      return;
+    }
+    setCompanyData(newData);
+  };
 
   return (
     <div class="relative container mx-auto flex flex-col gap-2 py-[49px]">
       <div class="w-full h-screen px-8">
-        <Show when={data() && data()} fallback={<div class="flex justify-center items-center p-10">Loading...</div>}>
+        <Show
+          when={companyData() && companyData()}
+          fallback={<div class="flex justify-center items-center p-10">Loading...</div>}
+        >
           {(d) => (
             <div class="w-full h-auto flex-col relative justify-start items-start flex gap-4">
               <div class="w-full flex flex-col bg-white dark:bg-black border-b border-neutral-200 dark:border-neutral-900 z-40 sticky top-[49px]">
@@ -180,7 +212,7 @@ export default function CompanyPage() {
                       {d().company.name}
                     </A>
                     <div class="text-xl font-bold">/</div>
-                    <div class="text-xl font-normal">{user().username}</div>
+                    <div class="text-xl font-normal">{userAuth().user?.name}</div>
                   </div>
                   <div class="justify-end items-center gap-2.5 flex">
                     <button
@@ -389,7 +421,10 @@ export default function CompanyPage() {
               </div>
               <div class="w-full flex flex-col opacity-70 items-center justify-center text-xs gap-2">
                 Last updated {dayjs(d().lastUpdated).format("Do MMM. YYYY, HH:mm:ss")}
-                <button class="text-md font-medium cursor-pointer flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-sm border border-black dark:border-white !border-opacity-10 p-1.5 px-2 hover:bg-black hover:bg-opacity-5 dark:hover:bg-white dark:hover:bg-opacity-5 active:bg-black active:bg-opacity-10 dark:active:bg-white dark:active:bg-opacity-10">
+                <button
+                  class="text-md font-medium cursor-pointer flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-sm border border-black dark:border-white !border-opacity-10 p-1.5 px-2 hover:bg-black hover:bg-opacity-5 dark:hover:bg-white dark:hover:bg-opacity-5 active:bg-black active:bg-opacity-10 dark:active:bg-white dark:active:bg-opacity-10"
+                  onClick={dataRefresh}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="14"
@@ -423,7 +458,7 @@ export default function CompanyPage() {
                             d().company.data.months[cuMonth()]?.total ?? 0
                           )}
                         </span>
-                        <span>{d().company.data.currency}</span>
+                        <span>{d().company.data.selectedCurrency}</span>
                       </div>
                     </div>
                   </div>

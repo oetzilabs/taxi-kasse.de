@@ -37,6 +37,12 @@ export function ApiStack({ stack }: StackContext) {
           description: "This is the default function",
         },
       },
+      "GET /data": {
+        function: {
+          handler: "packages/functions/src/data.handler",
+          description: "This is the data function, which handles all data requests for the frontend",
+        },
+      },
       "GET /session": {
         function: {
           handler: "packages/functions/src/session.handler",
@@ -56,15 +62,21 @@ export function ApiStack({ stack }: StackContext) {
           description: "This is the migrator function",
         },
       },
-      "POST /create": {
+      "POST /create/user": {
         function: {
           handler: "packages/functions/src/user.create",
           description: "This is the user creation function",
         },
       },
+      "POST /create/company": {
+        function: {
+          handler: "packages/functions/src/company.create",
+          description: "This is the user creation function",
+        },
+      },
     },
     cors: {
-      allowOrigins: ["*"],
+      allowOrigins: ["*", "http://localhost:3000"],
     },
   });
 

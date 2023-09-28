@@ -29,7 +29,7 @@ export const handler = AuthHandler({
         if (!claims.name) throw new Error("No name claim in token");
         if (!claims.email) throw new Error("No email claim in token");
         if (!claims.picture) throw new Error("No picture claim in token");
-        const [userExists] = await User.findByEmail(claims.email);
+        const userExists = await User.findByEmail(claims.email);
 
         if (input.provider === "google") {
           if (!userExists) {
