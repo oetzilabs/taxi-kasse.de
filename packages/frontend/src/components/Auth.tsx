@@ -4,12 +4,25 @@ import { parseCookie } from "solid-start";
 import { User } from "../../../core/src/entities/users";
 import { createContext, Setter } from "solid-js";
 
-type UseAuth = {
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  token: string | null;
-  user: User.Frontend | null;
-};
+type UseAuth =
+  | {
+      isLoading: true;
+      isAuthenticated: false;
+      token: null;
+      user: null;
+    }
+  | {
+      isLoading: false;
+      isAuthenticated: true;
+      token: string;
+      user: User.Frontend;
+    }
+  | {
+      isLoading: false;
+      isAuthenticated: false;
+      token: null;
+      user: null;
+    };
 
 export const AuthContext = createContext<[Accessor<UseAuth>, Setter<UseAuth>]>([
   (() => ({
@@ -23,6 +36,7 @@ export const AuthContext = createContext<[Accessor<UseAuth>, Setter<UseAuth>]>([
 
 export const AuthC = () => {
   const [AuthStore, setAuthStore] = useContext(AuthContext);
+
   createEffect(async () => {
     const cookie = parseCookie(document.cookie);
     const sessionToken = cookie["session"];
@@ -64,6 +78,7 @@ export const AuthC = () => {
             deletedAt: null,
             companyId: null,
             company: null,
+            day_entries: [],
             profile: {
               id: "1",
               image: "",

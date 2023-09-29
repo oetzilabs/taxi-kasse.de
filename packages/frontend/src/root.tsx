@@ -40,9 +40,11 @@ export default function Root() {
                   <AuthC />
                 </div>
               </nav>
-              <Routes>
-                <FileRoutes />
-              </Routes>
+              <div class="pt-[49px]">
+                <Routes>
+                  <FileRoutes />
+                </Routes>
+              </div>
             </AuthP>
           </ErrorBoundary>
         </Suspense>

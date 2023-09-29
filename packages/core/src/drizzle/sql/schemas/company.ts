@@ -2,6 +2,7 @@ import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { Entity } from "./entity";
 import { users } from "./users";
 import { relations } from "drizzle-orm";
+import { day_entries } from "./day_entry";
 
 export const companies = sqliteTable("companies", {
   ...Entity.defaults,
@@ -22,5 +23,6 @@ export const companyRelation = relations(companies, ({ one, many }) => ({
     fields: [companies.ownerId],
     references: [users.id],
   }),
+  day_entries: many(day_entries),
   employees: many(users),
 }));

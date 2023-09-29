@@ -62,16 +62,64 @@ export function ApiStack({ stack }: StackContext) {
           description: "This is the migrator function",
         },
       },
-      "POST /create/user": {
+      "POST /user/create": {
         function: {
           handler: "packages/functions/src/user.create",
           description: "This is the user creation function",
         },
       },
-      "POST /create/company": {
+      "POST /company/create": {
         function: {
           handler: "packages/functions/src/company.create",
-          description: "This is the user creation function",
+          description: "This is the company creation function",
+        },
+      },
+      "GET /user/all": {
+        function: {
+          handler: "packages/functions/src/user.listAll",
+          description: "This is the user listAll function",
+        },
+      },
+      "GET /user/company": {
+        function: {
+          handler: "packages/functions/src/user.company",
+          description: "This is the user company function",
+        },
+      },
+      "GET /user/calendar": {
+        function: {
+          handler: "packages/functions/src/user.calendar",
+          description: "This is the user calendar function",
+        },
+      },
+      "GET /user/statistics": {
+        function: {
+          handler: "packages/functions/src/user.statistics",
+          description: "This is the user statistics function",
+        },
+      },
+      "GET /user/hasCompany": {
+        function: {
+          handler: "packages/functions/src/user.hasCompany",
+          description: "This is the user hasCompany function",
+        },
+      },
+      "GET /company/statistics": {
+        function: {
+          handler: "packages/functions/src/company.statistics",
+          description: "This is the company statistics function",
+        },
+      },
+      "GET /company/all": {
+        function: {
+          handler: "packages/functions/src/company.listAll",
+          description: "This is the company listAll function",
+        },
+      },
+      "GET /company/search": {
+        function: {
+          handler: "packages/functions/src/company.search",
+          description: "This is the company search function",
         },
       },
     },

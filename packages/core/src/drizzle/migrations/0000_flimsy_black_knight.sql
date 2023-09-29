@@ -35,3 +35,19 @@ CREATE TABLE `companies` (
 	`email` text NOT NULL,
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
+--> statement-breakpoint
+CREATE TABLE `day_entries` (
+	`id` text PRIMARY KEY NOT NULL,
+	`created_at` integer DEFAULT (strftime('%s', 'now')) NOT NULL,
+	`updated_at` integer,
+	`deleted_at` integer,
+	`user_id` text NOT NULL,
+	`company_id` text NOT NULL,
+	`date` integer NOT NULL,
+	`total_distance` real NOT NULL,
+	`driven_distance` real NOT NULL,
+	`tour_count` integer NOT NULL,
+	`cash` real NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`company_id`) REFERENCES `companies`(`id`) ON UPDATE no action ON DELETE cascade
+);

@@ -42,6 +42,7 @@ export const findById = z.function(z.tuple([z.string()])).implement(async (input
     with: {
       profile: true,
       company: true,
+      day_entries: true,
     },
   });
 });
@@ -55,6 +56,12 @@ export const findByEmail = z.function(z.tuple([z.string()])).implement(async (in
     },
   });
 });
+
+export const setCompany = z
+  .function(z.tuple([z.string().uuid(), z.string().uuid()]))
+  .implement(async (userId, companyId) => {
+    return update({ id: userId, companyId });
+  });
 
 export const all = z.function(z.tuple([])).implement(async () => {
   return db.query.users.findMany({
@@ -104,6 +111,60 @@ export const getCompanyData = z.function(z.tuple([z.string().uuid()])).implement
   return cData;
 });
 
+export const statistics = z
+  .function(
+    z.tuple([
+      z.string().uuid(),
+      z.object({
+        from: z.date(),
+        to: z.date(),
+      }),
+    ])
+  )
+  .implement(async (id, range) => {
+    const cData = await db.query.users.findFirst({
+      where: (users, operations) => operations.eq(users.id, id),
+      with: {
+        day_entries: {
+          where: (day_entries, operations) =>
+            operations.and(operations.gte(day_entries.date, range.from), operations.lte(day_entries.date, range.to)),
+          orderBy: (fields, operators) => operators.asc(fields.date),
+        },
+      },
+    });
+    type NEntries = NonNullable<typeof cData>;
+    if (!cData) {
+      return [] as NEntries["day_entries"];
+    }
+    return cData.day_entries;
+  });
+export const calendar = z
+  .function(
+    z.tuple([
+      z.string().uuid(),
+      z.object({
+        from: z.date(),
+        to: z.date(),
+      }),
+    ])
+  )
+  .implement(async (id, range) => {
+    const cData = await db.query.users.findFirst({
+      where: (users, operations) => operations.eq(users.id, id),
+      with: {
+        day_entries: {
+          where: (day_entries, operations) =>
+            operations.and(operations.gte(day_entries.date, range.from), operations.lte(day_entries.date, range.to)),
+          orderBy: (fields, operators) => operators.asc(fields.date),
+        },
+      },
+    });
+    type NEntries = NonNullable<typeof cData>;
+    if (!cData) {
+      return [] as NEntries["day_entries"];
+    }
+    return cData.day_entries;
+  });
 export type Frontend = Awaited<ReturnType<typeof findById>>;
 
 export type Profile = ProfileSelect;

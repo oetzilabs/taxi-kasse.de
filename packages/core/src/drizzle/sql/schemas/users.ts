@@ -3,6 +3,7 @@ import { Entity } from "./entity";
 import { relations } from "drizzle-orm";
 import { profiles } from "./profile";
 import { companies } from "./company";
+import { day_entries } from "./day_entry";
 
 export const users = sqliteTable("users", {
   ...Entity.defaults,
@@ -15,7 +16,7 @@ export const users = sqliteTable("users", {
 export type UserSelect = typeof users.$inferSelect;
 export type UserInsert = typeof users.$inferInsert;
 
-export const userRelation = relations(users, ({ one }) => ({
+export const userRelation = relations(users, ({ one, many }) => ({
   profile: one(profiles, {
     fields: [users.id],
     references: [profiles.userId],
@@ -24,4 +25,5 @@ export const userRelation = relations(users, ({ one }) => ({
     fields: [users.companyId],
     references: [companies.id],
   }),
+  day_entries: many(day_entries),
 }));

@@ -4,203 +4,51 @@ import { For, Show, createEffect, createSignal } from "solid-js";
 import { RouteDataArgs, useRouteData } from "solid-start";
 import { createServerData$ } from "solid-start/server";
 import advancedFormat from "dayjs/plugin/advancedFormat";
-import { useAuth } from "../../components/Auth";
+import { useAuth } from "../../../components/Auth";
+import { API } from "../../../utils/api";
 dayjs.extend(advancedFormat);
 
-type Month =
-  | "January"
-  | "February"
-  | "March"
-  | "April"
-  | "May"
-  | "June"
-  | "July"
-  | "August"
-  | "September"
-  | "October"
-  | "November"
-  | "December";
-
-type Currency = "CHF" | "EUR" | "USD";
-type DistanceUnit = "km" | "mi";
-
-type MockData = {
-  currency: Currency[];
-  selectedCurrency: Currency;
-  distance: DistanceUnit;
-  number: string;
-  locale: string;
-  months: {
-    [key in Month]?: {
-      total: number;
-      entries: {
-        id: string;
-        date: Date;
-        fields: {
-          total: {
-            type: "distance";
-            value: number;
-          };
-          taken: {
-            type: "distance";
-            value: number;
-          };
-          tour: {
-            type: "currency";
-            value: number;
-          };
-          cash: {
-            type: "number";
-            value: number;
-          };
-        };
-      }[];
-    };
+type CalendarProps = {
+  user: {
+    token: string;
+    name: string;
   };
+  company: {
+    id: string;
+    name: string;
+  };
+  locale: string;
 };
 
-const fillMonth = (month: Month) => {
-  const months = Array.from(
-    new Set([
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ])
-  );
-
-  const monthIndex = months.indexOf(month);
-  if (monthIndex === -1) throw new Error("Invalid month");
-  const theMonth = dayjs().month(monthIndex);
-  const days = theMonth.daysInMonth();
-  return Array.from({ length: days }, (_, i) => ({
-    id: Math.random().toString(),
-    date: theMonth.startOf("month").add(i, "day").toDate(),
-    fields: {
-      total: {
-        type: "distance",
-        value: Math.floor(Math.random() * 100),
-      },
-      taken: {
-        type: "distance",
-        value: Math.floor(Math.random() * 100),
-      },
-      tour: {
-        type: "number",
-        value: Math.floor(Math.random() * 20),
-      },
-      cash: {
-        type: "currency",
-        value: Math.floor(Math.random() * 400),
-      },
-    },
-  })).sort((a, b) => dayjs(a.date).diff(b.date));
-};
-
-const fillYear = () => {
-  const months: Set<Month> = new Set([
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-  ]);
-  return [...months].reduce((acc, month) => {
-    const entries = fillMonth(month);
-    let total = 0;
-    for (const m of entries) {
-      total += m.fields.cash.value;
+function Calendar(props: CalendarProps) {
+  const [calendar, setCalendar] = createSignal<
+    Awaited<ReturnType<typeof API.calendar>> & {
+      lastUpdated: Date;
     }
-    return {
-      ...acc,
-      [month]: {
-        total,
-        entries,
-      },
-    };
-  }, {});
-};
-
-export function routeData({ params }: RouteDataArgs) {
-  const { company_name } = params;
-  const rd = createServerData$(
-    async ([companyName]) => {
-      const mockData: MockData = {
-        number: "",
-        selectedCurrency: "CHF",
-        currency: ["CHF"],
-        distance: "km",
-        locale: "de-CH",
-        months: fillYear(),
-      };
-      return {
-        company: {
-          name: companyName,
-          page: companyName,
-          data: mockData,
-        },
-        lastUpdated: new Date(),
-      };
-    },
-    {
-      key: [company_name],
-    }
-  );
-  return rd;
-}
-
-export default function CompanyPage() {
-  // const { company_name } = useParams();
-  const data = useRouteData<typeof routeData>();
-  const [companyData, setCompanyData] = createSignal(data());
-  const [cuDate, setDate] = createSignal(dayjs().toDate());
-  const cuMonth = () => dayjs(cuDate()).format("MMMM") as Month;
-  const [userAuth] = useAuth();
+  >();
+  const [from, setFrom] = createSignal(dayjs().startOf("month").toDate());
+  const [to, setTo] = createSignal(dayjs().endOf("month").toDate());
+  createEffect(async () => {
+    const response = await API.calendar(props.user.token, {
+      from: from(),
+      to: to(),
+    });
+    setCalendar({ ...response, lastUpdated: new Date() });
+  });
 
   const dataRefresh = async () => {
-    const token = userAuth().token;
-    if (!token) {
-      console.error("No token found.");
-      return;
-    }
-    // calls the api endpoint again and updates the data
-    const newData = await fetch(import.meta.env.VITE_API_URL + "/data", {
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `Bearer ${token}`,
-      },
-    }).then(
-      async (r) =>
-        (await r.json()) as
-          | { error: string }
-          | { company: { name: string; page: string; data: MockData }; lastUpdated: Date }
-    );
-    if ("error" in newData) {
-      console.error(newData.error);
-      return;
-    }
-    setCompanyData(newData);
+    const newData = await API.calendar(props.user.token, {
+      from: from(),
+      to: to(),
+    });
+    setCalendar({ ...newData, lastUpdated: new Date() });
   };
 
   return (
-    <div class="relative container mx-auto flex flex-col gap-2 py-[49px]">
+    <div class="relative container mx-auto flex flex-col gap-2">
       <div class="w-full h-screen px-8">
         <Show
-          when={companyData() && companyData()}
+          when={calendar() && calendar()}
           fallback={<div class="flex justify-center items-center p-10">Loading...</div>}
         >
           {(d) => (
@@ -208,11 +56,11 @@ export default function CompanyPage() {
               <div class="w-full flex flex-col bg-white dark:bg-black border-b border-neutral-200 dark:border-neutral-900 z-40 sticky top-[49px]">
                 <div class="self-stretch py-4 justify-between items-center inline-flex">
                   <div class="justify-start items-end gap-2 flex">
-                    <A href={`/${d().company.page}`} class="opacity-40 hover:opacity-60 text-2xl font-semibold">
-                      {d().company.name}
+                    <A href={`/company/${props.company.id}`} class="opacity-40 hover:opacity-60 text-2xl font-semibold">
+                      {props.company.name}
                     </A>
                     <div class="text-xl font-bold">/</div>
-                    <div class="text-xl font-normal">{userAuth().user?.name}</div>
+                    <div class="text-xl font-normal">{props.user.name}</div>
                   </div>
                   <div class="justify-end items-center gap-2.5 flex">
                     <button
@@ -241,7 +89,8 @@ export default function CompanyPage() {
                     <button
                       class="p-2 flex gap-2 items-center justify-center text-base font-bold bg-black rounded-sm border-black !border-opacity-10 dark:bg-white dark:border-white text-white dark:text-black"
                       onClick={() => {
-                        setDate((md) => dayjs(md).subtract(1, "month").toDate());
+                        setFrom((md) => dayjs(md).subtract(1, "month").toDate());
+                        setTo((md) => dayjs(md).subtract(1, "month").endOf("month").toDate());
                       }}
                       aria-label="Previous month"
                     >
@@ -263,7 +112,8 @@ export default function CompanyPage() {
                     <button
                       class="p-2 flex gap-2 items-center justify-center text-base font-bold bg-black rounded-sm border-black !border-opacity-10 dark:bg-white dark:border-white text-white dark:text-black"
                       onClick={() => {
-                        setDate((md) => dayjs(md).add(1, "month").toDate());
+                        setFrom((md) => dayjs(md).add(1, "month").toDate());
+                        setTo((md) => dayjs(md).add(1, "month").endOf("month").toDate());
                       }}
                       aria-label="Next month"
                     >
@@ -282,7 +132,7 @@ export default function CompanyPage() {
                         <path d="m12 5 7 7-7 7" />
                       </svg>
                     </button>
-                    <div class="text-xl font-bold">{dayjs(cuDate()).format("MMMM YYYY")}</div>
+                    <div class="text-xl font-bold">{dayjs(from()).format("MMMM YYYY")}</div>
                   </div>
                   <div class="justify-start items-center gap-2.5 flex">
                     <button
@@ -351,7 +201,7 @@ export default function CompanyPage() {
                 </div>
               </div>
               <div class="flex w-full flex-grow relative bg-white rounded-sm border border-black dark:border-white dark:bg-black !border-opacity-10">
-                <Show when={d().company.data.months[cuMonth()]?.entries.length === 0}>
+                <Show when={(d()?.calendar ?? []).length === 0}>
                   <div class="flex flex-col gap-2 items-center justify-center w-full h-full p-20">
                     <div class="opacity-10 flex flex-col items-center justify-center gap-2">
                       <svg
@@ -393,25 +243,18 @@ export default function CompanyPage() {
                     </div>
                   </div>
                 </Show>
-                <Show when={(d().company.data.months[cuMonth()]?.entries.length ?? 0) > 0}>
+                <Show when={(d()?.calendar ?? []).length > 0}>
                   <div class="flex flex-col gap-2 items-center justify-center w-full">
-                    <For each={d().company.data.months[cuMonth()]?.entries}>
+                    <For each={d()?.calendar ?? []}>
                       {(entry) => (
                         <div class="flex flex-col gap-2 w-full p-2 last:border-none border-b border-neutral-200 dark:border-neutral-800">
                           <div class="flex w-full justify-between">
                             <div class="font-medium">{dayjs(entry.date).format("Do MMM. YYYY")}</div>
-                            <div class="">
-                              {entry.fields.total.value} {d().company.data[entry.fields.total.type]}
-                            </div>
+                            <div class="">{entry.total_distance} km</div>
                           </div>
                           <div class="flex w-full justify-between">
-                            <div class="font-medium">
-                              {entry.fields.taken.value} {d().company.data[entry.fields.taken.type]}
-                            </div>
-                            <div class="font-bold">
-                              {new Intl.NumberFormat(d().company.data.locale).format(entry.fields.cash.value ?? 0)}{" "}
-                              {d().company.data[entry.fields.cash.type]}
-                            </div>
+                            <div class="font-medium">{entry.driven_distance} km</div>
+                            <div class="font-bold">{new Intl.NumberFormat(props.locale).format(entry.cash)} CHF</div>
                           </div>
                         </div>
                       )}
@@ -453,12 +296,8 @@ export default function CompanyPage() {
                   <div class="justify-end items-center gap-2.5 flex w-max">
                     <div class="p-2.5 justify-center items-center gap-2.5 flex">
                       <div class="text-xl font-bold flex gap-2">
-                        <span>
-                          {new Intl.NumberFormat(d().company.data.locale).format(
-                            d().company.data.months[cuMonth()]?.total ?? 0
-                          )}
-                        </span>
-                        <span>{d().company.data.selectedCurrency}</span>
+                        <span>total</span>
+                        <span>CHF</span>
                       </div>
                     </div>
                   </div>
@@ -469,5 +308,28 @@ export default function CompanyPage() {
         </Show>
       </div>
     </div>
+  );
+}
+
+export default function CompanyPage() {
+  // const { company_name } = useParams();
+  const [user] = useAuth();
+  return (
+    <Show when={user() && user()}>
+      {(u) => (
+        <Show when={u().token && u().token}>
+          {(t) => (
+            <Calendar
+              user={{
+                token: t(),
+                name: u().user?.name ?? "",
+              }}
+              company={{ id: u().user?.company?.id ?? "", name: u().user?.company?.name ?? "" }}
+              locale={u().user?.profile.locale ?? "en"}
+            />
+          )}
+        </Show>
+      )}
+    </Show>
   );
 }
