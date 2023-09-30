@@ -5,8 +5,9 @@ import { RouteDataArgs, useRouteData } from "solid-start";
 import { createServerAction$, createServerData$ } from "solid-start/server";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { useAuth } from "../../../components/Auth";
-import { API } from "../../../utils/api";
+import { API, calendarQueryZod } from "../../../utils/api";
 import { Portal } from "solid-js/web";
+import { createQuery, useQueryClient } from "@tanstack/solid-query";
 dayjs.extend(advancedFormat);
 
 const Modes = {
@@ -14,7 +15,7 @@ const Modes = {
   CREATE: "CREATE",
 } as const;
 
-type CalendarProps = {
+type CalendarWrapperProps = {
   user: {
     token: string;
     name: string;
@@ -26,30 +27,26 @@ type CalendarProps = {
   locale: string;
 };
 
-function Calendar(props: CalendarProps) {
+function CalendarWrapper(props: CalendarWrapperProps) {
   const [mode, setMode] = createSignal<keyof typeof Modes>(Modes.CREATE);
-  const [calendar, setCalendar] = createSignal<
-    Awaited<ReturnType<typeof API.calendar>> & {
-      lastUpdated: Date;
-    }
-  >();
-  const [from, setFrom] = createSignal(dayjs().startOf("month").toDate());
-  const [to, setTo] = createSignal(dayjs().endOf("month").toDate());
-  createEffect(async () => {
-    const response = await API.calendar(props.user.token, {
-      from: from(),
-      to: to(),
-    });
-    setCalendar({ ...response, lastUpdated: new Date() });
+
+  const [range, setRange] = createSignal({
+    from: dayjs().startOf("month").toDate(),
+    to: dayjs().endOf("month").toDate(),
   });
 
-  const dataRefresh = async () => {
-    const newData = await API.calendar(props.user.token, {
-      from: from(),
-      to: to(),
-    });
-    setCalendar({ ...newData, lastUpdated: new Date() });
-  };
+  const state = createQuery(
+    () => ["calendar", props.user.token, range().from.toISOString(), range().to.toISOString()],
+    () => {
+      return API.calendarQuery(props.user.token, range());
+    },
+    {
+      refetchInterval: 5 * 1000,
+      keepPreviousData: true,
+      refetchOnWindowFocus: false,
+    }
+  );
+  const queryClient = useQueryClient();
 
   const [newEntryOpen, setNewEntryOpen] = createSignal(false);
 
@@ -138,7 +135,7 @@ function Calendar(props: CalendarProps) {
     <div class="relative container mx-auto flex flex-col gap-2">
       <div class="w-full h-screen px-8">
         <Show
-          when={calendar() && calendar()}
+          when={!state.isLoading && state.data}
           fallback={<div class="flex justify-center items-center p-10">Loading...</div>}
         >
           {(d) => (
@@ -178,9 +175,12 @@ function Calendar(props: CalendarProps) {
                   <div class="justify-start items-center gap-2.5 flex">
                     <button
                       class="p-2 flex gap-2 items-center justify-center text-base font-bold bg-black rounded-sm border-black !border-opacity-10 dark:bg-white dark:border-white text-white dark:text-black"
-                      onClick={() => {
-                        setFrom((md) => dayjs(md).subtract(1, "month").toDate());
-                        setTo((md) => dayjs(md).subtract(1, "month").endOf("month").toDate());
+                      onClick={async () => {
+                        setRange((md) => ({
+                          from: dayjs(md.from).subtract(1, "month").startOf("month").toDate(),
+                          to: dayjs(md.to).subtract(1, "month").toDate(),
+                        }));
+                        await queryClient.invalidateQueries(["calendar"]);
                       }}
                       aria-label="Previous month"
                     >
@@ -201,9 +201,13 @@ function Calendar(props: CalendarProps) {
                     </button>
                     <button
                       class="p-2 flex gap-2 items-center justify-center text-base font-bold bg-black rounded-sm border-black !border-opacity-10 dark:bg-white dark:border-white text-white dark:text-black"
-                      onClick={() => {
-                        setFrom((md) => dayjs(md).add(1, "month").toDate());
-                        setTo((md) => dayjs(md).add(1, "month").endOf("month").toDate());
+                      onClick={async () => {
+                        setRange((md) => ({
+                          from: dayjs(md.from).add(1, "month").startOf("month").toDate(),
+                          to: dayjs(md.to).add(1, "month").toDate(),
+                        }));
+
+                        await queryClient.invalidateQueries(["calendar"]);
                       }}
                       aria-label="Next month"
                     >
@@ -222,7 +226,7 @@ function Calendar(props: CalendarProps) {
                         <path d="m12 5 7 7-7 7" />
                       </svg>
                     </button>
-                    <div class="text-xl font-bold truncate">{dayjs(from()).format("MMMM YYYY")}</div>
+                    <div class="text-xl font-bold truncate">{dayjs(range().from).format("MMMM YYYY")}</div>
                   </div>
                   <div class="justify-start items-center gap-2.5 flex">
                     <button
@@ -312,7 +316,7 @@ function Calendar(props: CalendarProps) {
                 </div>
               </div>
               <div class="flex w-full flex-grow relative bg-white rounded-sm border border-black dark:border-white dark:bg-black !border-opacity-10">
-                <Show when={(d()?.calendar ?? []).length === 0}>
+                <Show when={(d().calendar ?? []).length === 0}>
                   <div class="flex flex-col gap-2 items-center justify-center w-full h-full p-20">
                     <div class="opacity-10 flex flex-col items-center justify-center gap-2">
                       <svg
@@ -432,7 +436,10 @@ function Calendar(props: CalendarProps) {
                 Last updated {dayjs(d().lastUpdated).format("Do MMM. YYYY, HH:mm:ss")}
                 <button
                   class="text-md font-medium cursor-pointer flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-sm border border-black dark:border-white !border-opacity-10 p-1.5 px-2 hover:bg-black hover:bg-opacity-5 dark:hover:bg-white dark:hover:bg-opacity-5 active:bg-black active:bg-opacity-10 dark:active:bg-white dark:active:bg-opacity-10"
-                  onClick={dataRefresh}
+                  onClick={async () => {
+                    await queryClient.invalidateQueries(["calendar"]);
+                  }}
+                  disabled={state.isFetching}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -521,7 +528,7 @@ function Calendar(props: CalendarProps) {
                     onInput={(e) => {
                       setNewEntryData((d) => ({ ...d, date: dayjs(e.currentTarget.value).toDate() }));
                     }}
-                    disabled={newEntryState.pending}
+                    disabled={newEntryState.pending || updateEntryState.pending}
                     class="w-full rounded-sm bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
                   />
                 </label>
@@ -536,7 +543,7 @@ function Calendar(props: CalendarProps) {
                     onInput={(e) => {
                       setNewEntryData((d) => ({ ...d, distance: parseFloat(e.currentTarget.value) }));
                     }}
-                    disabled={newEntryState.pending}
+                    disabled={newEntryState.pending || updateEntryState.pending}
                     class="w-full rounded-sm bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
                   />
                 </label>
@@ -551,7 +558,7 @@ function Calendar(props: CalendarProps) {
                     onInput={(e) => {
                       setNewEntryData((d) => ({ ...d, driven_distance: parseFloat(e.currentTarget.value) }));
                     }}
-                    disabled={newEntryState.pending}
+                    disabled={newEntryState.pending || updateEntryState.pending}
                     class="w-full rounded-sm bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
                   />
                 </label>
@@ -562,7 +569,7 @@ function Calendar(props: CalendarProps) {
                     name="cash"
                     min="0"
                     step="0.01"
-                    disabled={newEntryState.pending}
+                    disabled={newEntryState.pending || updateEntryState.pending}
                     value={newEntryData().cash}
                     onInput={(e) => {
                       setNewEntryData((d) => ({ ...d, cash: parseFloat(e.currentTarget.value) }));
@@ -572,7 +579,7 @@ function Calendar(props: CalendarProps) {
                 </label>
                 <button
                   type="button"
-                  disabled={newEntryState.pending}
+                  disabled={newEntryState.pending || updateEntryState.pending}
                   class="w-full rounded-sm bg-black text-white py-2"
                   onClick={async () => {
                     if (mode() === Modes.CREATE) {
@@ -587,7 +594,8 @@ function Calendar(props: CalendarProps) {
                         token: props.user.token,
                       });
                     }
-                    await dataRefresh();
+                    await queryClient.invalidateQueries(["calendar"]);
+
                     setNewEntryOpen(false);
                   }}
                 >
@@ -610,7 +618,7 @@ export default function CompanyPage() {
       {(u) => (
         <Show when={u().token && u().token}>
           {(t) => (
-            <Calendar
+            <CalendarWrapper
               user={{
                 token: t(),
                 name: u().user?.name ?? "",

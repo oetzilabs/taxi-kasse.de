@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import { z } from "zod";
 import { User } from "@taxi-kassede/core/entities/users";
 import { Company } from "../../../core/src/entities/company";
+import { createMutation, createQuery } from "@tanstack/solid-query";
 
 export * as API from "./api";
 
@@ -184,3 +185,39 @@ export const updateDayEntry = z
     });
     return x.json() as ReturnType<typeof User.updateDayEntry>;
   });
+
+export const calendarQueryZod = z.function(
+  z.tuple([
+    z.string(),
+    z.object({
+      from: z.date(),
+      to: z.date(),
+    }),
+  ])
+);
+export const calendarQuery = calendarQueryZod.implement(async (token, range) =>
+  fetch(
+    `${API_BASE}/user/calendar?from=${encodeURIComponent(dayjs(range.from).toISOString())}&to=${encodeURIComponent(
+      dayjs(range.to).toISOString()
+    )}`,
+    {
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    }
+  )
+    .then(
+      (res) =>
+        res.json() as Promise<
+          | { error: null; calendar: NonNullable<Awaited<ReturnType<typeof User.findById>>>["day_entries"] }
+          | {
+              error: string;
+              calendar: null;
+            }
+        >
+    )
+    .then((res) => {
+      if (res.error) throw new Error(res.error);
+      return { ...res, lastUpdated: new Date() };
+    })
+);

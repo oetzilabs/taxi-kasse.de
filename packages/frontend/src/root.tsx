@@ -3,6 +3,9 @@ import { Suspense, createEffect, createSignal, onCleanup } from "solid-js";
 import { Body, ErrorBoundary, FileRoutes, Head, Html, Meta, Routes, Scripts, Title } from "solid-start";
 import { AuthC, AuthP } from "./components/Auth";
 import "./root.css";
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/solid-query";
+
+const queryClient = new QueryClient();
 
 export default function Root() {
   // colormode
@@ -34,18 +37,20 @@ export default function Root() {
       <Body class="bg-white dark:bg-black text-black dark:text-white">
         <Suspense>
           <ErrorBoundary>
-            <AuthP>
-              <nav class="flex items-center justify-between flex-wrap bg-white dark:bg-black border-b border-black/5 dark:border-white/5 fixed w-screen top-0 z-50">
-                <div class="flex items-center justify-between flex-wrap  container mx-auto py-2 px-8">
-                  <AuthC />
+            <QueryClientProvider client={queryClient}>
+              <AuthP>
+                <nav class="flex items-center justify-between flex-wrap bg-white dark:bg-black border-b border-black/5 dark:border-white/5 fixed w-screen top-0 z-50">
+                  <div class="flex items-center justify-between flex-wrap  container mx-auto py-2 px-8">
+                    <AuthC />
+                  </div>
+                </nav>
+                <div class="pt-[49px]">
+                  <Routes>
+                    <FileRoutes />
+                  </Routes>
                 </div>
-              </nav>
-              <div class="pt-[49px]">
-                <Routes>
-                  <FileRoutes />
-                </Routes>
-              </div>
-            </AuthP>
+              </AuthP>
+            </QueryClientProvider>
           </ErrorBoundary>
         </Suspense>
         <Scripts />

@@ -25,6 +25,7 @@
     "@solidjs/meta": "^0.28.6",
     "@solidjs/router": "^0.8.3",
     "@t3-oss/env-core": "^0.6.1",
+    "@tanstack/solid-query": "^4.35.3",
     "dayjs": "^1.11.10",
     "solid-js": "^1.7.12",
     "solid-start": "^0.3.6",
