@@ -6,6 +6,7 @@ import { API, statistics } from "../utils/api";
 import { z } from "zod";
 import dayjs from "dayjs";
 import { A } from "@solidjs/router";
+import { createQuery, useQueryClient } from "@tanstack/solid-query";
 
 // Goal: This is the main page `/`
 // If the user is logged in, show a welcome message
@@ -46,26 +47,19 @@ function UserDashboard(props: UserDashboardProps) {
     from: dayjs().startOf("week").toDate(),
     to: dayjs().endOf("week").toDate(),
   });
-  const [stats, setStats] = createSignal<Awaited<ReturnType<typeof API.statistics>>>();
-  const [company, setCompany] = createSignal<Awaited<ReturnType<typeof API.company>>>();
-
-  onMount(async () => {
-    const statResponse = await API.statistics(props.token, range());
-    const company = await API.company(props.token);
-    setCompany(company);
-    setStats(statResponse);
-  });
-
-  const refresh = async () => {
-    const userStats = await API.statistics(props.token, range());
-    const company = await API.company(props.token);
-    setStats(userStats);
-    setCompany(company);
-  };
+  const stats = createQuery(
+    () => ["stats"],
+    () => API.statistics(props.token, range())
+  );
+  const company = createQuery(
+    () => ["company"],
+    () => API.company(props.token)
+  );
+  const queryClient = useQueryClient();
 
   return (
     <Show
-      when={company() && company()?.company && stats() && stats()}
+      when={!company.isLoading && company.data?.company && !stats.isLoading && stats.data}
       fallback={
         <div class="flex flex-col gap-4">
           <div class="flex flex-col gap-4">
@@ -84,7 +78,10 @@ function UserDashboard(props: UserDashboardProps) {
             <button
               aria-label="Refresh"
               class="flex flex-row gap-2 items-center bg-white dark:bg-black border border-neutral-100 dark:border-neutral-900 rounded-sm px-2 py-1 hover:bg-neutral-100 dark:hover:bg-neutral-900 active:bg-neutral-200 dark:active:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-100 dark:focus:ring-neutral-900"
-              onClick={refresh}
+              onClick={async () => {
+                await queryClient.invalidateQueries(["stats"]);
+                await queryClient.invalidateQueries(["company"]);
+              }}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -125,7 +122,7 @@ function UserDashboard(props: UserDashboardProps) {
               unit="currency"
             />
           </div>
-          <Show when={company() && company()?.company}>
+          <Show when={!company.isLoading && company.data?.company}>
             {(c) => (
               <div class="flex flex-col">
                 <A href={`/company/${c().id}`}>

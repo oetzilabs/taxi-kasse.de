@@ -106,6 +106,30 @@ export const company = z.function(z.tuple([z.string()])).implement(async (token)
   >;
 });
 
+export const companyQueryZod = z.function(z.tuple([z.string()]));
+
+export const companyQuery = companyQueryZod.implement(async (token) =>
+  fetch(`${API_BASE}/user/company`, {
+    headers: {
+      authorization: `Bearer ${token}`,
+    },
+  })
+    .then(
+      (res) =>
+        res.json() as Promise<
+          | { error: null; company: NonNullable<Awaited<ReturnType<typeof User.findById>>>["company"] }
+          | {
+              error: string;
+              company: null;
+            }
+        >
+    )
+    .then((res) => {
+      if (res.error) throw new Error(res.error);
+      return { ...res, lastUpdated: new Date() };
+    })
+);
+
 export const calendar = z
   .function(
     z.tuple([
@@ -218,6 +242,33 @@ export const calendarQuery = calendarQueryZod.implement(async (token, range) =>
     )
     .then((res) => {
       if (res.error) throw new Error(res.error);
+      return { ...res, lastUpdated: new Date() };
+    })
+);
+
+export const statisticsQueryZod = z.function(
+  z.tuple([
+    z.string(),
+    z.object({
+      from: z.date(),
+      to: z.date().default(new Date()),
+    }),
+  ])
+);
+
+export const statisticsQuery = statisticsQueryZod.implement(async (token, range) =>
+  fetch(
+    `${API_BASE}/user/statistics?from=${encodeURIComponent(dayjs(range.from).toISOString())}&to=${encodeURIComponent(
+      dayjs(range.to).toISOString()
+    )}`,
+    {
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    }
+  )
+    .then((res) => res.json() as ReturnType<typeof User.statistics>)
+    .then((res) => {
       return { ...res, lastUpdated: new Date() };
     })
 );
