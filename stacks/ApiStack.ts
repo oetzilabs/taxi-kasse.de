@@ -92,6 +92,18 @@ export function ApiStack({ stack }: StackContext) {
           description: "This is the user calendar function",
         },
       },
+      "POST /user/day_entry/create": {
+        function: {
+          handler: "packages/functions/src/user.createDayEntry",
+          description: "This is the user createDayEntry function",
+        },
+      },
+      "POST /user/day_entry/update": {
+        function: {
+          handler: "packages/functions/src/user.updateDayEntry",
+          description: "This is the user updateDayEntry function",
+        },
+      },
       "GET /user/statistics": {
         function: {
           handler: "packages/functions/src/user.statistics",

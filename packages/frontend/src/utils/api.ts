@@ -134,3 +134,53 @@ export const calendar = z
         }
     >;
   });
+
+export const createDayEntry = z
+  .function(
+    z.tuple([
+      z.string(),
+      z.object({
+        date: z.date(),
+        total_distance: z.number(),
+        driven_distance: z.number(),
+        tour_count: z.number(),
+        cash: z.number(),
+      }),
+    ])
+  )
+  .implement(async (token, input) => {
+    const x = await fetch(`${API_BASE}/user/day_entry/create`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    });
+    return x.json() as ReturnType<typeof User.createDayEntry>;
+  });
+
+export const updateDayEntry = z
+  .function(
+    z.tuple([
+      z.string(),
+      z.object({
+        id: z.string(),
+        total_distance: z.number(),
+        driven_distance: z.number(),
+        tour_count: z.number(),
+        cash: z.number(),
+      }),
+    ])
+  )
+  .implement(async (token, input) => {
+    const x = await fetch(`${API_BASE}/user/day_entry/update`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    });
+    return x.json() as ReturnType<typeof User.updateDayEntry>;
+  });

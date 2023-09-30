@@ -61,7 +61,7 @@ export default function CreateCompanyPage() {
         email: params.email,
         phonenumber: params.phonenumber,
       });
-      redirect(`/company/${x.id}`);
+      return redirect(`/company/${x.id}`);
     }
   );
 

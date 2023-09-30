@@ -128,7 +128,7 @@ export const AuthC = () => {
       <Show
         when={!AuthStore().isAuthenticated}
         fallback={
-          <button onClick={signOut} class="ml-4 text-black py-1 px-2 rounded">
+          <button onClick={signOut} class="ml-4 py-1 px-2 rounded">
             Sign out
           </button>
         }

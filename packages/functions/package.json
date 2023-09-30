@@ -8,14 +8,14 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.122",
-    "@types/node": "^20.7.1",
-    "sst": "^2.26.8",
+    "@types/node": "^20.8.0",
+    "sst": "^2.26.9",
     "vitest": "^0.34.6"
   },
   "dependencies": {
-    "dayjs": "1.11.10",
     "@libsql/client": "0.3.5",
     "@libsql/linux-x64-gnu": "0.1.23",
+    "dayjs": "1.11.10",
     "zod": "^3.22.2"
   }
 }

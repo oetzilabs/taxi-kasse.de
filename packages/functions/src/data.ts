@@ -74,8 +74,6 @@ export const handler = ApiHandler(async (x) => {
   response.user = user;
   response.company = user.company;
 
-  console.log("response", response);
-
   return {
     statusCode: 200,
     headers: {

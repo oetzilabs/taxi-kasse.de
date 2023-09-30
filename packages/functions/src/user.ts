@@ -1,5 +1,5 @@
 import { User } from "@taxi-kassede/core/entities/users";
-import { ApiHandler, useQueryParams } from "sst/node/api";
+import { ApiHandler, useBody, useQueryParams } from "sst/node/api";
 import { getUser } from "./utils";
 import dayjs from "dayjs";
 
@@ -252,6 +252,175 @@ export const calendar = ApiHandler(async (x) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ error: null, calendar }),
+    statusCode: 200,
+  };
+});
+
+export const createDayEntry = ApiHandler(async (x) => {
+  const user = await getUser(x);
+  if (user instanceof Error) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error: user.message,
+        entry: null,
+      }),
+      statusCode: 200,
+    };
+  }
+  if (!user || !user.id) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error: "No user found",
+        entry: null,
+      }),
+      statusCode: 200,
+    };
+  }
+
+  const user_ = await User.findById(user.id);
+  if (!user_) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error: "No user found",
+        entry: null,
+      }),
+      statusCode: 200,
+    };
+  }
+  const body = useBody();
+  if (!body) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error: "No body found",
+        entry: null,
+      }),
+      statusCode: 200,
+    };
+  }
+  const data = JSON.parse(body);
+  const date = dayjs(data.date).toDate();
+  const e: Awaited<ReturnType<typeof User.createDayEntry>> | Error = await User.createDayEntry(user_.id, {
+    date,
+    total_distance: data.total_distance,
+    driven_distance: data.driven_distance,
+    tour_count: data.tour_count,
+    cash: data.cash,
+  }).catch((e) => {
+    return e;
+  });
+  if (e instanceof Error) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error: e.message,
+        entry: null,
+      }),
+      statusCode: 422,
+    };
+  }
+  return {
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ error: null, entry: e }),
+    statusCode: 200,
+  };
+});
+
+export const updateDayEntry = ApiHandler(async (x) => {
+  const user = await getUser(x);
+  if (user instanceof Error) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error: user.message,
+        entry: null,
+      }),
+      statusCode: 200,
+    };
+  }
+  if (!user || !user.id) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error: "No user found",
+        entry: null,
+      }),
+      statusCode: 200,
+    };
+  }
+
+  const user_ = await User.findById(user.id);
+  if (!user_) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error: "No user found",
+        entry: null,
+      }),
+      statusCode: 200,
+    };
+  }
+  const body = useBody();
+  if (!body) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error: "No body found",
+        entry: null,
+      }),
+      statusCode: 200,
+    };
+  }
+  const data = JSON.parse(body);
+  const e: Awaited<ReturnType<typeof User.updateDayEntry>> | Error = await User.updateDayEntry(user_.id, {
+    id: data.id,
+    total_distance: data.total_distance,
+    driven_distance: data.driven_distance,
+    tour_count: data.tour_count,
+    cash: data.cash,
+  }).catch((e) => {
+    return e;
+  });
+  if (e instanceof Error) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error: e.message,
+        entry: null,
+      }),
+      statusCode: 422,
+    };
+  }
+  return {
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ error: null, entry: e }),
     statusCode: 200,
   };
 });

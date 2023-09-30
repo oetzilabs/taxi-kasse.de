@@ -2,7 +2,8 @@ import { eq, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { db } from "../drizzle/sql";
-import { ProfileSelect, profiles, users } from "../drizzle/sql/schema";
+import { ProfileSelect, day_entries, profiles, users } from "../drizzle/sql/schema";
+import dayjs from "dayjs";
 
 export * as User from "./users";
 
@@ -165,6 +166,116 @@ export const calendar = z
     }
     return cData.day_entries;
   });
+
+export const createDayEntry = z
+  .function(
+    z.tuple([
+      z.string().uuid(),
+      z.object({
+        date: z.date(),
+        total_distance: z.number(),
+        driven_distance: z.number(),
+        tour_count: z.number(),
+        cash: z.number(),
+      }),
+    ])
+  )
+  .implement(async (id, input) => {
+    const cData = await db.query.users.findFirst({
+      where: (users, operations) => operations.eq(users.id, id),
+      with: {
+        day_entries: {
+          where: (day_entries, operations) => operations.eq(day_entries.date, input.date),
+        },
+      },
+    });
+    type NEntries = NonNullable<typeof cData>;
+    if (!cData) {
+      return [] as NEntries["day_entries"];
+    }
+    if (!cData.companyId) {
+      return [] as NEntries["day_entries"];
+    }
+    const existsX = await db.query.day_entries.findFirst({
+      where: (day_entries, operations) =>
+        operations.and(
+          operations.lte(day_entries.date, dayjs(input.date).endOf("day").toDate()),
+          operations.gte(day_entries.date, dayjs(input.date).startOf("day").toDate()),
+          operations.eq(day_entries.ownerId, id),
+          operations.eq(day_entries.companyId, cData.companyId!)
+        ),
+    });
+    if (existsX) {
+      throw new Error("Day entry already exists");
+    }
+    const [x] = await db
+      .insert(day_entries)
+      .values({
+        ownerId: id,
+        cash: input.cash,
+        date: input.date,
+        companyId: cData.companyId,
+        driven_distance: input.driven_distance,
+        total_distance: input.total_distance,
+        tour_count: input.tour_count,
+      })
+      .returning();
+    return x;
+  });
+
+export const updateDayEntry = z
+  .function(
+    z.tuple([
+      z.string().uuid(),
+      z.object({
+        id: z.string().uuid(),
+        total_distance: z.number(),
+        driven_distance: z.number(),
+        tour_count: z.number(),
+        cash: z.number(),
+      }),
+    ])
+  )
+  .implement(async (id, input) => {
+    const cData = await db.query.users.findFirst({
+      where: (users, operations) => operations.eq(users.id, id),
+      with: {
+        day_entries: {
+          where: (day_entries, operations) => operations.eq(day_entries.id, input.id),
+        },
+      },
+    });
+    type NEntries = NonNullable<typeof cData>;
+    if (!cData) {
+      return [] as NEntries["day_entries"];
+    }
+    if (!cData.companyId) {
+      return [] as NEntries["day_entries"];
+    }
+    const existsX = await db.query.day_entries.findFirst({
+      where: (day_entries, operations) =>
+        operations.and(
+          operations.eq(day_entries.id, input.id),
+          operations.eq(day_entries.ownerId, id),
+          operations.eq(day_entries.companyId, cData.companyId!)
+        ),
+    });
+    if (!existsX) {
+      throw new Error("Day entry does not exist");
+    }
+    const [x] = await db
+      .update(day_entries)
+      .set({
+        cash: input.cash,
+        driven_distance: input.driven_distance,
+        total_distance: input.total_distance,
+        tour_count: input.tour_count,
+      })
+      .where(eq(day_entries.id, existsX.id))
+      .returning();
+    return x;
+  });
+
 export type Frontend = Awaited<ReturnType<typeof findById>>;
 
 export type Profile = ProfileSelect;

@@ -2,11 +2,17 @@ import { A } from "@solidjs/router";
 import dayjs from "dayjs";
 import { For, Show, createEffect, createSignal } from "solid-js";
 import { RouteDataArgs, useRouteData } from "solid-start";
-import { createServerData$ } from "solid-start/server";
+import { createServerAction$, createServerData$ } from "solid-start/server";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { useAuth } from "../../../components/Auth";
 import { API } from "../../../utils/api";
+import { Portal } from "solid-js/web";
 dayjs.extend(advancedFormat);
+
+const Modes = {
+  EDIT: "EDIT",
+  CREATE: "CREATE",
+} as const;
 
 type CalendarProps = {
   user: {
@@ -21,6 +27,7 @@ type CalendarProps = {
 };
 
 function Calendar(props: CalendarProps) {
+  const [mode, setMode] = createSignal<keyof typeof Modes>(Modes.CREATE);
   const [calendar, setCalendar] = createSignal<
     Awaited<ReturnType<typeof API.calendar>> & {
       lastUpdated: Date;
@@ -43,6 +50,89 @@ function Calendar(props: CalendarProps) {
     });
     setCalendar({ ...newData, lastUpdated: new Date() });
   };
+
+  const [newEntryOpen, setNewEntryOpen] = createSignal(false);
+
+  const [newEntryState, createEntry] = createServerAction$(
+    async (
+      params: {
+        token: string;
+        date: Date;
+        distance: number;
+        driven_distance: number;
+        tour_count: number;
+        cash: number;
+      },
+      { request }
+    ) => {
+      const entry = await API.createDayEntry(params.token, {
+        date: dayjs(params.date).toDate(),
+        total_distance: params.distance,
+        driven_distance: params.driven_distance,
+        cash: params.cash,
+        tour_count: params.tour_count,
+      });
+      console.log(entry);
+    }
+  );
+
+  const [updateEntryState, updateEntry] = createServerAction$(
+    async (
+      params: {
+        id: string;
+        token: string;
+        distance: number;
+        driven_distance: number;
+        tour_count: number;
+        cash: number;
+      },
+      { request }
+    ) => {
+      await API.updateDayEntry(params.token, {
+        id: params.id,
+        total_distance: params.distance,
+        driven_distance: params.driven_distance,
+        cash: params.cash,
+        tour_count: params.tour_count,
+      });
+    }
+  );
+
+  const [editDayId, setEditDayId] = createSignal<string | null>(null);
+
+  const [newEntryData, setNewEntryData] = createSignal<{
+    date: Date;
+    distance: number;
+    driven_distance: number;
+    tour_count: number;
+    cash: number;
+  }>({
+    date: new Date(),
+    distance: 0,
+    driven_distance: 0,
+    tour_count: 0,
+    cash: 0,
+  });
+
+  createEffect(() => {
+    // keybind for closing the modal
+    const keydownHandler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setNewEntryOpen(false);
+        setEditDayId(null);
+        setMode(Modes.CREATE);
+        setNewEntryData({
+          date: new Date(),
+          distance: 0,
+          driven_distance: 0,
+          tour_count: 0,
+          cash: 0,
+        });
+      }
+    };
+    window.addEventListener("keydown", keydownHandler);
+    return () => window.removeEventListener("keydown", keydownHandler);
+  });
 
   return (
     <div class="relative container mx-auto flex flex-col gap-2">
@@ -132,9 +222,30 @@ function Calendar(props: CalendarProps) {
                         <path d="m12 5 7 7-7 7" />
                       </svg>
                     </button>
-                    <div class="text-xl font-bold">{dayjs(from()).format("MMMM YYYY")}</div>
+                    <div class="text-xl font-bold truncate">{dayjs(from()).format("MMMM YYYY")}</div>
                   </div>
                   <div class="justify-start items-center gap-2.5 flex">
+                    <button
+                      class="p-1.5 flex gap-2 items-center justify-center text-base font-bold bg-black rounded-sm border-black !border-opacity-10 dark:bg-white dark:border-white text-white dark:text-black"
+                      aria-label="add entry"
+                      onClick={() => setNewEntryOpen(true)}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M5 12h14" />
+                        <path d="M12 5v14" />
+                      </svg>
+                      {/* <div class="select-none text-base font-bold">Add Entry</div> */}
+                    </button>
                     <button
                       class="p-1 px-2 bg-white dark:bg-black rounded-sm border border-black dark:border-white !border-opacity-10 justify-center items-center gap-2.5 flex cursor-pointer hover:bg-black hover:bg-opacity-5 dark:hover:bg-white dark:hover:bg-opacity-5"
                       aria-label="share"
@@ -223,7 +334,11 @@ function Calendar(props: CalendarProps) {
                     </div>
                     <div class="flex flex-col items-center justify-center gap-4">
                       <div class="text-2xl font-medium opacity-25">No entries</div>
-                      <button class="p-1.5 px-2 flex gap-2 items-center justify-center text-base font-bold bg-black rounded-sm border-black !border-opacity-10 dark:bg-white dark:border-white text-white dark:text-black">
+                      <button
+                        class="p-1.5 px-2 flex gap-2 items-center justify-center text-base font-bold bg-black rounded-sm border-black !border-opacity-10 dark:bg-white dark:border-white text-white dark:text-black"
+                        aria-label="Add entry"
+                        onClick={() => setNewEntryOpen(true)}
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="20"
@@ -247,9 +362,60 @@ function Calendar(props: CalendarProps) {
                   <div class="flex flex-col gap-2 items-center justify-center w-full">
                     <For each={d()?.calendar ?? []}>
                       {(entry) => (
-                        <div class="flex flex-col gap-2 w-full p-2 last:border-none border-b border-neutral-200 dark:border-neutral-800">
+                        <div class="flex flex-col gap-2 w-full p-4 last:border-none border-b border-neutral-200 dark:border-neutral-800">
                           <div class="flex w-full justify-between">
-                            <div class="font-medium">{dayjs(entry.date).format("Do MMM. YYYY")}</div>
+                            <div class="w-fit flex flex-row gap-2">
+                              <div class="font-medium">{dayjs(entry.date).format("Do MMM. YYYY")}</div>
+                              <div class="flex flex-row gap-2">
+                                <button
+                                  class="p-2 rounded-sm hover:bg-neutral-100 hover:dark:bg-neutral-900"
+                                  onClick={() => {
+                                    setEditDayId(entry.id);
+                                    setMode(Modes.EDIT);
+                                    setNewEntryData({
+                                      date: entry.date,
+                                      distance: entry.total_distance,
+                                      driven_distance: entry.driven_distance,
+                                      tour_count: entry.tour_count,
+                                      cash: entry.cash,
+                                    });
+                                    setNewEntryOpen(true);
+                                  }}
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                  >
+                                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                                    <path d="m15 5 4 4" />
+                                  </svg>
+                                </button>
+                                <button class="p-2 rounded-sm hover:bg-red-100 hover:dark:bg-red-900">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                  >
+                                    <path d="M3 6h18" />
+                                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
                             <div class="">{entry.total_distance} km</div>
                           </div>
                           <div class="flex w-full justify-between">
@@ -262,7 +428,7 @@ function Calendar(props: CalendarProps) {
                   </div>
                 </Show>
               </div>
-              <div class="w-full flex flex-col opacity-70 items-center justify-center text-xs gap-2">
+              <div class="w-full flex flex-col opacity-70 items-center justify-center text-xs gap-6 py-8">
                 Last updated {dayjs(d().lastUpdated).format("Do MMM. YYYY, HH:mm:ss")}
                 <button
                   class="text-md font-medium cursor-pointer flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-sm border border-black dark:border-white !border-opacity-10 p-1.5 px-2 hover:bg-black hover:bg-opacity-5 dark:hover:bg-white dark:hover:bg-opacity-5 active:bg-black active:bg-opacity-10 dark:active:bg-white dark:active:bg-opacity-10"
@@ -306,6 +472,131 @@ function Calendar(props: CalendarProps) {
             </div>
           )}
         </Show>
+        <Portal>
+          <Show when={newEntryOpen()}>
+            <div class="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center" />
+            <div class="fixed flex flex-col top-[50%] left-[50%] transform  -translate-x-[50%] -translate-y-[50%] h-auto w-[400px] z-50 bg-white border border-neutral-200 shadow-md dark:bg-black dark:border-neutral-800 p-4 rounded-sm gap-4">
+              <div class="flex flex-row w-full items-center justify-between">
+                <h1 class="text-xl font-bold">New entry</h1>
+                <button
+                  class="p-2 border border-neutral-200 dark:border-neutral-800 rounded-md"
+                  onClick={() => {
+                    setMode(Modes.CREATE);
+                    setNewEntryData({
+                      date: new Date(),
+                      distance: 0,
+                      driven_distance: 0,
+                      tour_count: 0,
+                      cash: 0,
+                    });
+                    setNewEntryOpen(false);
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="15"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div class="flex flex-col gap-2">
+                <Show when={mode() === "EDIT"}>
+                  <input type="hidden" name="id" value={editDayId()!} />
+                </Show>
+                <label class="flex flex-col gap-1">
+                  <span>Date</span>
+                  <input
+                    type="date"
+                    name="date"
+                    value={dayjs(newEntryData().date).format("YYYY-MM-DD")}
+                    onInput={(e) => {
+                      setNewEntryData((d) => ({ ...d, date: dayjs(e.currentTarget.value).toDate() }));
+                    }}
+                    disabled={newEntryState.pending}
+                    class="w-full rounded-sm bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
+                  />
+                </label>
+                <label class="flex flex-col gap-1">
+                  <span>Total Distance</span>
+                  <input
+                    type="number"
+                    name="distance"
+                    min="0"
+                    step="0.01"
+                    value={newEntryData().distance}
+                    onInput={(e) => {
+                      setNewEntryData((d) => ({ ...d, distance: parseFloat(e.currentTarget.value) }));
+                    }}
+                    disabled={newEntryState.pending}
+                    class="w-full rounded-sm bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
+                  />
+                </label>
+                <label class="flex flex-col gap-1">
+                  <span>Driven distance</span>
+                  <input
+                    type="number"
+                    name="driven_distance"
+                    min="0"
+                    step="0.01"
+                    value={newEntryData().driven_distance}
+                    onInput={(e) => {
+                      setNewEntryData((d) => ({ ...d, driven_distance: parseFloat(e.currentTarget.value) }));
+                    }}
+                    disabled={newEntryState.pending}
+                    class="w-full rounded-sm bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
+                  />
+                </label>
+                <label class="flex flex-col gap-1">
+                  <span>Price</span>
+                  <input
+                    type="number"
+                    name="cash"
+                    min="0"
+                    step="0.01"
+                    disabled={newEntryState.pending}
+                    value={newEntryData().cash}
+                    onInput={(e) => {
+                      setNewEntryData((d) => ({ ...d, cash: parseFloat(e.currentTarget.value) }));
+                    }}
+                    class="w-full rounded-sm bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
+                  />
+                </label>
+                <button
+                  type="button"
+                  disabled={newEntryState.pending}
+                  class="w-full rounded-sm bg-black text-white py-2"
+                  onClick={async () => {
+                    if (mode() === Modes.CREATE) {
+                      await createEntry({
+                        ...newEntryData(),
+                        token: props.user.token,
+                      });
+                    } else if (mode() === Modes.EDIT && editDayId() !== null) {
+                      await updateEntry({
+                        ...newEntryData(),
+                        id: editDayId()!,
+                        token: props.user.token,
+                      });
+                    }
+                    await dataRefresh();
+                    setNewEntryOpen(false);
+                  }}
+                >
+                  {mode() === "CREATE" ? "Add" : "Save"} entry
+                </button>
+              </div>
+            </div>
+          </Show>
+        </Portal>
       </div>
     </div>
   );

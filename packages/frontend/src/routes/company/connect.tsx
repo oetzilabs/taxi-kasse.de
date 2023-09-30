@@ -34,8 +34,6 @@ export default function ConnectPage() {
     companies: [],
   });
 
-  const searchCompany = z.function(z.tuple([z.string()])).implement(async (query) => API.searchCompany(query));
-
   createEffect(async () => {
     if (!user()) {
       redirect("/login");
@@ -51,7 +49,7 @@ export default function ConnectPage() {
 
   createEffect(async () => {
     if (searchQuery().length > 0) {
-      const x = await searchCompany(searchQuery());
+      const x = await API.searchCompany(searchQuery());
       setSearchResults(x);
     }
   });
