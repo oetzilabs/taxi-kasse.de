@@ -90,51 +90,6 @@ export const createCompany = z
     return x.json() as ReturnType<typeof Company.create>;
   });
 
-export const company = z.function(z.tuple([z.string()])).implement(async (token) => {
-  const x = await fetch(`${API_BASE}/user/company`, {
-    headers: {
-      authorization: `Bearer ${token}`,
-    },
-  });
-  return x.json() as Promise<
-    | { error: null; company: NonNullable<Awaited<ReturnType<typeof User.findById>>>["company"] }
-    | {
-        error: string;
-        company: null;
-      }
-  >;
-});
-
-export const calendar = z
-  .function(
-    z.tuple([
-      z.string(),
-      z.object({
-        from: z.date(),
-        to: z.date(),
-      }),
-    ])
-  )
-  .implement(async (token, range) => {
-    const x = await fetch(
-      `${API_BASE}/user/calendar?from=${encodeURIComponent(dayjs(range.from).toISOString())}&to=${encodeURIComponent(
-        dayjs(range.to).toISOString()
-      )}`,
-      {
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return x.json() as Promise<
-      | { error: null; calendar: NonNullable<Awaited<ReturnType<typeof User.findById>>>["day_entries"] }
-      | {
-          error: string;
-          calendar: null;
-        }
-    >;
-  });
-
 export const createDayEntry = z
   .function(
     z.tuple([
