@@ -7,6 +7,7 @@ import { z } from "zod";
 import dayjs from "dayjs";
 import { A } from "@solidjs/router";
 import { createQuery, useQueryClient } from "@tanstack/solid-query";
+import { Queries } from "../utils/api/queries";
 
 // Goal: This is the main page `/`
 // If the user is logged in, show a welcome message
@@ -49,11 +50,11 @@ function UserDashboard(props: UserDashboardProps) {
   });
   const stats = createQuery(
     () => ["stats"],
-    () => API.statistics(props.token, range())
+    () => Queries.statistics(props.token, range())
   );
   const company = createQuery(
     () => ["company"],
-    () => API.company(props.token)
+    () => Queries.company(props.token)
   );
   const queryClient = useQueryClient();
 

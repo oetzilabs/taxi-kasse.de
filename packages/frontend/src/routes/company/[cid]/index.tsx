@@ -5,9 +5,10 @@ import { RouteDataArgs, useRouteData } from "solid-start";
 import { createServerAction$, createServerData$ } from "solid-start/server";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { useAuth } from "../../../components/Auth";
-import { API, calendarQueryZod } from "../../../utils/api";
+import { API } from "../../../utils/api";
 import { Portal } from "solid-js/web";
 import { createQuery, useQueryClient } from "@tanstack/solid-query";
+import { Queries } from "../../../utils/api/queries";
 dayjs.extend(advancedFormat);
 
 const Modes = {
@@ -38,7 +39,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
   const state = createQuery(
     () => ["calendar", props.user.token, range().from.toISOString(), range().to.toISOString()],
     () => {
-      return API.calendarQuery(props.user.token, range());
+      return Queries.calendar(props.user.token, range());
     },
     {
       refetchInterval: 5 * 1000,
