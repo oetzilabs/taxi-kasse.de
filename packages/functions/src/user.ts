@@ -242,10 +242,22 @@ export const calendar = ApiHandler(async (x) => {
       statusCode: 200,
     };
   }
+  if (!user_.companyId) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error: "User has no company",
+        calendar: null,
+      }),
+      statusCode: 200,
+    };
+  }
   const dateRange = useQueryParams();
   const from = dayjs(dateRange.from).toDate();
   const to = dayjs(dateRange.to).toDate();
-  const calendar = await User.calendar(user_.id, { from, to });
+  const calendar = await User.calendar(user_.id, user_.companyId, { from, to });
 
   return {
     headers: {

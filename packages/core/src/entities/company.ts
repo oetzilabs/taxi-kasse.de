@@ -2,12 +2,17 @@ import { eq, like, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { db } from "../drizzle/sql";
-import { CompanySelect, companies } from "../drizzle/sql/schema";
+import { CompanySelect, companies, users } from "../drizzle/sql/schema";
 import { User } from "./users";
 
 export * as Company from "./company";
 
 export const create = z.function(z.tuple([createInsertSchema(companies)])).implement(async (companyInput) => {
+  // does the user already have a company?
+  const [user] = await db.select().from(users).where(eq(users.id, companyInput.ownerId)).limit(1);
+  if (user && user.companyId) {
+    throw new Error("User already has a company");
+  }
   const [x] = await db.insert(companies).values(companyInput).returning();
   // connect the user to the company.
   await User.setCompany(x.ownerId, x.id);

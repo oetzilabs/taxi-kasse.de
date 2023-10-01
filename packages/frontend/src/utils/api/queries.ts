@@ -1,3 +1,4 @@
+import { Company } from "@taxi-kassede/core/entities/company";
 import { User } from "@taxi-kassede/core/entities/users";
 import dayjs from "dayjs";
 import { z } from "zod";
@@ -91,4 +92,12 @@ export const statistics = statisticsQueryZod.implement(async (token, range) =>
     .then((res) => {
       return { ...res, lastUpdated: new Date() };
     })
+);
+
+export const searchCompanyZod = z.function(z.tuple([z.string()]));
+
+export const searchCompany = searchCompanyZod.implement(async (query) =>
+  fetch(`${API_BASE}/company/search?query=${encodeURIComponent(query)}`).then(
+    (x) => x.json() as ReturnType<typeof Company.search>
+  )
 );

@@ -143,19 +143,34 @@ export const calendar = z
   .function(
     z.tuple([
       z.string().uuid(),
+      z.string().uuid(),
       z.object({
         from: z.date(),
         to: z.date(),
       }),
     ])
   )
-  .implement(async (id, range) => {
+  .implement(async (id, companyId, range) => {
+    const userWithCompany = await db.query.users.findFirst({
+      where: (users, operations) =>
+        operations.and(operations.eq(users.id, id), operations.eq(users.companyId, companyId)),
+      with: {
+        company: true,
+      },
+    });
+    if (!userWithCompany) throw new Error("User not found");
+    if (!userWithCompany.companyId) throw new Error("User has no company");
+
     const cData = await db.query.users.findFirst({
       where: (users, operations) => operations.eq(users.id, id),
       with: {
         day_entries: {
           where: (day_entries, operations) =>
-            operations.and(operations.gte(day_entries.date, range.from), operations.lte(day_entries.date, range.to)),
+            operations.and(
+              operations.gte(day_entries.date, range.from),
+              operations.lte(day_entries.date, range.to),
+              operations.eq(day_entries.companyId, userWithCompany.companyId!)
+            ),
           orderBy: (fields, operators) => operators.asc(fields.date),
         },
       },

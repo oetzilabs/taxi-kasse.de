@@ -15,8 +15,8 @@
     "vitest": "^0.34.6"
   },
   "dependencies": {
-    "dayjs": "1.11.10",
     "@libsql/client": "0.3.5",
+    "dayjs": "1.11.10",
     "drizzle-orm": "^0.28.6",
     "drizzle-zod": "0.5.1",
     "uuid": "9.0.1",

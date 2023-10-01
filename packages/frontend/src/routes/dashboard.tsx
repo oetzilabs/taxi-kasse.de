@@ -1,24 +1,9 @@
-import { Show, Suspense, createEffect, createSignal, onMount } from "solid-js";
-import { useAuth } from "../components/Auth";
-import server$, { createServerData$, redirect } from "solid-start/server";
-import { ErrorMessage, RouteDataFuncArgs, useLocation, useNavigate, useRouteData } from "solid-start";
-import { API, statistics } from "../utils/api";
-import { z } from "zod";
-import dayjs from "dayjs";
 import { A } from "@solidjs/router";
 import { createQuery, useQueryClient } from "@tanstack/solid-query";
+import dayjs from "dayjs";
+import { Show, createSignal } from "solid-js";
+import { useAuth } from "../components/Auth";
 import { Queries } from "../utils/api/queries";
-
-// Goal: This is the main page `/`
-// If the user is logged in, show a welcome message
-// And a little dashboard of the last week's data:
-// - Total number of entries on the cab drives
-// - Total number of km/miles driven
-// - Total number of Cash made (in the currency of the country)
-// Use a grid to show the data
-
-// If the user is not logged in, show how the app works
-// And a button to login
 
 type StatisticsProps = {
   value: number;

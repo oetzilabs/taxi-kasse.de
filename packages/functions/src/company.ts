@@ -4,13 +4,14 @@ import { User } from "@taxi-kassede/core/entities/users";
 import { Company } from "../../core/src/entities/company";
 import { getUser } from "./utils";
 import dayjs from "dayjs";
+import { StatusCodes } from "http-status-codes";
 
 export const create = ApiHandler(async (x) => {
   const user = await getUser(x);
 
   if (user instanceof Error) {
     return {
-      statusCode: 200,
+      statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
       headers: {
         "Content-Type": "application/json",
       },
@@ -27,14 +28,14 @@ export const create = ApiHandler(async (x) => {
       body: JSON.stringify({
         error: "No user found",
       }),
-      statusCode: 200,
+      statusCode: StatusCodes.NOT_FOUND,
     };
   }
   const body = useBody();
   const data = JSON.parse(body ?? "{}");
   if (!data.email) {
     return {
-      statusCode: 200,
+      statusCode: StatusCodes.PRECONDITION_FAILED,
       headers: {
         "Content-Type": "application/json",
       },
@@ -43,22 +44,10 @@ export const create = ApiHandler(async (x) => {
       }),
     };
   }
-  if (user.companyId) {
-    // user already has a company
-    return {
-      statusCode: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        error: "User already has a company",
-      }),
-    };
-  }
 
   if (!data.email) {
     return {
-      statusCode: 200,
+      statusCode: StatusCodes.PRECONDITION_FAILED,
       headers: {
         "Content-Type": "application/json",
       },
@@ -87,30 +76,12 @@ export const create = ApiHandler(async (x) => {
     phoneNumber: data.phonenumber,
   });
 
-  if (!company) {
-    return {
-      statusCode: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        error: "Could not create company",
-      }),
-    };
-  }
-
   return {
-    statusCode: 200,
+    statusCode: StatusCodes.OK,
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(
-      {
-        company,
-      },
-      null,
-      2
-    ),
+    body: JSON.stringify(company, null, 2),
   };
 });
 
@@ -197,9 +168,7 @@ export const search = ApiHandler(async (x) => {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      companies,
-    }),
+    body: JSON.stringify(companies),
     statusCode: 200,
   };
 });

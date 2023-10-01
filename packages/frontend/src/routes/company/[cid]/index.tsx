@@ -96,15 +96,26 @@ function CalendarWrapper(props: CalendarWrapperProps) {
     }
   );
 
-  const [editDayId, setEditDayId] = createSignal<string | null>(null);
-
-  const [newEntryData, setNewEntryData] = createSignal<{
-    date: Date;
-    distance: number;
-    driven_distance: number;
-    tour_count: number;
-    cash: number;
-  }>({
+  const [entryData, setEntryData] = createSignal<
+    | {
+        mode: "CREATE";
+        date: Date;
+        distance: number;
+        driven_distance: number;
+        tour_count: number;
+        cash: number;
+      }
+    | {
+        mode: "EDIT";
+        id: string;
+        date: Date;
+        distance: number;
+        driven_distance: number;
+        tour_count: number;
+        cash: number;
+      }
+  >({
+    mode: "CREATE",
     date: new Date(),
     distance: 0,
     driven_distance: 0,
@@ -117,9 +128,8 @@ function CalendarWrapper(props: CalendarWrapperProps) {
     const keydownHandler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setNewEntryOpen(false);
-        setEditDayId(null);
-        setMode(Modes.CREATE);
-        setNewEntryData({
+        setEntryData({
+          mode: Modes.CREATE,
           date: new Date(),
           distance: 0,
           driven_distance: 0,
@@ -375,9 +385,9 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                                 <button
                                   class="p-2 rounded-sm hover:bg-neutral-100 hover:dark:bg-neutral-900"
                                   onClick={() => {
-                                    setEditDayId(entry.id);
-                                    setMode(Modes.EDIT);
-                                    setNewEntryData({
+                                    setEntryData({
+                                      mode: "EDIT",
+                                      id: entry.id,
                                       date: entry.date,
                                       distance: entry.total_distance,
                                       driven_distance: entry.driven_distance,
@@ -482,15 +492,15 @@ function CalendarWrapper(props: CalendarWrapperProps) {
         </Show>
         <Portal>
           <Show when={newEntryOpen()}>
-            <div class="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center" />
+            <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center backdrop-blur-sm" />
             <div class="fixed flex flex-col top-[50%] left-[50%] transform  -translate-x-[50%] -translate-y-[50%] h-auto w-[400px] z-50 bg-white border border-neutral-200 shadow-md dark:bg-black dark:border-neutral-800 p-4 rounded-sm gap-4">
               <div class="flex flex-row w-full items-center justify-between">
                 <h1 class="text-xl font-bold">New entry</h1>
                 <button
                   class="p-2 border border-neutral-200 dark:border-neutral-800 rounded-md"
                   onClick={() => {
-                    setMode(Modes.CREATE);
-                    setNewEntryData({
+                    setEntryData({
+                      mode: Modes.CREATE,
                       date: new Date(),
                       distance: 0,
                       driven_distance: 0,
@@ -517,17 +527,14 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                 </button>
               </div>
               <div class="flex flex-col gap-2">
-                <Show when={mode() === "EDIT"}>
-                  <input type="hidden" name="id" value={editDayId()!} />
-                </Show>
                 <label class="flex flex-col gap-1">
                   <span>Date</span>
                   <input
                     type="date"
                     name="date"
-                    value={dayjs(newEntryData().date).format("YYYY-MM-DD")}
+                    value={dayjs(entryData().date).format("YYYY-MM-DD")}
                     onInput={(e) => {
-                      setNewEntryData((d) => ({ ...d, date: dayjs(e.currentTarget.value).toDate() }));
+                      setEntryData((d) => ({ ...d, date: dayjs(e.currentTarget.value).toDate() }));
                     }}
                     disabled={newEntryState.pending || updateEntryState.pending}
                     class="w-full rounded-sm bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
@@ -540,9 +547,9 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                     name="distance"
                     min="0"
                     step="0.01"
-                    value={newEntryData().distance}
+                    value={entryData().distance}
                     onInput={(e) => {
-                      setNewEntryData((d) => ({ ...d, distance: parseFloat(e.currentTarget.value) }));
+                      setEntryData((d) => ({ ...d, distance: parseFloat(e.currentTarget.value) }));
                     }}
                     disabled={newEntryState.pending || updateEntryState.pending}
                     class="w-full rounded-sm bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
@@ -555,9 +562,9 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                     name="driven_distance"
                     min="0"
                     step="0.01"
-                    value={newEntryData().driven_distance}
+                    value={entryData().driven_distance}
                     onInput={(e) => {
-                      setNewEntryData((d) => ({ ...d, driven_distance: parseFloat(e.currentTarget.value) }));
+                      setEntryData((d) => ({ ...d, driven_distance: parseFloat(e.currentTarget.value) }));
                     }}
                     disabled={newEntryState.pending || updateEntryState.pending}
                     class="w-full rounded-sm bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
@@ -571,9 +578,9 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                     min="0"
                     step="0.01"
                     disabled={newEntryState.pending || updateEntryState.pending}
-                    value={newEntryData().cash}
+                    value={entryData().cash}
                     onInput={(e) => {
-                      setNewEntryData((d) => ({ ...d, cash: parseFloat(e.currentTarget.value) }));
+                      setEntryData((d) => ({ ...d, cash: parseFloat(e.currentTarget.value) }));
                     }}
                     class="w-full rounded-sm bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
                   />
@@ -583,15 +590,15 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                   disabled={newEntryState.pending || updateEntryState.pending}
                   class="w-full rounded-sm bg-black text-white py-2"
                   onClick={async () => {
-                    if (mode() === Modes.CREATE) {
+                    const ed = entryData();
+                    if (ed.mode === Modes.CREATE) {
                       await createEntry({
-                        ...newEntryData(),
+                        ...ed,
                         token: props.user.token,
                       });
-                    } else if (mode() === Modes.EDIT && editDayId() !== null) {
+                    } else if (ed.mode === Modes.EDIT) {
                       await updateEntry({
-                        ...newEntryData(),
-                        id: editDayId()!,
+                        ...ed,
                         token: props.user.token,
                       });
                     }

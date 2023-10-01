@@ -1,141 +1,80 @@
-import dayjs from "dayjs";
-import { z } from "zod";
+import { Company } from "@taxi-kassede/core/entities/company";
 import { User } from "@taxi-kassede/core/entities/users";
-import { Company } from "../../../core/src/entities/company";
+import { z } from "zod";
 
 export * as API from "./api";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
-export const statistics = z
-  .function(
-    z.tuple([
-      z.string(),
-      z.object({
-        from: z.date(),
-        to: z.date().default(new Date()),
-      }),
-    ])
-  )
-  .implement(async (token, range) => {
-    const x = await fetch(
-      `${API_BASE}/user/statistics?from=${encodeURIComponent(dayjs(range.from).toISOString())}&to=${encodeURIComponent(
-        dayjs(range.to).toISOString()
-      )}`,
-      {
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
-      }
-    );
+export const createCompanyZod = z.function(
+  z.tuple([
+    z.string(),
+    z.object({
+      name: z.string(),
+      email: z.string().email(),
+      phonenumber: z.string().optional(),
+    }),
+  ])
+);
 
-    return x.json() as ReturnType<typeof User.statistics>;
-  });
-
-export const data = z.function(z.tuple([z.string()])).implement(async (token) => {
-  const x = await fetch(`${API_BASE}/data`, {
+export const createCompany = createCompanyZod.implement(async (token, input) => {
+  const x = await fetch(`${API_BASE}/company/create`, {
+    method: "POST",
     headers: {
       authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify(input),
   });
-  return x.json() as Promise<{ error: string } | { company: any }>;
+  return x.json() as ReturnType<typeof Company.create>;
 });
 
-export const hasCompany = z.function(z.tuple([z.string()])).implement(async (token) => {
-  const x = await fetch(`${API_BASE}/user/hasCompany`, {
+export const createDayEntryZod = z.function(
+  z.tuple([
+    z.string(),
+    z.object({
+      date: z.date(),
+      total_distance: z.number(),
+      driven_distance: z.number(),
+      tour_count: z.number(),
+      cash: z.number(),
+    }),
+  ])
+);
+
+export const createDayEntry = createDayEntryZod.implement(async (token, input) => {
+  const x = await fetch(`${API_BASE}/user/day_entry/create`, {
+    method: "POST",
     headers: {
       authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify(input),
   });
-  return x.json() as Promise<
-    | { success: false; error: string; hasCompany: false }
-    | {
-        success: true;
-        hasCompany: boolean;
-      }
-  >;
+  return x.json() as ReturnType<typeof User.createDayEntry>;
 });
 
-export const searchCompany = z.function(z.tuple([z.string()])).implement(async (query) => {
-  const x = await fetch(`${API_BASE}/company/search?query=${encodeURIComponent(query)}`);
-  return x.json() as Promise<
-    | { success: false; error: string; companies: Awaited<ReturnType<typeof Company.search>> }
-    | {
-        success: true;
-        companies: Awaited<ReturnType<typeof Company.search>>;
-      }
-  >;
+export const updateDayEntryZod = z.function(
+  z.tuple([
+    z.string(),
+    z.object({
+      id: z.string(),
+      total_distance: z.number(),
+      driven_distance: z.number(),
+      tour_count: z.number(),
+      cash: z.number(),
+    }),
+  ])
+);
+
+export const updateDayEntry = updateDayEntryZod.implement(async (token, input) => {
+  const x = await fetch(`${API_BASE}/user/day_entry/update`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+  return x.json() as ReturnType<typeof User.updateDayEntry>;
 });
-
-export const createCompany = z
-  .function(
-    z.tuple([
-      z.string(),
-      z.object({
-        name: z.string(),
-        email: z.string().email(),
-        phonenumber: z.string().optional(),
-      }),
-    ])
-  )
-  .implement(async (token, input) => {
-    const x = await fetch(`${API_BASE}/company/create`, {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(input),
-    });
-    return x.json() as ReturnType<typeof Company.create>;
-  });
-
-export const createDayEntry = z
-  .function(
-    z.tuple([
-      z.string(),
-      z.object({
-        date: z.date(),
-        total_distance: z.number(),
-        driven_distance: z.number(),
-        tour_count: z.number(),
-        cash: z.number(),
-      }),
-    ])
-  )
-  .implement(async (token, input) => {
-    const x = await fetch(`${API_BASE}/user/day_entry/create`, {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(input),
-    });
-    return x.json() as ReturnType<typeof User.createDayEntry>;
-  });
-
-export const updateDayEntry = z
-  .function(
-    z.tuple([
-      z.string(),
-      z.object({
-        id: z.string(),
-        total_distance: z.number(),
-        driven_distance: z.number(),
-        tour_count: z.number(),
-        cash: z.number(),
-      }),
-    ])
-  )
-  .implement(async (token, input) => {
-    const x = await fetch(`${API_BASE}/user/day_entry/update`, {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(input),
-    });
-    return x.json() as ReturnType<typeof User.updateDayEntry>;
-  });
