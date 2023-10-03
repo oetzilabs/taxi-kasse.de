@@ -202,6 +202,11 @@ export const listAll = ApiHandler(async (x) => {
   };
 });
 
+export type CalendarResult = {
+  error: string | null;
+  calendar: Awaited<ReturnType<typeof User.calendar>> | null;
+};
+
 export const calendar = ApiHandler(async (x) => {
   const user = await getUser(x);
   if (user instanceof Error) {
@@ -212,7 +217,7 @@ export const calendar = ApiHandler(async (x) => {
       body: JSON.stringify({
         error: user.message,
         calendar: null,
-      }),
+      } as CalendarResult),
       statusCode: 200,
     };
   }
@@ -224,7 +229,7 @@ export const calendar = ApiHandler(async (x) => {
       body: JSON.stringify({
         error: "No user found",
         calendar: null,
-      }),
+      } as CalendarResult),
       statusCode: 200,
     };
   }
@@ -238,7 +243,7 @@ export const calendar = ApiHandler(async (x) => {
       body: JSON.stringify({
         error: "No user found",
         calendar: null,
-      }),
+      } as CalendarResult),
       statusCode: 200,
     };
   }
@@ -250,7 +255,7 @@ export const calendar = ApiHandler(async (x) => {
       body: JSON.stringify({
         error: "User has no company",
         calendar: null,
-      }),
+      } as CalendarResult),
       statusCode: 200,
     };
   }
@@ -263,10 +268,22 @@ export const calendar = ApiHandler(async (x) => {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ error: null, calendar }),
+    body: JSON.stringify({ error: null, calendar } as CalendarResult),
     statusCode: 200,
   };
 });
+
+export type CreateDayEntryResult =
+  | {
+      success: true;
+      error: null;
+      entry: NonNullable<Awaited<ReturnType<typeof User.createDayEntry>>>;
+    }
+  | {
+      success: false;
+      error: string;
+      entry: null;
+    };
 
 export const createDayEntry = ApiHandler(async (x) => {
   const user = await getUser(x);
@@ -276,9 +293,10 @@ export const createDayEntry = ApiHandler(async (x) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        success: false,
         error: user.message,
         entry: null,
-      }),
+      } as CreateDayEntryResult),
       statusCode: 200,
     };
   }
@@ -288,9 +306,10 @@ export const createDayEntry = ApiHandler(async (x) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        success: false,
         error: "No user found",
         entry: null,
-      }),
+      } as CreateDayEntryResult),
       statusCode: 200,
     };
   }
@@ -302,9 +321,10 @@ export const createDayEntry = ApiHandler(async (x) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        success: false,
         error: "No user found",
         entry: null,
-      }),
+      } as CreateDayEntryResult),
       statusCode: 200,
     };
   }
@@ -315,9 +335,10 @@ export const createDayEntry = ApiHandler(async (x) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        success: false,
         error: "No body found",
         entry: null,
-      }),
+      } as CreateDayEntryResult),
       statusCode: 200,
     };
   }
@@ -338,9 +359,10 @@ export const createDayEntry = ApiHandler(async (x) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        success: false,
         error: e.message,
         entry: null,
-      }),
+      } as CreateDayEntryResult),
       statusCode: 422,
     };
   }
@@ -348,10 +370,26 @@ export const createDayEntry = ApiHandler(async (x) => {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ error: null, entry: e }),
+    body: JSON.stringify({
+      success: true,
+      error: null,
+      entry: e,
+    } as CreateDayEntryResult),
     statusCode: 200,
   };
 });
+
+export type UpdateDayEntryResult =
+  | {
+      success: true;
+      error: null;
+      entry: NonNullable<Awaited<ReturnType<typeof User.updateDayEntry>>>;
+    }
+  | {
+      success: false;
+      error: string;
+      entry: null;
+    };
 
 export const updateDayEntry = ApiHandler(async (x) => {
   const user = await getUser(x);
@@ -361,9 +399,10 @@ export const updateDayEntry = ApiHandler(async (x) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        success: false,
         error: user.message,
         entry: null,
-      }),
+      } as UpdateDayEntryResult),
       statusCode: 200,
     };
   }
@@ -373,9 +412,10 @@ export const updateDayEntry = ApiHandler(async (x) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        success: false,
         error: "No user found",
         entry: null,
-      }),
+      } as UpdateDayEntryResult),
       statusCode: 200,
     };
   }
@@ -387,9 +427,10 @@ export const updateDayEntry = ApiHandler(async (x) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        success: false,
         error: "No user found",
         entry: null,
-      }),
+      } as UpdateDayEntryResult),
       statusCode: 200,
     };
   }
@@ -400,9 +441,10 @@ export const updateDayEntry = ApiHandler(async (x) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        success: false,
         error: "No body found",
         entry: null,
-      }),
+      } as UpdateDayEntryResult),
       statusCode: 200,
     };
   }
@@ -422,9 +464,10 @@ export const updateDayEntry = ApiHandler(async (x) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        success: false,
         error: e.message,
         entry: null,
-      }),
+      } as UpdateDayEntryResult),
       statusCode: 422,
     };
   }
@@ -432,7 +475,112 @@ export const updateDayEntry = ApiHandler(async (x) => {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ error: null, entry: e }),
+    body: JSON.stringify({
+      success: true,
+      error: null,
+      entry: e,
+    } as UpdateDayEntryResult),
+    statusCode: 200,
+  };
+});
+
+export type DeleteDayEntryResult =
+  | {
+      success: true;
+      error: null;
+      entry: NonNullable<Awaited<ReturnType<typeof User.updateDayEntry>>>;
+    }
+  | {
+      success: false;
+      error: string;
+      entry: null;
+    };
+
+export const deleteDayEntry = ApiHandler(async (x) => {
+  const user = await getUser(x);
+  if (user instanceof Error) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        success: false,
+        error: user.message,
+        entry: null,
+      } as DeleteDayEntryResult),
+      statusCode: 200,
+    };
+  }
+  if (!user || !user.id) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        success: false,
+        error: "No user found",
+        entry: null,
+      } as DeleteDayEntryResult),
+      statusCode: 200,
+    };
+  }
+
+  const user_ = await User.findById(user.id);
+  if (!user_) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        success: false,
+        error: "No user found",
+        entry: null,
+      } as DeleteDayEntryResult),
+      statusCode: 200,
+    };
+  }
+  const body = useBody();
+  if (!body) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        success: false,
+        error: "No body found",
+        entry: null,
+      } as DeleteDayEntryResult),
+      statusCode: 200,
+    };
+  }
+  const data = JSON.parse(body);
+  const e: Awaited<ReturnType<typeof User.deleteDayEntry>> | Error = await User.deleteDayEntry(user_.id, {
+    id: data.id,
+  }).catch((e) => {
+    return e;
+  });
+  if (e instanceof Error) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        success: false,
+        error: e.message,
+        entry: null,
+      } as DeleteDayEntryResult),
+      statusCode: 422,
+    };
+  }
+  return {
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      success: true,
+      error: null,
+      entry: e,
+    } as DeleteDayEntryResult),
     statusCode: 200,
   };
 });

@@ -104,6 +104,12 @@ export function ApiStack({ stack }: StackContext) {
           description: "This is the user updateDayEntry function",
         },
       },
+      "POST /user/day_entry/delete": {
+        function: {
+          handler: "packages/functions/src/user.deleteDayEntry",
+          description: "This is the user deleteDayEntry function",
+        },
+      },
       "GET /user/statistics": {
         function: {
           handler: "packages/functions/src/user.statistics",

@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { eq, isNull, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { db } from "../drizzle/sql";
@@ -169,6 +169,7 @@ export const calendar = z
             operations.and(
               operations.gte(day_entries.date, range.from),
               operations.lte(day_entries.date, range.to),
+              operations.eq(day_entries.deletedAt, isNull(day_entries.deletedAt)),
               operations.eq(day_entries.companyId, userWithCompany.companyId!)
             ),
           orderBy: (fields, operators) => operators.asc(fields.date),
@@ -204,12 +205,11 @@ export const createDayEntry = z
         },
       },
     });
-    type NEntries = NonNullable<typeof cData>;
     if (!cData) {
-      return [] as NEntries["day_entries"];
+      return null;
     }
     if (!cData.companyId) {
-      return [] as NEntries["day_entries"];
+      return null;
     }
     const existsX = await db.query.day_entries.findFirst({
       where: (day_entries, operations) =>
@@ -217,6 +217,7 @@ export const createDayEntry = z
           operations.lte(day_entries.date, dayjs(input.date).endOf("day").toDate()),
           operations.gte(day_entries.date, dayjs(input.date).startOf("day").toDate()),
           operations.eq(day_entries.ownerId, id),
+          operations.eq(day_entries.deletedAt, isNull(day_entries.deletedAt)),
           operations.eq(day_entries.companyId, cData.companyId!)
         ),
     });
@@ -260,12 +261,11 @@ export const updateDayEntry = z
         },
       },
     });
-    type NEntries = NonNullable<typeof cData>;
     if (!cData) {
-      return [] as NEntries["day_entries"];
+      return null;
     }
     if (!cData.companyId) {
-      return [] as NEntries["day_entries"];
+      return null;
     }
     const existsX = await db.query.day_entries.findFirst({
       where: (day_entries, operations) =>
@@ -285,6 +285,51 @@ export const updateDayEntry = z
         driven_distance: input.driven_distance,
         total_distance: input.total_distance,
         tour_count: input.tour_count,
+      })
+      .where(eq(day_entries.id, existsX.id))
+      .returning();
+    return x;
+  });
+
+export const deleteDayEntry = z
+  .function(
+    z.tuple([
+      z.string().uuid(),
+      z.object({
+        id: z.string().uuid(),
+      }),
+    ])
+  )
+  .implement(async (id, input) => {
+    const cData = await db.query.users.findFirst({
+      where: (users, operations) => operations.eq(users.id, id),
+      with: {
+        day_entries: {
+          where: (day_entries, operations) => operations.eq(day_entries.id, input.id),
+        },
+      },
+    });
+    if (!cData) {
+      return null;
+    }
+    if (!cData.companyId) {
+      return null;
+    }
+    const existsX = await db.query.day_entries.findFirst({
+      where: (day_entries, operations) =>
+        operations.and(
+          operations.eq(day_entries.id, input.id),
+          operations.eq(day_entries.ownerId, id),
+          operations.eq(day_entries.companyId, cData.companyId!)
+        ),
+    });
+    if (!existsX) {
+      throw new Error("Day entry does not exist");
+    }
+    const [x] = await db
+      .update(day_entries)
+      .set({
+        deletedAt: new Date(),
       })
       .where(eq(day_entries.id, existsX.id))
       .returning();

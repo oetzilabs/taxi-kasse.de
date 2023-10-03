@@ -1,28 +1,17 @@
 import { A } from "@solidjs/router";
-import { Accessor, Show, createEffect, createSignal, useContext } from "solid-js";
+import { Accessor, Match, Show, Suspense, Switch, createEffect, createSignal, useContext } from "solid-js";
 import { parseCookie } from "solid-start";
 import { User } from "../../../core/src/entities/users";
 import { createContext, Setter } from "solid-js";
+import { createQueries, createQuery } from "@tanstack/solid-query";
+import { Queries } from "../utils/api/queries";
 
-type UseAuth =
-  | {
-      isLoading: true;
-      isAuthenticated: false;
-      token: null;
-      user: null;
-    }
-  | {
-      isLoading: false;
-      isAuthenticated: true;
-      token: string;
-      user: User.Frontend;
-    }
-  | {
-      isLoading: false;
-      isAuthenticated: false;
-      token: null;
-      user: null;
-    };
+type UseAuth = {
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  token: string | null;
+  user: User.Frontend | null;
+};
 
 export const AuthContext = createContext<[Accessor<UseAuth>, Setter<UseAuth>]>([
   (() => ({
@@ -37,71 +26,44 @@ export const AuthContext = createContext<[Accessor<UseAuth>, Setter<UseAuth>]>([
 export const AuthC = () => {
   const [AuthStore, setAuthStore] = useContext(AuthContext);
 
-  createEffect(async () => {
+  const sessionQuery = createQuery(
+    () => ["session"],
+    () => {
+      return Queries.session(AuthStore().token!);
+    },
+    {
+      get enabled() {
+        return AuthStore().token !== null;
+      },
+      refetchInterval: 1000 * 60 * 5,
+    }
+  );
+
+  createEffect(() => {
+    const isLoading = sessionQuery.isLoading;
+    const isAuthenticated = sessionQuery.data?.success && sessionQuery.data?.user ? true : false ?? false;
+    let user = null;
+    switch (sessionQuery.data?.success ?? false) {
+      case true:
+        // @ts-ignore
+        user = sessionQuery.data?.user;
+        break;
+      case false:
+        user = null;
+        break;
+      default:
+        user = null;
+        break;
+    }
     const cookie = parseCookie(document.cookie);
     const sessionToken = cookie["session"];
-    if (sessionToken) {
-      if (import.meta.env.VITE_API_URL) {
-        // Make a request to the API to authenticate the user.
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/session`, {
-          headers: {
-            Authorization: `Bearer ${sessionToken}`,
-          },
-        }).then(async (res) => await res.json());
-        if (!response.user) {
-          setAuthStore({
-            isLoading: false,
-            isAuthenticated: false,
-            token: null,
-            user: null,
-          });
-          return;
-        }
-        setAuthStore({
-          isLoading: false,
-          isAuthenticated: true,
-          token: sessionToken,
-          user: response.user,
-        });
-      } else {
-        setAuthStore({
-          isLoading: false,
-          isAuthenticated: true,
-          token: "",
-          user: {
-            id: "1",
-            name: "Test User",
-            email: "test@example.com",
-            emailVerified: true,
-            createdAt: new Date(),
-            updatedAt: null,
-            deletedAt: null,
-            companyId: null,
-            company: null,
-            day_entries: [],
-            profile: {
-              id: "1",
-              image: "",
-              createdAt: new Date(),
-              updatedAt: null,
-              deletedAt: null,
-              userId: "1",
-              phoneNumber: "1234567890",
-              birthdate: new Date().toISOString(),
-              preferredUsername: "testuser",
-              locale: "en-US",
-            },
-          },
-        });
-      }
-    } else {
-      setAuthStore({
-        isLoading: false,
-        isAuthenticated: false,
-        token: null,
-        user: null,
-      });
-    }
+
+    setAuthStore({
+      isLoading,
+      isAuthenticated,
+      token: sessionToken,
+      user,
+    });
   });
 
   const signOut = () => {
@@ -116,34 +78,34 @@ export const AuthC = () => {
   };
 
   return (
-    <Show when={!AuthStore().isLoading} fallback={<div>Loading...</div>}>
-      <Show when={AuthStore().isAuthenticated && AuthStore().user}>
-        {(user) => (
-          <div class="flex items-center text-sm gap-1 cursor-pointer">
-            <img class="w-7 h-7 rounded-full" src={user().profile.image} alt={user().name} />
-            <span class="text-sm">{user().name}</span>
-          </div>
-        )}
-      </Show>
-      <Show
-        when={!AuthStore().isAuthenticated}
-        fallback={
-          <button onClick={signOut} class="ml-4 py-1 px-2 rounded">
-            Sign out
-          </button>
-        }
-      >
-        <A
-          href={`${
-            import.meta.env.VITE_AUTH_URL
-          }/authorize?provider=google&response_type=code&client_id=google&redirect_uri=http://localhost:3000/api/auth/callback`}
-          rel="noreferrer"
-          class="text-black py-1 px-2 rounded hover:bg-gray-200 dark:hover:bg-gray-800"
-        >
-          Sign in with Google
-        </A>
-      </Show>
-    </Show>
+    <Suspense fallback={<div>Loading...</div>}>
+      <Switch>
+        <Match when={AuthStore().isAuthenticated && AuthStore().user}>
+          {(user) => (
+            <div class="flex w-full flex-row items-center justify-between">
+              <div class="flex items-center text-sm gap-1 cursor-pointer">
+                <img class="w-7 h-7 rounded-full" src={user().profile.image} alt={user().name} />
+                <span class="text-sm">{user().name}</span>
+              </div>
+              <button onClick={signOut} class="ml-4 py-1 px-2 rounded">
+                Sign out
+              </button>
+            </div>
+          )}
+        </Match>
+        <Match when={!AuthStore().isAuthenticated}>
+          <A
+            href={`${
+              import.meta.env.VITE_AUTH_URL
+            }/authorize?provider=google&response_type=code&client_id=google&redirect_uri=http://localhost:3000/api/auth/callback`}
+            rel="noreferrer"
+            class="text-black py-1 px-2 rounded hover:bg-gray-200 dark:hover:bg-gray-800"
+          >
+            Sign in with Google
+          </A>
+        </Match>
+      </Switch>
+    </Suspense>
   );
 };
 

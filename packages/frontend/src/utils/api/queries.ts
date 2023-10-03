@@ -2,6 +2,8 @@ import { Company } from "@taxi-kassede/core/entities/company";
 import { User } from "@taxi-kassede/core/entities/users";
 import dayjs from "dayjs";
 import { z } from "zod";
+import { SessionResult } from "../../../../functions/src/session";
+import { CalendarResult } from "../../../../functions/src/user";
 
 export * as Queries from "./queries";
 
@@ -51,16 +53,7 @@ export const calendar = calendarQueryZod.implement(async (token, range) =>
       },
     }
   )
-    .then(
-      (res) =>
-        res.json() as Promise<
-          | { error: null; calendar: NonNullable<Awaited<ReturnType<typeof User.findById>>>["day_entries"] }
-          | {
-              error: string;
-              calendar: null;
-            }
-        >
-    )
+    .then((res) => res.json() as Promise<CalendarResult>)
     .then((res) => {
       if (res.error) throw new Error(res.error);
       return { ...res, lastUpdated: new Date() };
@@ -100,4 +93,14 @@ export const searchCompany = searchCompanyZod.implement(async (query) =>
   fetch(`${API_BASE}/company/search?query=${encodeURIComponent(query)}`).then(
     (x) => x.json() as ReturnType<typeof Company.search>
   )
+);
+
+export const sessionZod = z.function(z.tuple([z.string()]));
+
+export const session = sessionZod.implement(async (token) =>
+  fetch(`${API_BASE}/session`, {
+    headers: {
+      authorization: `Bearer ${token}`,
+    },
+  }).then((res) => res.json() as Promise<SessionResult>)
 );

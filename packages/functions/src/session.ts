@@ -1,7 +1,17 @@
 import { ApiHandler } from "sst/node/api";
-import { sessions } from "./auth";
 import { User } from "@taxi-kassede/core/entities/users";
 import { getUser } from "./utils";
+import { StatusCodes } from "http-status-codes";
+
+export type SessionResult =
+  | {
+      success: true;
+      user: Awaited<ReturnType<typeof User.findById>>;
+    }
+  | {
+      success: false;
+      error: string;
+    };
 
 export const handler = ApiHandler(async (x) => {
   const user = await getUser(x);
@@ -11,9 +21,10 @@ export const handler = ApiHandler(async (x) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        success: false,
         error: user.message,
-      }),
-      statusCode: 200,
+      } as SessionResult),
+      statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
     };
   }
   if (!user || !user.id) {
@@ -22,9 +33,10 @@ export const handler = ApiHandler(async (x) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        success: false,
         error: "No user found",
-      }),
-      statusCode: 200,
+      } as SessionResult),
+      statusCode: StatusCodes.UNAUTHORIZED,
     };
   }
   const user_ = await User.findById(user.id);
@@ -32,7 +44,7 @@ export const handler = ApiHandler(async (x) => {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ user: user_ }),
-    statusCode: 200,
+    body: JSON.stringify({ success: true, user: user_ } as SessionResult),
+    statusCode: StatusCodes.OK,
   };
 });

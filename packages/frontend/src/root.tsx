@@ -1,9 +1,10 @@
 // @refresh reload
+import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
 import { Suspense, createEffect, createSignal, onCleanup } from "solid-js";
 import { Body, ErrorBoundary, FileRoutes, Head, Html, Meta, Routes, Scripts, Title } from "solid-start";
+import { Toaster } from "solid-toast";
 import { AuthC, AuthP } from "./components/Auth";
 import "./root.css";
-import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/solid-query";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,13 @@ export default function Root() {
                     <FileRoutes />
                   </Routes>
                 </div>
+                <Toaster
+                  position="bottom-right"
+                  gutter={8}
+                  toastOptions={{
+                    duration: 2000,
+                  }}
+                />
               </AuthP>
             </QueryClientProvider>
           </ErrorBoundary>

@@ -1,6 +1,7 @@
 import { Company } from "@taxi-kassede/core/entities/company";
 import { User } from "@taxi-kassede/core/entities/users";
 import { z } from "zod";
+import { CreateDayEntryResult, UpdateDayEntryResult } from "../../../../functions/src/user";
 
 export * as Mutations from "./mutations";
 
@@ -49,7 +50,7 @@ export const createDayEntry = createDayEntryZod.implement(async (token, input) =
       "Content-Type": "application/json",
     },
     body: JSON.stringify(input),
-  }).then((x) => x.json() as ReturnType<typeof User.createDayEntry>)
+  }).then((x) => x.json() as Promise<CreateDayEntryResult>)
 );
 
 export const updateDayEntryZod = z.function(
@@ -73,5 +74,25 @@ export const updateDayEntry = updateDayEntryZod.implement(async (token, input) =
       "Content-Type": "application/json",
     },
     body: JSON.stringify(input),
-  }).then((x) => x.json() as ReturnType<typeof User.updateDayEntry>)
+  }).then((x) => x.json() as Promise<UpdateDayEntryResult>)
+);
+
+export const deleteDayEntryZod = z.function(
+  z.tuple([
+    z.string(),
+    z.object({
+      id: z.string(),
+    }),
+  ])
+);
+
+export const deleteDayEntry = deleteDayEntryZod.implement(async (token, input) =>
+  fetch(`${API_BASE}/user/day_entry/delete`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  }).then((x) => x.json() as Promise<UpdateDayEntryResult>)
 );
