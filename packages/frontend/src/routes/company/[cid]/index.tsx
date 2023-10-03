@@ -27,6 +27,26 @@ type CalendarWrapperProps = {
   locale: string;
 };
 
+function FakeProgressBar(props: { time: number }) {
+  const [progress, setProgress] = createSignal(0);
+  createEffect(() => {
+    const interval = setInterval(() => {
+      setProgress((p) => p + 1);
+    }, props.time / 100);
+    return () => clearInterval(interval);
+  });
+  return (
+    <div class="absolute bottom-0 left-0 right-0 h-1 bg-black/10 dark:bg-white/10">
+      <div
+        class="h-full bg-black dark:bg-white/50"
+        style={{
+          width: `${progress()}%`,
+        }}
+      ></div>
+    </div>
+  );
+}
+
 function CalendarWrapper(props: CalendarWrapperProps) {
   const [range, setRange] = createSignal({
     from: dayjs().startOf("month").toDate(),
@@ -35,18 +55,6 @@ function CalendarWrapper(props: CalendarWrapperProps) {
   const [newEntryOpen, setModalOpen] = createSignal(false);
 
   const queryClient = useQueryClient();
-
-  const calendar = createQuery(
-    () => ["calendar", props.user.token, range().from.toISOString(), range().to.toISOString()],
-    () => {
-      return Queries.calendar(props.user.token, range());
-    },
-    {
-      refetchInterval: 5 * 1000,
-      keepPreviousData: true,
-      refetchOnWindowFocus: false,
-    }
-  );
 
   const [entryData, setEntryData] = createSignal<
     | {
@@ -74,6 +82,20 @@ function CalendarWrapper(props: CalendarWrapperProps) {
     tour_count: 0,
     cash: 0,
   });
+  const calendar = createQuery(
+    () => ["calendar", props.user.token, range().from.toISOString(), range().to.toISOString()],
+    () => {
+      return Queries.calendar(props.user.token, range());
+    },
+    {
+      get enabled() {
+        return !newEntryOpen();
+      },
+      refetchInterval: 5 * 1000,
+      keepPreviousData: true,
+      refetchOnWindowFocus: false,
+    }
+  );
 
   const createEntry = createMutation(
     () => {
@@ -116,7 +138,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
     {
       onSuccess: (data) => {
         if (data.success) {
-          toast.success(`Entry '${data.entry.id}' updated`);
+          toast.success(`Updated ${dayjs(data.entry.date).format("Do MMM")}`);
           queryClient.invalidateQueries(["calendar"]);
         } else {
           toast.error(`Entry not updated`);
@@ -150,6 +172,45 @@ function CalendarWrapper(props: CalendarWrapperProps) {
     }
   );
 
+  const confirmDelete = (id: string) => {
+    toast.custom(
+      <div class="relative overflow-clip flex flex-col border border-black/10 dark:border-white/10 rounded-md p-4 gap-4 shadow-sm">
+        <span class="font-bold">Are you sure?</span>
+        <div class="flex flex-row gap-2">
+          <button
+            class="p-1.5 px-2.5 bg-red-100 dark:bg-red-900 rounded-md border border-black/10 dark:border-white/10 justify-center items-center gap-2.5 flex cursor-pointer hover:bg-red-200 dark:hover:bg-red-800 active:bg-red-300 dark:active:bg-red-700"
+            onClick={async () => {
+              await deleteEntry.mutateAsync(id);
+            }}
+          >
+            <span>Yes, delete</span>
+          </button>
+          <button
+            class="p-1.5 px-2.5 bg-white dark:bg-black rounded-md border border-black/10 dark:border-white/10 justify-center items-center gap-2.5 flex cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-950 active:bg-neutral-100 dark:active:bg-neutral-900"
+            onClick={async () => {
+              toast.dismiss();
+            }}
+          >
+            <span>No</span>
+          </button>
+        </div>
+        <FakeProgressBar time={3000} />
+      </div>,
+      {
+        duration: 3000,
+        position: "bottom-right",
+      }
+    );
+  };
+
+  const calculatedTotal = () => {
+    let total = 0;
+    for (const entry of calendar.data?.calendar ?? []) {
+      total += entry.cash;
+    }
+    return total;
+  };
+
   createEffect(() => {
     // keybind for closing the modal
     const keydownHandler = (e: KeyboardEvent) => {
@@ -170,28 +231,20 @@ function CalendarWrapper(props: CalendarWrapperProps) {
   });
 
   return (
-    <div class="relative container mx-auto flex flex-col gap-2">
+    <div class="container mx-auto flex flex-col gap-2">
       <div class="w-full h-screen px-8">
         <Suspense fallback={<div class="flex justify-center items-center p-10">Loading...</div>}>
           <Show when={calendar.data}>
             {(d) => (
-              <div class="w-full h-auto flex-col relative justify-start items-start flex gap-4">
-                <div class="w-full flex flex-col bg-white dark:bg-black border-b border-neutral-200 dark:border-neutral-900 z-40 sticky top-[49px]">
+              <div class="w-full h-auto flex-col relative justify-start items-start flex gap-2">
+                <div class="w-full flex flex-col bg-white dark:bg-black">
                   <div class="self-stretch py-4 justify-between items-center inline-flex">
-                    <div class="justify-start items-end gap-2 flex">
-                      <A
-                        href={`/company/${props.company.id}`}
-                        class="opacity-40 hover:opacity-60 text-2xl font-semibold"
-                      >
-                        {props.company.name}
-                      </A>
-                      <div class="text-xl font-bold">/</div>
-                      <div class="text-xl font-normal">{props.user.name}</div>
-                    </div>
+                    <div class="justify-start items-end gap-2 flex text-xl font-semibold">{props.company.name}</div>
                     <div class="justify-end items-center gap-2.5 flex">
                       <button
-                        class="p-2 bg-neutral-900 dark:bg-neutral-50 rounded-sm border border-black border-opacity-10 justify-center items-center gap-2.5 flex cursor-pointer relative text-white dark:text-black"
-                        aria-label="Settings"
+                        disabled
+                        class="p-2 bg-white dark:bg-black rounded-md border border-black/10 dark:border-white/10 justify-center items-center gap-2.5 flex cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-950 active:bg-neutral-100 dark:active:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label="settings"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
                           <path
@@ -213,70 +266,14 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                   <div class="self-stretch py-5 justify-between items-center inline-flex">
                     <div class="justify-start items-center gap-2.5 flex">
                       <button
-                        class="p-2 flex gap-2 items-center justify-center text-base font-bold bg-black rounded-sm border-black !border-opacity-10 dark:bg-white dark:border-white text-white dark:text-black"
-                        onClick={async () => {
-                          setRange((md) => ({
-                            from: dayjs(md.from).subtract(1, "month").startOf("month").toDate(),
-                            to: dayjs(md.to).subtract(1, "month").toDate(),
-                          }));
-                          await queryClient.invalidateQueries(["calendar"]);
-                        }}
-                        aria-label="Previous month"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path d="m12 19-7-7 7-7" />
-                          <path d="M19 12H5" />
-                        </svg>
-                      </button>
-                      <button
-                        class="p-2 flex gap-2 items-center justify-center text-base font-bold bg-black rounded-sm border-black !border-opacity-10 dark:bg-white dark:border-white text-white dark:text-black"
-                        onClick={async () => {
-                          setRange((md) => ({
-                            from: dayjs(md.from).add(1, "month").startOf("month").toDate(),
-                            to: dayjs(md.to).add(1, "month").toDate(),
-                          }));
-
-                          await queryClient.invalidateQueries(["calendar"]);
-                        }}
-                        aria-label="Next month"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path d="M5 12h14" />
-                          <path d="m12 5 7 7-7 7" />
-                        </svg>
-                      </button>
-                      <div class="text-xl font-bold truncate">{dayjs(range().from).format("MMMM YYYY")}</div>
-                    </div>
-                    <div class="justify-start items-center gap-2.5 flex">
-                      <button
-                        class="p-1.5 flex gap-2 items-center justify-center text-base font-bold bg-black rounded-sm border-black !border-opacity-10 dark:bg-white dark:border-white text-white dark:text-black"
+                        class="p-2 py-1 flex gap-2 items-center justify-center bg-transparent rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-900"
                         aria-label="add entry"
                         onClick={() => setModalOpen(true)}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
+                          width="18"
+                          height="18"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
@@ -287,89 +284,153 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                           <path d="M5 12h14" />
                           <path d="M12 5v14" />
                         </svg>
-                        {/* <div class="select-none text-base font-bold">Add Entry</div> */}
+                        <span class="font-bold select-none">Add Entry</span>
                       </button>
-                      <button
-                        class="p-1 px-2 bg-white dark:bg-black rounded-sm border border-black dark:border-white !border-opacity-10 justify-center items-center gap-2.5 flex cursor-pointer hover:bg-black hover:bg-opacity-5 dark:hover:bg-white dark:hover:bg-opacity-5"
-                        aria-label="share"
-                      >
-                        <div class="w-4 h-4 relative text-black dark:text-white">
+                    </div>
+                    <div class="justify-start items-center gap-2.5 flex">
+                      <div class="flex flex-row gap-2 border border-black/10 dark:border-white/10 rounded-md overflow-clip">
+                        <button
+                          class="flex items-center justify-center hover:bg-neutral-50 dark:hover:bg-neutral-950 active:bg-neutral-100 dark:active:bg-neutral-900 p-2"
+                          onClick={async () => {
+                            setRange((md) => ({
+                              from: dayjs(md.from).subtract(1, "month").startOf("month").toDate(),
+                              to: dayjs(md.to).subtract(1, "month").toDate(),
+                            }));
+                            await queryClient.invalidateQueries(["calendar"]);
+                          }}
+                          aria-label="Previous month"
+                        >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="16"
-                            height="17"
-                            viewBox="0 0 16 17"
+                            height="16"
+                            viewBox="0 0 24 24"
                             fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
                           >
-                            <path
-                              d="M10 11.8333L13.3333 8.49999L10 5.16666"
-                              stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M2.66666 12.5V11.1667C2.66666 10.4594 2.94761 9.78115 3.4477 9.28105C3.9478 8.78095 4.62608 8.5 5.33332 8.5H13.3333"
-                              stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
+                            <path d="m12 19-7-7 7-7" />
+                            <path d="M19 12H5" />
                           </svg>
+                        </button>
+                        <div class="flex w-fit items-center justify-center">
+                          <div class="font-bold w-fit text-center select-none">
+                            {dayjs(range().from).format("MMMM YYYY")}
+                          </div>
                         </div>
-                        <div class="select-none text-base font-bold">Share</div>
-                      </button>
-                      <button
-                        class="p-1 px-2 bg-white dark:bg-black rounded-sm border border-black !border-opacity-10 dark:border-white justify-center items-center gap-2.5 flex cursor-pointer hover:bg-black hover:bg-opacity-5 dark:hover:bg-white dark:hover:bg-opacity-5"
-                        aria-label="reports menu"
-                      >
-                        <div class="w-4 h-4 relative text-black dark:text-white">
+                        <button
+                          class="flex items-center justify-center hover:bg-neutral-50 dark:hover:bg-neutral-950 active:bg-neutral-100 dark:active:bg-neutral-900 p-2"
+                          onClick={async () => {
+                            setRange((md) => ({
+                              from: dayjs(md.from).add(1, "month").startOf("month").toDate(),
+                              to: dayjs(md.to).add(1, "month").toDate(),
+                            }));
+
+                            await queryClient.invalidateQueries(["calendar"]);
+                          }}
+                          aria-label="Next month"
+                        >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="16"
-                            height="17"
-                            viewBox="0 0 16 17"
+                            height="16"
+                            viewBox="0 0 24 24"
                             fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
                           >
-                            <path
-                              d="M9.66666 1.83334H3.99999C3.64637 1.83334 3.30723 1.97382 3.05718 2.22387C2.80713 2.47392 2.66666 2.81305 2.66666 3.16668V13.8333C2.66666 14.187 2.80713 14.5261 3.05718 14.7762C3.30723 15.0262 3.64637 15.1667 3.99999 15.1667H12C12.3536 15.1667 12.6928 15.0262 12.9428 14.7762C13.1928 14.5261 13.3333 14.187 13.3333 13.8333V5.50001L9.66666 1.83334Z"
-                              stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M9.33331 1.83334V5.83334H13.3333"
-                              stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M10.6666 9.16666H5.33331"
-                              stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M10.6666 11.8333H5.33331"
-                              stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M6.66665 6.5H5.33331"
-                              stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
+                            <path d="M5 12h14" />
+                            <path d="m12 5 7 7-7 7" />
                           </svg>
-                        </div>
-                        <div class="select-none text-base font-bold">Reports</div>
-                      </button>
+                        </button>
+                      </div>
+                      <div class="flex gap-2">
+                        <button
+                          class="p-1 px-2.5 bg-white dark:bg-black rounded-md border border-black/10 dark:border-white/10 justify-center items-center gap-2.5 flex cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-950 active:bg-neutral-100 dark:active:bg-neutral-900"
+                          aria-label="share"
+                        >
+                          <div class="w-4 h-4 relative text-black dark:text-white">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="17"
+                              viewBox="0 0 16 17"
+                              fill="none"
+                            >
+                              <path
+                                d="M10 11.8333L13.3333 8.49999L10 5.16666"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              />
+                              <path
+                                d="M2.66666 12.5V11.1667C2.66666 10.4594 2.94761 9.78115 3.4477 9.28105C3.9478 8.78095 4.62608 8.5 5.33332 8.5H13.3333"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              />
+                            </svg>
+                          </div>
+                          <div class="select-none text-base font-bold">Share</div>
+                        </button>
+                        <button
+                          class="p-1 px-2.5 bg-white dark:bg-black rounded-md border border-black/10 dark:border-white/10 justify-center items-center gap-2.5 flex cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-950  active:bg-neutral-100 dark:active:bg-neutral-900"
+                          aria-label="reports menu"
+                        >
+                          <div class="w-4 h-4 relative text-black dark:text-white">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="17"
+                              viewBox="0 0 16 17"
+                              fill="none"
+                            >
+                              <path
+                                d="M9.66666 1.83334H3.99999C3.64637 1.83334 3.30723 1.97382 3.05718 2.22387C2.80713 2.47392 2.66666 2.81305 2.66666 3.16668V13.8333C2.66666 14.187 2.80713 14.5261 3.05718 14.7762C3.30723 15.0262 3.64637 15.1667 3.99999 15.1667H12C12.3536 15.1667 12.6928 15.0262 12.9428 14.7762C13.1928 14.5261 13.3333 14.187 13.3333 13.8333V5.50001L9.66666 1.83334Z"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              />
+                              <path
+                                d="M9.33331 1.83334V5.83334H13.3333"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              />
+                              <path
+                                d="M10.6666 9.16666H5.33331"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              />
+                              <path
+                                d="M10.6666 11.8333H5.33331"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              />
+                              <path
+                                d="M6.66665 6.5H5.33331"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              />
+                            </svg>
+                          </div>
+                          <div class="select-none text-base font-bold">Reports</div>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div class="flex w-full flex-grow relative bg-white rounded-sm border border-black dark:border-white dark:bg-black !border-opacity-10">
+                <div class="flex w-full flex-grow relative bg-neutral-50 dark:bg-neutral-950 rounded-md border border-black/[0.03] dark:border-white/[0.03]">
                   <Show when={(d().calendar ?? []).length === 0}>
-                    <div class="flex flex-col gap-4 items-center justify-center w-full h-full p-20">
-                      <div class="opacity-10 flex flex-col items-center justify-center gap-2] -rotate-[10deg]">
+                    <div class="flex flex-col gap-4 items-center justify-center w-full h-full p-40">
+                      <div class="opacity-25 flex flex-col items-center justify-center gap-2] -rotate-[10deg]">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="48"
@@ -387,11 +448,11 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                           <path d="m16.71 13.88.7.71-2.82 2.82" />
                         </svg>
                       </div>
+                      <div class="text-neutral-500 select-none">There is no data for this month.</div>
                       <div class="flex flex-col items-center justify-center gap-6">
-                        <div class="text-2xl font-medium opacity-25">No entries</div>
                         <button
-                          class="p-1.5 px-2 flex gap-2 items-center justify-center text-base font-bold bg-black rounded-sm border-black !border-opacity-10 dark:bg-white dark:border-white text-white dark:text-black"
-                          aria-label="Add entry"
+                          class="p-1.5 px-2.5 flex gap-2 items-center justify-center text-base font-bold bg-black rounded-md border-black !border-opacity-10 dark:bg-white dark:border-white text-white dark:text-black"
+                          aria-label="add entry"
                           onClick={() => setModalOpen(true)}
                         >
                           <svg
@@ -417,13 +478,13 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                     <div class="flex flex-col gap-2 items-center justify-center w-full">
                       <For each={d()?.calendar ?? []}>
                         {(entry) => (
-                          <div class="flex flex-col gap-2 w-full p-4 last:border-none border-b border-neutral-200 dark:border-neutral-800">
+                          <div class="flex flex-col gap-2 w-full p-4 last:border-none border-b border-neutral-100 dark:border-neutral-900">
                             <div class="flex w-full justify-between">
                               <div class="w-fit flex flex-row gap-2">
                                 <div class="font-medium">{dayjs(entry.date).format("Do MMM. YYYY")}</div>
                                 <div class="flex flex-row gap-2">
                                   <button
-                                    class="p-2 rounded-sm hover:bg-neutral-100 hover:dark:bg-neutral-900"
+                                    class="p-2 rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-800"
                                     onClick={() => {
                                       setEntryData({
                                         mode: "EDIT",
@@ -453,9 +514,9 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                                     </svg>
                                   </button>
                                   <button
-                                    class="p-2 rounded-sm hover:bg-red-100 hover:dark:bg-red-900"
-                                    onClick={async () => {
-                                      await deleteEntry.mutateAsync(entry.id);
+                                    class="p-2 rounded-md hover:bg-red-100 hover:dark:bg-red-900"
+                                    onClick={() => {
+                                      confirmDelete(entry.id);
                                     }}
                                   >
                                     <svg
@@ -488,13 +549,31 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                     </div>
                   </Show>
                 </div>
-                <div class="w-full flex flex-col opacity-70 items-center justify-center text-xs gap-6 py-8">
-                  Last updated {dayjs(d().lastUpdated).format("Do MMM. YYYY, HH:mm:ss")}
+                <div class="flex w-full py-4">
+                  <div class="flex items-center justify-between flex-wrap container mx-auto px-2">
+                    <div class="justify-start items-center gap-2.5 flex">
+                      <div class="text-xl font-semibold">Total</div>
+                    </div>
+                    <div class="justify-end items-center gap-2.5 flex w-max">
+                      <div class="justify-center items-center gap-2.5 flex">
+                        <div class="text-xl font-semibold flex gap-2">
+                          <span>{new Intl.NumberFormat(props.locale).format(calculatedTotal())}</span>
+                          <span>CHF</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="w-full flex flex-col items-center justify-center text-xs gap-6 py-8">
+                  <span class="opacity-40 select-none">
+                    Last updated {dayjs(d().lastUpdated).format("Do MMM. YYYY, HH:mm:ss")}
+                  </span>
                   <button
-                    class="text-md font-medium cursor-pointer flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-sm border border-black dark:border-white !border-opacity-10 p-1.5 px-2 hover:bg-black hover:bg-opacity-5 dark:hover:bg-white dark:hover:bg-opacity-5 active:bg-black active:bg-opacity-10 dark:active:bg-white dark:active:bg-opacity-10"
+                    class="p-1.5 px-2.5 bg-white dark:bg-black rounded-md border border-black/10 dark:border-white/10 justify-center items-center gap-2.5 flex cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-950 active:bg-neutral-100 dark:active:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
                     onClick={async () => {
                       await queryClient.invalidateQueries(["calendar"]);
                     }}
+                    aria-label="refresh"
                     disabled={calendar.isFetching}
                   >
                     <svg
@@ -507,31 +586,17 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                       stroke-width="2"
                       stroke-linecap="round"
                       stroke-linejoin="round"
+                      class={calendar.isFetching ? "animate-spin" : ""}
                     >
                       <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                       <path d="M3 3v5h5" />
                       <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
                       <path d="M16 16h5v5" />
                     </svg>
-                    <span>Refresh</span>
+                    <span class="select-none">Refresh</span>
                   </button>
                 </div>
                 <div class="w-full flex flex-col text-opacity-50 items-center justify-center h-[200px]"></div>
-                <div class="left-0 bottom-0 fixed bg-neutral-100 dark:bg-neutral-900 w-screen py-0.5 border-t border-neutral-200 dark:border-neutral-800 justify-between items-center flex">
-                  <div class="flex items-center justify-between flex-wrap container mx-auto px-8">
-                    <div class="justify-start items-center gap-2.5 flex">
-                      <div class="text-xl font-bold">Total</div>
-                    </div>
-                    <div class="justify-end items-center gap-2.5 flex w-max">
-                      <div class="p-2.5 justify-center items-center gap-2.5 flex">
-                        <div class="text-xl font-bold flex gap-2">
-                          <span>total</span>
-                          <span>CHF</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             )}
           </Show>
@@ -539,7 +604,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
         <Portal>
           <Show when={newEntryOpen()}>
             <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center backdrop-blur-sm" />
-            <div class="fixed flex flex-col top-[50%] left-[50%] transform  -translate-x-[50%] -translate-y-[50%] h-auto w-[400px] z-50 bg-white border border-neutral-200 shadow-md dark:bg-black dark:border-neutral-800 p-4 rounded-sm gap-4">
+            <div class="fixed flex flex-col top-[50%] left-[50%] transform  -translate-x-[50%] -translate-y-[50%] h-auto w-[400px] z-50 bg-white border border-neutral-200 shadow-md dark:bg-black dark:border-neutral-800 p-4 rounded-md gap-4">
               <div class="flex flex-row w-full items-center justify-between">
                 <h1 class="text-xl font-bold">New entry</h1>
                 <button
@@ -583,7 +648,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                       setEntryData((d) => ({ ...d, date: dayjs(e.currentTarget.value).toDate() }));
                     }}
                     disabled={createEntry.isLoading || updateEntry.isLoading || entryData().mode === Modes.EDIT}
-                    class="w-full rounded-sm bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
+                    class="w-full rounded-md bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
                   />
                 </label>
                 <label class="flex flex-col gap-1">
@@ -598,7 +663,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                       setEntryData((d) => ({ ...d, distance: parseFloat(e.currentTarget.value) }));
                     }}
                     disabled={createEntry.isLoading || updateEntry.isLoading}
-                    class="w-full rounded-sm bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
+                    class="w-full rounded-md bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
                   />
                 </label>
                 <label class="flex flex-col gap-1">
@@ -613,7 +678,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                       setEntryData((d) => ({ ...d, driven_distance: parseFloat(e.currentTarget.value) }));
                     }}
                     disabled={createEntry.isLoading || updateEntry.isLoading}
-                    class="w-full rounded-sm bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
+                    class="w-full rounded-md bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
                   />
                 </label>
                 <label class="flex flex-col gap-1">
@@ -628,13 +693,13 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                     onInput={(e) => {
                       setEntryData((d) => ({ ...d, cash: parseFloat(e.currentTarget.value) }));
                     }}
-                    class="w-full rounded-sm bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
+                    class="w-full rounded-md bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
                   />
                 </label>
                 <button
                   type="button"
                   disabled={createEntry.isLoading || updateEntry.isLoading}
-                  class="w-full rounded-sm bg-black text-white py-2"
+                  class="w-full rounded-md bg-black text-white py-2"
                   onClick={async () => {
                     const ed = entryData();
                     if (ed.mode === Modes.CREATE) {

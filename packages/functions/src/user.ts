@@ -384,11 +384,13 @@ export type UpdateDayEntryResult =
       success: true;
       error: null;
       entry: NonNullable<Awaited<ReturnType<typeof User.updateDayEntry>>>;
+      changes: Partial<NonNullable<Awaited<ReturnType<typeof User.updateDayEntry>>>>;
     }
   | {
       success: false;
       error: string;
       entry: null;
+      changes: null;
     };
 
 export const updateDayEntry = ApiHandler(async (x) => {
@@ -449,6 +451,20 @@ export const updateDayEntry = ApiHandler(async (x) => {
     };
   }
   const data = JSON.parse(body);
+  const oldEntry = await User.dayEntry(user_.id, { id: data.id });
+  if (!oldEntry) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        success: false,
+        error: `No entry found with id ${data.id}`,
+        entry: null,
+      } as UpdateDayEntryResult),
+      statusCode: 200,
+    };
+  }
   const e: Awaited<ReturnType<typeof User.updateDayEntry>> | Error = await User.updateDayEntry(user_.id, {
     id: data.id,
     total_distance: data.total_distance,
@@ -471,6 +487,16 @@ export const updateDayEntry = ApiHandler(async (x) => {
       statusCode: 422,
     };
   }
+
+  let changes = {} as Partial<NonNullable<Awaited<ReturnType<typeof User.updateDayEntry>>>>;
+
+  Object.keys(data).forEach((key) => {
+    let k = key as keyof NonNullable<Awaited<ReturnType<typeof User.updateDayEntry>>>;
+    if (data[k] !== oldEntry[k]) {
+      changes[k] = data[k];
+    }
+  });
+
   return {
     headers: {
       "Content-Type": "application/json",
@@ -479,6 +505,7 @@ export const updateDayEntry = ApiHandler(async (x) => {
       success: true,
       error: null,
       entry: e,
+      changes: changes,
     } as UpdateDayEntryResult),
     statusCode: 200,
   };

@@ -183,6 +183,44 @@ export const calendar = z
     return cData.day_entries;
   });
 
+export const dayEntry = z
+  .function(
+    z.tuple([
+      z.string().uuid(),
+      z.object({
+        id: z.string().uuid(),
+      }),
+    ])
+  )
+  .implement(async (id, input) => {
+    const cData = await db.query.users.findFirst({
+      where: (users, operations) => operations.eq(users.id, id),
+      with: {
+        day_entries: {
+          where: (day_entries, operations) => operations.eq(day_entries.id, input.id),
+        },
+      },
+    });
+    if (!cData) {
+      return null;
+    }
+    if (!cData.companyId) {
+      return null;
+    }
+    const existsX = await db.query.day_entries.findFirst({
+      where: (day_entries, operations) =>
+        operations.and(
+          operations.eq(day_entries.id, input.id),
+          operations.eq(day_entries.ownerId, id),
+          operations.eq(day_entries.companyId, cData.companyId!)
+        ),
+    });
+    if (!existsX) {
+      throw new Error("Day entry does not exist");
+    }
+    return existsX;
+  });
+
 export const createDayEntry = z
   .function(
     z.tuple([

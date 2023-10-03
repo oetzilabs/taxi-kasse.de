@@ -82,14 +82,21 @@ export const AuthC = () => {
       <Switch>
         <Match when={AuthStore().isAuthenticated && AuthStore().user}>
           {(user) => (
-            <div class="flex w-full flex-row items-center justify-between">
-              <div class="flex items-center text-sm gap-1 cursor-pointer">
-                <img class="w-7 h-7 rounded-full" src={user().profile.image} alt={user().name} />
-                <span class="text-sm">{user().name}</span>
+            <div class="flex w-full flex-row  items-center  justify-between">
+              <div class="flex">
+                <A href="/" class="hover:underline">
+                  Taxi-Kasse
+                </A>
               </div>
-              <button onClick={signOut} class="ml-4 py-1 px-2 rounded">
-                Sign out
-              </button>
+              <div class="flex w-max flex-row items-center gap-1">
+                <div class="flex items-center text-sm gap-1 cursor-pointer">
+                  <img class="w-7 h-7 rounded-full" src={user().profile.image} alt={user().name} />
+                  <span class="text-sm">{user().name}</span>
+                </div>
+                <button onClick={signOut} class="ml-4 py-1 px-2 rounded">
+                  Sign out
+                </button>
+              </div>
             </div>
           )}
         </Match>
