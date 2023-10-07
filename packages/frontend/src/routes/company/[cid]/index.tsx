@@ -126,7 +126,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                 <div class="justify-start items-center gap-2.5 flex">
                   <CreateEntryModal token={props.user.token}>
                     <button
-                      class="hover:bg-neutral-100 rounded-md border-none active:bg-neutral-200 dark:hover:bg-neutral-900 dark:active:bg-neutral-800"
+                      class="flex items-center justify-center gap-2.5 p-1 px-2 hover:bg-neutral-100 rounded-md border-none active:bg-neutral-200 dark:hover:bg-neutral-900 dark:active:bg-neutral-800"
                       aria-label="add entry"
                     >
                       <svg

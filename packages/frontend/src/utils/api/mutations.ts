@@ -1,7 +1,7 @@
 import { Company } from "@taxi-kassede/core/entities/company";
 import { User } from "@taxi-kassede/core/entities/users";
 import { z } from "zod";
-import { CreateDayEntryResult, UpdateDayEntryResult } from "../../../../functions/src/user";
+import { CreateDayEntryResult, UpdateDayEntryResult, UserCreateReportResult } from "../../../../functions/src/user";
 
 export * as Mutations from "./mutations";
 
@@ -117,5 +117,5 @@ export const createReport = createReportZod.implement(async (token, input) =>
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ date_range: input }),
-  }).then((x) => x.text() as Promise<string>)
+  }).then((x) => x.json() as Promise<UserCreateReportResult>)
 );

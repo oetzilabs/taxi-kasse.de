@@ -3,7 +3,7 @@ import { User } from "@taxi-kassede/core/entities/users";
 import dayjs from "dayjs";
 import { z } from "zod";
 import { SessionResult } from "../../../../functions/src/session";
-import { CalendarResult } from "../../../../functions/src/user";
+import { CalendarResult, UserGetReportsListResult } from "../../../../functions/src/user";
 
 export * as Queries from "./queries";
 
@@ -103,4 +103,14 @@ export const session = sessionZod.implement(async (token) =>
       authorization: `Bearer ${token}`,
     },
   }).then((res) => res.json() as Promise<SessionResult>)
+);
+
+export const listReportsZod = z.function(z.tuple([z.string()]));
+
+export const listReports = listReportsZod.implement(async (token) =>
+  fetch(`${API_BASE}/user/report/list`, {
+    headers: {
+      authorization: `Bearer ${token}`,
+    },
+  }).then((res) => res.json() as Promise<UserGetReportsListResult>)
 );

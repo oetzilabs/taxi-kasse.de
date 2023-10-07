@@ -1,27 +1,34 @@
 import { DropdownMenu } from "@kobalte/core";
-import { createMutation, createQuery } from "@tanstack/solid-query";
+import { createMutation, createQuery, useQueryClient } from "@tanstack/solid-query";
 import { For, Match, Switch, createSignal } from "solid-js";
 import toast from "solid-toast";
 import { Mutations } from "../utils/api/mutations";
 import { cn } from "../utils/cn";
 import { useAuth } from "./Auth";
+import { Queries } from "../utils/api/queries";
 
 type ReportsMenuProps = {};
 export function ReportsMenu(props: ReportsMenuProps) {
   const [user] = useAuth();
   const itemClass =
-    "flex flex-row gap-2.5 p-2 py-1.5 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-950 active:bg-neutral-100 dark:active:bg-neutral-900 font-medium items-center justify-between";
+    "flex flex-row gap-2.5 p-2 py-1.5 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-900 active:bg-neutral-100 dark:active:bg-neutral-800 font-medium items-center justify-between select-none";
   const [isVisible, setIsVisible] = createSignal(false);
+  const queryClient = useQueryClient();
 
   const reportsList = createQuery(
     () => ["reports"],
     () => {
-      return [] as string[];
+      const token = user().token;
+      if (!token) {
+        return Promise.resolve({
+          success: false,
+          error: "No token",
+          reports: null,
+        } as Awaited<ReturnType<typeof Queries.listReports>>);
+      }
+      return Queries.listReports(token);
     },
     {
-      get enabled() {
-        return isVisible();
-      },
       refetchOnMount: true,
     }
   );
@@ -84,50 +91,52 @@ export function ReportsMenu(props: ReportsMenuProps) {
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content class="self-end mt-2 w-fit bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800 shadow-md overflow-clip">
-          <Switch>
-            {" "}
-            <DropdownMenu.Group>
-              <DropdownMenu.GroupLabel class="font-semibold p-2">Previous</DropdownMenu.GroupLabel>
+          <DropdownMenu.Group>
+            <DropdownMenu.GroupLabel class="font-semibold p-2 select-none">Previous</DropdownMenu.GroupLabel>
+            <Switch>
               <Match when={reportsList.isLoading}>
-                <DropdownMenu.Item class={cn(itemClass)} disabled>
+                <DropdownMenu.Item class={cn(itemClass, "select-none")} disabled>
                   <span>Loading...</span>
                 </DropdownMenu.Item>
               </Match>
-              <Match when={!reportsList.isLoading && (reportsList.data ?? []).length === 0}>
-                <DropdownMenu.Item class={cn(itemClass)} disabled>
+              <Match when={!reportsList.isLoading && (reportsList.data?.reports ?? []).length === 0}>
+                <DropdownMenu.Item class={cn(itemClass, "select-none")} disabled>
                   <span>No reports</span>
                 </DropdownMenu.Item>
               </Match>
-              <Match when={!reportsList.isLoading && (reportsList.data ?? []).length > 0 && (reportsList.data ?? [])}>
+              <Match
+                when={
+                  !reportsList.isLoading && (reportsList.data?.reports?.length ?? 0) > 0 && reportsList.data?.reports
+                }
+              >
                 {(reports) => (
                   <For each={reports()}>
                     {(report) => (
                       <DropdownMenu.Item
                         class={cn(itemClass)}
                         onSelect={() => {
-                          toast.success("Coming soon");
+                          window.open(report.href);
                         }}
                       >
-                        <span>{report}</span>
+                        <span>{report.name}</span>
                       </DropdownMenu.Item>
                     )}
                   </For>
                 )}
               </Match>
-            </DropdownMenu.Group>
-            <DropdownMenu.Separator />
-          </Switch>
+            </Switch>
+          </DropdownMenu.Group>
+          <DropdownMenu.Separator class="border-neutral-200 dark:border-neutral-800" />
           <DropdownMenu.Item
-            class={cn(itemClass)}
+            class={cn(itemClass, "text-teal-400 hover:bg-teal-400 hover:text-white dark:hover:bg-teal-600")}
             closeOnSelect={false}
             onSelect={async () => {
-              const dataBase64 = await createReport.mutateAsync("month");
-              const blob = await fetch(dataBase64).then((r) => r.blob());
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = "report.pdf";
-              a.click();
+              const s3URL = await createReport.mutateAsync("month");
+              const success = s3URL.success;
+              await queryClient.invalidateQueries(["reports"]);
+              if (success) {
+                window.open(s3URL.report);
+              }
             }}
           >
             <Switch>

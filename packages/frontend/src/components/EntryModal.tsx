@@ -113,7 +113,7 @@ export function CreateEntryModal(props: CreateEntryModalProps) {
         <button
           type="button"
           disabled={createEntry.isLoading}
-          class="w-full rounded-md bg-black text-white py-2"
+          class="flex items-center justify-center p-2 py-1 bg-black rounded-md border-black/10 text-white dark:bg-white dark:border-white/10 dark:text-black"
           onClick={async () => {
             await createEntry.mutateAsync();
           }}
@@ -230,7 +230,7 @@ export function EditEntryModal(props: EditEntryModalProps) {
         <button
           type="button"
           disabled={updateEntry.isLoading}
-          class="w-full rounded-md bg-black text-white py-2"
+          class="flex items-center justify-center p-2 py-1 bg-black rounded-md border-black/10 text-white dark:bg-white dark:border-white/10 dark:text-black"
           onClick={async () => {
             await updateEntry.mutateAsync();
           }}

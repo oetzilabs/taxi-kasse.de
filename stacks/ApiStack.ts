@@ -1,5 +1,6 @@
 import { Api, Config, StackContext, use } from "sst/constructs";
 import { Auth } from "sst/constructs/future";
+import { StorageStack } from "./StorageStack";
 
 export function ApiStack({ stack }: StackContext) {
   const secrets = Config.Secret.create(
@@ -9,6 +10,8 @@ export function ApiStack({ stack }: StackContext) {
     "DATABASE_URL",
     "DATABASE_AUTH_TOKEN"
   );
+
+  const { bucket } = use(StorageStack);
 
   const auth = new Auth(stack, "auth", {
     authenticator: {
@@ -21,7 +24,7 @@ export function ApiStack({ stack }: StackContext) {
     defaults: {
       function: {
         // handler: "packages/functions/src/migrator.handler",
-        bind: [secrets.GOOGLE_CLIENT_ID, auth, secrets.DATABASE_URL, secrets.DATABASE_AUTH_TOKEN],
+        bind: [secrets.GOOGLE_CLIENT_ID, auth, secrets.DATABASE_URL, secrets.DATABASE_AUTH_TOKEN, bucket],
         copyFiles: [
           {
             from: "packages/core/src/drizzle",
@@ -39,6 +42,12 @@ export function ApiStack({ stack }: StackContext) {
         function: {
           handler: "packages/functions/src/lambda.handler",
           description: "This is the default function",
+        },
+      },
+      "GET /healthcheck": {
+        function: {
+          handler: "packages/functions/src/healthcheck.main",
+          description: "This is the healthcheck function",
         },
       },
       "GET /data": {
@@ -96,10 +105,17 @@ export function ApiStack({ stack }: StackContext) {
           description: "This is the user calendar function",
         },
       },
+      "GET /user/report/list": {
+        function: {
+          handler: "packages/functions/src/user.listReports",
+          description: "This is the user listReports function",
+        },
+      },
       "POST /user/report/create": {
         function: {
           handler: "packages/functions/src/user.createReport",
           description: "This is the user createReport function",
+          timeout: 29,
         },
       },
       "POST /user/day_entry/create": {
