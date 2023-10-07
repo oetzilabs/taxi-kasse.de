@@ -7,7 +7,7 @@ type ModalProps = {
   title?: string;
   trigger?: JSX.Element;
   open?: boolean;
-  onOpenChange?: Setter<boolean>;
+  onOpenChange?: (open: boolean) => void;
 };
 
 export function Modal(props: ModalProps) {

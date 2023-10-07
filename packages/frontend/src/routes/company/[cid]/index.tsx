@@ -10,6 +10,7 @@ import { Mutations } from "../../../utils/api/mutations";
 import { Queries } from "../../../utils/api/queries";
 import { Button } from "../../../components/Button";
 import { CreateEntryModal, EditEntryModal } from "../../../components/EntryModal";
+import { DeleteEntryButton } from "../../../components/DeleteEntryButton";
 dayjs.extend(advancedFormat);
 
 const Modes = {
@@ -28,26 +29,6 @@ type CalendarWrapperProps = {
   };
   locale: string;
 };
-
-function FakeProgressBar(props: { time: number }) {
-  const [progress, setProgress] = createSignal(0);
-  createEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((p) => p + 1);
-    }, props.time / 100);
-    return () => clearInterval(interval);
-  });
-  return (
-    <div class="absolute bottom-0 left-0 right-0 h-1 bg-black/10 dark:bg-white/10">
-      <div
-        class="h-full bg-black dark:bg-white/50"
-        style={{
-          width: `${progress()}%`,
-        }}
-      ></div>
-    </div>
-  );
-}
 
 function CalendarWrapper(props: CalendarWrapperProps) {
   const [range, setRange] = createSignal({
@@ -103,57 +84,6 @@ function CalendarWrapper(props: CalendarWrapperProps) {
       refetchOnWindowFocus: false,
     }
   );
-
-  const deleteEntry = createMutation(
-    (id: string) => {
-      const payload = {
-        id,
-      } as Parameters<typeof Mutations.deleteDayEntry>[1];
-      return Mutations.deleteDayEntry(props.user.token, payload);
-    },
-    {
-      onSuccess: (entry) => {
-        if (entry.success) {
-          queryClient.invalidateQueries(["calendar"]);
-          toast.success(`Entry ${dayjs(entry.entry.date).format("Do MMM YYYY")} deleted`);
-        }
-      },
-      onError: (err) => {
-        toast.error("Entry not deleted");
-      },
-    }
-  );
-
-  const confirmDelete = (id: string) => {
-    toast.custom(
-      <div class="relative overflow-clip flex flex-col border border-black/10 dark:border-white/10 rounded-md p-4 gap-4 shadow-sm">
-        <span class="font-bold">Are you sure?</span>
-        <div class="flex flex-row gap-2">
-          <button
-            class="p-1.5 px-2.5 bg-red-100 dark:bg-red-900 rounded-md border border-black/10 dark:border-white/10 justify-center items-center gap-2.5 flex cursor-pointer hover:bg-red-200 dark:hover:bg-red-800 active:bg-red-300 dark:active:bg-red-700"
-            onClick={async () => {
-              await deleteEntry.mutateAsync(id);
-            }}
-          >
-            <span>Yes, delete</span>
-          </button>
-          <button
-            class="p-1.5 px-2.5 bg-white dark:bg-black rounded-md border border-black/10 dark:border-white/10 justify-center items-center gap-2.5 flex cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-950 active:bg-neutral-100 dark:active:bg-neutral-900"
-            onClick={async () => {
-              toast.dismiss();
-            }}
-          >
-            <span>No</span>
-          </button>
-        </div>
-        <FakeProgressBar time={3000} />
-      </div>,
-      {
-        duration: 3000,
-        position: "bottom-right",
-      }
-    );
-  };
 
   const calculatedTotal = () => {
     let total = 0;
@@ -361,7 +291,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                   </div>
                   <div class="text-neutral-500 select-none">There is no data for this month.</div>
                   <div class="flex flex-col items-center justify-center gap-6">
-                    <CreateEntryModal token={props.user.token}>
+                    <CreateEntryModal token={props.user.token} onOpenChange={setModalOpen}>
                       <Button.Primary aria-label="add entry">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -392,7 +322,12 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                           <div class="w-fit flex flex-row gap-2">
                             <div class="font-medium">{dayjs(entry.date).format("Do MMM. YYYY")}</div>
                             <div class="flex flex-row gap-2">
-                              <EditEntryModal date={entry.date} token={props.user.token} entry={entry}>
+                              <EditEntryModal
+                                onOpenChange={setModalOpen}
+                                date={entry.date}
+                                token={props.user.token}
+                                entry={entry}
+                              >
                                 <Button.Icon>
                                   <svg
                                     xmlns="http://www.w3.org/2000/svg"
@@ -410,30 +345,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                                   </svg>
                                 </Button.Icon>
                               </EditEntryModal>
-                              <Button.Icon
-                                danger
-                                ghost
-                                class="p-2 rounded-md hover:bg-red-100 hover:dark:bg-red-900"
-                                onClick={() => {
-                                  confirmDelete(entry.id);
-                                }}
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="14"
-                                  height="14"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  stroke-width="2"
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                >
-                                  <path d="M3 6h18" />
-                                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                                </svg>
-                              </Button.Icon>
+                              <DeleteEntryButton token={props.user.token} entryId={entry.id} />
                             </div>
                           </div>
                           <div class="">{entry.total_distance} km</div>

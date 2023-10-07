@@ -10,6 +10,7 @@ dayjs.extend(advancedFormat);
 type CreateEntryModalProps = {
   token: string;
   children: JSX.Element;
+  onOpenChange?: (open: boolean) => void;
 };
 
 export function CreateEntryModal(props: CreateEntryModalProps) {
@@ -31,15 +32,25 @@ export function CreateEntryModal(props: CreateEntryModalProps) {
         queryClient.invalidateQueries(["calendar"]);
         toast.success("Entry created");
         setModalOpen(false);
+        props.onOpenChange && props.onOpenChange(false);
       },
       onError: (err) => {
         toast.error("Entry not created");
         setModalOpen(false);
+        props.onOpenChange && props.onOpenChange(false);
       },
     }
   );
   return (
-    <Modal title="New Entry" open={modalOpen()} onOpenChange={setModalOpen} trigger={props.children}>
+    <Modal
+      title="New Entry"
+      open={modalOpen()}
+      onOpenChange={(x) => {
+        setModalOpen(x);
+        props.onOpenChange && props.onOpenChange(false);
+      }}
+      trigger={props.children}
+    >
       <div class="flex flex-col gap-2">
         <label class="flex flex-col gap-1">
           <span>Date</span>
@@ -63,7 +74,7 @@ export function CreateEntryModal(props: CreateEntryModalProps) {
             step="0.01"
             value={entryData().total_distance}
             onInput={(e) => {
-              setEntryData((d) => ({ ...d, distance: parseFloat(e.currentTarget.value) }));
+              setEntryData((d) => ({ ...d, total_distance: parseFloat(e.currentTarget.value) }));
             }}
             disabled={createEntry.isLoading}
             class="w-full rounded-md bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
@@ -122,6 +133,7 @@ type EditEntryModalProps = {
   date: Date;
   entry: Parameters<typeof Mutations.updateDayEntry>[1];
   children: JSX.Element;
+  onOpenChange?: (open: boolean) => void;
 };
 
 export function EditEntryModal(props: EditEntryModalProps) {
@@ -150,7 +162,15 @@ export function EditEntryModal(props: EditEntryModalProps) {
     }
   );
   return (
-    <Modal title="Edit Entry" open={modalOpen()} onOpenChange={setModalOpen} trigger={props.children}>
+    <Modal
+      title="Edit Entry"
+      open={modalOpen()}
+      onOpenChange={(x) => {
+        setModalOpen(x);
+        props.onOpenChange && props.onOpenChange(x);
+      }}
+      trigger={props.children}
+    >
       <div class="flex flex-col gap-2">
         <label class="flex flex-col gap-1">
           <span>Date</span>
@@ -171,7 +191,7 @@ export function EditEntryModal(props: EditEntryModalProps) {
             step="0.01"
             value={entryData().total_distance}
             onInput={(e) => {
-              setEntryData((d) => ({ ...d, distance: parseFloat(e.currentTarget.value) }));
+              setEntryData((d) => ({ ...d, total_distance: parseFloat(e.currentTarget.value) }));
             }}
             disabled={updateEntry.isLoading}
             class="w-full rounded-md bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
