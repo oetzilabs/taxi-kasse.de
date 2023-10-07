@@ -1,10 +1,10 @@
 import { createMutation, useQueryClient } from "@tanstack/solid-query";
-import { Mutations } from "../utils/api/mutations";
-import toast from "solid-toast";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
-import { Button } from "./Button";
 import { createEffect, createSignal } from "solid-js";
+import toast from "solid-toast";
+import { Mutations } from "../utils/api/mutations";
+import { cn } from "../utils/cn";
 dayjs.extend(advancedFormat);
 
 function FakeProgressBar(props: { time: number }) {
@@ -86,8 +86,10 @@ export const DeleteEntryButton = (props: { entryId: string; token: string }) => 
     setDeleteToastID(dId);
   };
   return (
-    <Button.Icon
-      danger
+    <button
+      class={cn(
+        "p-2 rounded-md bg-red-500/50 hover:bg-red-600/50 active:bg-red-600/80 dark:bg-red-500/50 dark:hover:bg-red-600/80 dark:active:bg-red-700"
+      )}
       onClick={() => {
         confirmDelete(props.entryId);
       }}
@@ -107,6 +109,6 @@ export const DeleteEntryButton = (props: { entryId: string; token: string }) => 
         <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
         <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
       </svg>
-    </Button.Icon>
+    </button>
   );
 };

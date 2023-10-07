@@ -4,11 +4,10 @@ import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { For, Show, Suspense, createSignal } from "solid-js";
 import { useAuth } from "../../../components/Auth";
-import { Button } from "../../../components/Button";
 import { DeleteEntryButton } from "../../../components/DeleteEntryButton";
 import { CreateEntryModal, EditEntryModal } from "../../../components/EntryModal";
-import { Queries } from "../../../utils/api/queries";
 import { ReportsMenu } from "../../../components/ReportsMenu";
+import { Queries } from "../../../utils/api/queries";
 import { cn } from "../../../utils/cn";
 dayjs.extend(advancedFormat);
 
@@ -126,7 +125,10 @@ function CalendarWrapper(props: CalendarWrapperProps) {
               <div class="self-stretch py-5 justify-between items-center inline-flex">
                 <div class="justify-start items-center gap-2.5 flex">
                   <CreateEntryModal token={props.user.token}>
-                    <Button.Ghost aria-label="add entry">
+                    <button
+                      class="hover:bg-neutral-100 rounded-md border-none active:bg-neutral-200 dark:hover:bg-neutral-900 dark:active:bg-neutral-800"
+                      aria-label="add entry"
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="18"
@@ -142,7 +144,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                         <path d="M12 5v14" />
                       </svg>
                       <span class="font-bold select-none">Add Entry</span>
-                    </Button.Ghost>
+                    </button>
                   </CreateEntryModal>
                 </div>
                 <div class="justify-start items-center gap-2.5 flex">
