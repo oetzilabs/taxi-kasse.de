@@ -4,9 +4,12 @@ import toast from "solid-toast";
 import { cn } from "../utils/cn";
 import { createMutation, createQuery } from "@tanstack/solid-query";
 import { For, Match, Switch, createSignal } from "solid-js";
+import { Mutations } from "../utils/api/mutations";
+import { useAuth } from "./Auth";
 
 type ReportsMenuProps = {};
 export function ReportsMenu(props: ReportsMenuProps) {
+  const [user] = useAuth();
   const itemClass =
     "flex flex-row gap-2.5 p-2 py-1.5 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-950 active:bg-neutral-100 dark:active:bg-neutral-900 font-medium items-center justify-between";
   const [isVisible, setIsVisible] = createSignal(false);
@@ -25,12 +28,21 @@ export function ReportsMenu(props: ReportsMenuProps) {
   );
 
   const createReport = createMutation(
-    async () => {
-      return new Promise<string>((resolve, reject) => {
-        setTimeout(() => {
-          resolve("Report created");
-        }, 3000);
-      });
+    async (
+      range:
+        | {
+            from: Date;
+            to: Date;
+          }
+        | "month"
+        | "year"
+        | "all"
+    ) => {
+      let token = user().token;
+      if (!token) {
+        throw new Error("No token");
+      }
+      return Mutations.createReport(token, range);
     },
     {
       onSuccess: (report) => {
@@ -45,7 +57,10 @@ export function ReportsMenu(props: ReportsMenuProps) {
   return (
     <DropdownMenu.Root placement="bottom-end" open={isVisible()} onOpenChange={setIsVisible}>
       <DropdownMenu.Trigger>
-        <Button.Secondary aria-label="reports menu">
+        <button
+          class="p-2 py-1 flex items-center justify-center gap-2.5 hover:bg-neutral-50 rounded-md border border-black/10 dark:border-white/10 active:bg-neutral-100 dark:hover:bg-neutral-900 dark:active:bg-neutral-800"
+          aria-label="reports menu"
+        >
           <div class="w-4 h-4 relative">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
               <path
@@ -66,7 +81,7 @@ export function ReportsMenu(props: ReportsMenuProps) {
             </svg>
           </div>
           <div class="select-none text-base font-bold">Reports</div>
-        </Button.Secondary>
+        </button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content class="self-end mt-2 w-fit bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800 shadow-md overflow-clip">
@@ -107,7 +122,13 @@ export function ReportsMenu(props: ReportsMenuProps) {
             class={cn(itemClass)}
             closeOnSelect={false}
             onSelect={async () => {
-              await createReport.mutateAsync();
+              const dataBase64 = await createReport.mutateAsync("month");
+              const blob = await fetch(dataBase64).then((r) => r.blob());
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = "report.pdf";
+              a.click();
             }}
           >
             <Switch>
@@ -126,7 +147,7 @@ export function ReportsMenu(props: ReportsMenuProps) {
                 >
                   <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                 </svg>
-                Creating report
+                Creating Report
               </Match>
               <Match when={!createReport.isLoading}>
                 <svg

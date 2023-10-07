@@ -9,6 +9,7 @@ import { DeleteEntryButton } from "../../../components/DeleteEntryButton";
 import { CreateEntryModal, EditEntryModal } from "../../../components/EntryModal";
 import { Queries } from "../../../utils/api/queries";
 import { ReportsMenu } from "../../../components/ReportsMenu";
+import { cn } from "../../../utils/cn";
 dayjs.extend(advancedFormat);
 
 const Modes = {
@@ -65,7 +66,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
   });
 
   const { isIdle, isPrompted, reset } = createIdleTimer({
-    idleTimeout: 60_000,
+    idleTimeout: 30_000,
   });
 
   const calendar = createQuery(
@@ -146,8 +147,8 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                 </div>
                 <div class="justify-start items-center gap-2.5 flex">
                   <div class="flex flex-row gap-2 border border-black/10 dark:border-white/10 rounded-md overflow-clip">
-                    <Button.Ghost
-                      class="flex items-center !rounded-none justify-center p-2"
+                    <button
+                      class="flex items-center !rounded-none justify-center p-2 hover:bg-neutral-100 border-none active:bg-neutral-200 dark:hover:bg-neutral-900 dark:active:bg-neutral-800"
                       onClick={async () => {
                         setRange((md) => ({
                           from: dayjs(md.from).subtract(1, "month").startOf("month").toDate(),
@@ -171,14 +172,14 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                         <path d="m12 19-7-7 7-7" />
                         <path d="M19 12H5" />
                       </svg>
-                    </Button.Ghost>
+                    </button>
                     <div class="flex w-fit items-center justify-center">
                       <div class="font-bold w-fit text-center select-none">
                         {dayjs(range().from).format("MMMM YYYY")}
                       </div>
                     </div>
-                    <Button.Ghost
-                      class="flex items-center !rounded-none justify-center p-2"
+                    <button
+                      class="flex items-center !rounded-none justify-center p-2 hover:bg-neutral-100 border-none active:bg-neutral-200 dark:hover:bg-neutral-900 dark:active:bg-neutral-800"
                       onClick={async () => {
                         setRange((md) => ({
                           from: dayjs(md.from).add(1, "month").startOf("month").toDate(),
@@ -187,6 +188,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
 
                         await queryClient.invalidateQueries(["calendar"]);
                       }}
+                      disabled={calendar.isFetching}
                       aria-label="Next month"
                     >
                       <svg
@@ -203,10 +205,13 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                         <path d="M5 12h14" />
                         <path d="m12 5 7 7-7 7" />
                       </svg>
-                    </Button.Ghost>
+                    </button>
                   </div>
                   <div class="flex gap-2">
-                    <Button.Secondary aria-label="share">
+                    <button
+                      class="p-2 py-1 flex items-center justify-center gap-2.5 hover:bg-neutral-50 rounded-md border border-black/10 dark:border-white/10 active:bg-neutral-100 dark:hover:bg-neutral-900 dark:active:bg-neutral-800"
+                      aria-label="share"
+                    >
                       <div class="w-4 h-4 relative text-black dark:text-white">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
                           <path
@@ -224,7 +229,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                         </svg>
                       </div>
                       <div class="select-none text-base font-bold">Share</div>
-                    </Button.Secondary>
+                    </button>
                     <ReportsMenu />
                   </div>
                 </div>
@@ -254,7 +259,10 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                   <div class="text-neutral-500 select-none">There is no data for this month.</div>
                   <div class="flex flex-col items-center justify-center gap-6">
                     <CreateEntryModal token={props.user.token} onOpenChange={setModalOpen}>
-                      <Button.Primary aria-label="add entry">
+                      <button
+                        class="flex items-center justify-center p-2 py-1 bg-black rounded-md border-black/10 text-white dark:bg-white dark:border-white/10 dark:text-black"
+                        aria-label="add entry"
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="20"
@@ -270,7 +278,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                           <path d="M12 5v14" />
                         </svg>
                         Add entry
-                      </Button.Primary>
+                      </button>
                     </CreateEntryModal>
                   </div>
                 </div>
@@ -290,7 +298,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                                 token={props.user.token}
                                 entry={entry}
                               >
-                                <Button.Icon>
+                                <button class="p-2 rounded-md hover:bg-neutral-100 hover:dark:bg-neutral-800">
                                   <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     width="14"
@@ -305,7 +313,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                                     <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
                                     <path d="m15 5 4 4" />
                                   </svg>
-                                </Button.Icon>
+                                </button>
                               </EditEntryModal>
                               <DeleteEntryButton token={props.user.token} entryId={entry.id} />
                             </div>
@@ -341,12 +349,16 @@ function CalendarWrapper(props: CalendarWrapperProps) {
               <span class="opacity-40 select-none">
                 Last updated {dayjs(calendar.data?.lastUpdated).format("Do MMM. YYYY, HH:mm:ss")}
               </span>
-              <Button.Secondary
-                class="py-1.5 gap-2.5 flex cursor-pointer"
+              <button
+                class={cn(
+                  "p-1 px-2.5 flex gap-2 items-center justify-center select-none font-bold rounded-md disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer hover:bg-neutral-50 border border-black/10 dark:border-white/10 active:bg-neutral-100",
+                  "dark:hover:bg-neutral-900 dark:active:bg-neutral-800"
+                )}
                 onClick={async () => {
                   await queryClient.invalidateQueries(["calendar"]);
                 }}
                 aria-label="refresh"
+                disabled={calendar.isFetching}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -366,7 +378,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                   <path d="M16 16h5v5" />
                 </svg>
                 <span class="select-none">Refresh</span>
-              </Button.Secondary>
+              </button>
             </div>
             <div class="w-full flex flex-col text-opacity-50 items-center justify-center h-[200px]"></div>
           </div>

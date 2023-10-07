@@ -1,4 +1,5 @@
 import { JSX, Match, Switch } from "solid-js";
+import { Button as B } from "@kobalte/core";
 import { cn } from "../utils/cn";
 
 export * as Button from "./Button";
@@ -9,14 +10,13 @@ interface PrimaryProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 function TheButton(props: PrimaryProps) {
-  const { class: class_, ...restProps } = props;
   return (
     <button
+      {...props}
       class={cn(
         "p-1 px-2.5 flex gap-2 items-center justify-center select-none font-bold rounded-md disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer",
-        class_
+        props.class
       )}
-      {...restProps}
     >
       {props.children}
     </button>

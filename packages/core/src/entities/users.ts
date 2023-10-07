@@ -374,6 +374,50 @@ export const deleteDayEntry = z
     return x;
   });
 
+export const getDayEntriesByRange = z
+  .function(
+    z.tuple([
+      z.string().uuid(),
+      z
+        .object({
+          from: z.date(),
+          to: z.date(),
+        })
+        .or(z.enum(["month", "year", "all"])),
+    ])
+  )
+  .implement(async (id, input) => {
+    const range =
+      typeof input === "string"
+        ? input === "month"
+          ? { from: dayjs().startOf("month").toDate(), to: dayjs().endOf("month").toDate() }
+          : input === "year"
+          ? { from: dayjs().startOf("year").toDate(), to: dayjs().endOf("year").toDate() }
+          : undefined
+        : { from: input.from, to: input.to };
+
+    const cData = await db.query.users.findFirst({
+      where: (users, operations) => operations.eq(users.id, id),
+      with: {
+        day_entries: {
+          where: (day_entries, operations) =>
+            operations.and(
+              ...(range
+                ? [operations.gte(day_entries.date, range.from), operations.lte(day_entries.date, range.to)]
+                : []),
+              operations.eq(day_entries.deletedAt, isNull(day_entries.deletedAt))
+            ),
+          orderBy: (fields, operators) => operators.asc(fields.date),
+        },
+      },
+    });
+    type NEntries = NonNullable<typeof cData>;
+    if (!cData) {
+      return [] as NEntries["day_entries"];
+    }
+    return cData.day_entries;
+  });
+
 export type Frontend = Awaited<ReturnType<typeof findById>>;
 
 export type Profile = ProfileSelect;

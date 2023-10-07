@@ -27,6 +27,10 @@ export function ApiStack({ stack }: StackContext) {
             from: "packages/core/src/drizzle",
             to: "drizzle",
           },
+          {
+            from: "node_modules/@sparticuz/chromium/bin",
+            to: "packages/functions/bin",
+          },
         ],
       },
     },
@@ -90,6 +94,12 @@ export function ApiStack({ stack }: StackContext) {
         function: {
           handler: "packages/functions/src/user.calendar",
           description: "This is the user calendar function",
+        },
+      },
+      "POST /user/report/create": {
+        function: {
+          handler: "packages/functions/src/user.createReport",
+          description: "This is the user createReport function",
         },
       },
       "POST /user/day_entry/create": {

@@ -1,7 +1,13 @@
 import { User } from "@taxi-kassede/core/entities/users";
-import { ApiHandler, useBody, useQueryParams } from "sst/node/api";
-import { getUser } from "./utils";
 import dayjs from "dayjs";
+import advancedFormat from "dayjs/plugin/advancedFormat";
+import { ApiHandler, useBody, useQueryParams } from "sst/node/api";
+import { z } from "zod";
+import { getUser } from "./utils";
+import puppeteerCore, { type Browser } from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer";
+dayjs.extend(advancedFormat);
 
 export const create = ApiHandler(async (_evt) => {
   const u = await User.create({ name: "test", email: "oezguerisbert@gmail.com" }, {});
@@ -608,6 +614,213 @@ export const deleteDayEntry = ApiHandler(async (x) => {
       error: null,
       entry: e,
     } as DeleteDayEntryResult),
+    statusCode: 200,
+  };
+});
+
+async function getBrowser(): Promise<Browser> {
+  if (process.env.IS_LOCAL) {
+    return puppeteer.launch({
+      headless: true,
+      ignoreHTTPSErrors: true,
+      args: ["--no-sandbox"],
+      executablePath: "/home/oezguer/browser/chromium-browser/chromium/linux-1206789/chrome-linux/chrome",
+    }) as unknown as Browser;
+  }
+  chromium.setGraphicsMode = false;
+
+  const browser = await puppeteerCore.launch({
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
+    ignoreHTTPSErrors: true,
+  });
+  return browser;
+}
+
+export type UserCreateReportResult =
+  | {
+      success: false;
+      error: string;
+      report: null;
+    }
+  | {
+      success: true;
+      error: null;
+      report: string;
+    };
+
+export const createReport = ApiHandler(async (x) => {
+  const user = await getUser(x);
+  if (user instanceof Error) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        success: false,
+        error: user.message,
+        report: null,
+      } as UserCreateReportResult),
+      statusCode: 200,
+    };
+  }
+  if (!user || !user.id) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        success: false,
+        error: "No user found",
+        report: null,
+      } as UserCreateReportResult),
+      statusCode: 200,
+    };
+  }
+
+  const user_ = await User.findById(user.id);
+  if (!user_) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        success: false,
+        error: "No user found",
+        report: null,
+      } as UserCreateReportResult),
+      statusCode: 200,
+    };
+  }
+  if (!user_.companyId) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        success: false,
+        error: "User has no company",
+        report: null,
+      } as UserCreateReportResult),
+      statusCode: 200,
+    };
+  }
+  const body = useBody();
+  if (!body) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        success: false,
+        error: "No body found",
+        report: null,
+      } as UserCreateReportResult),
+      statusCode: 200,
+    };
+  }
+  const date_range = JSON.parse(body).date_range;
+  const dateRangeZod = z
+    .object({
+      from: z.date(),
+      to: z.date(),
+    })
+    .or(z.enum(["month", "year", "all"]));
+  const dateRange = dateRangeZod.parse(date_range);
+
+  if (!dateRange) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        success: false,
+        error: "Invalid date range",
+        report: null,
+      } as UserCreateReportResult),
+      statusCode: 200,
+    };
+  }
+
+  const dayEntries = await User.getDayEntriesByRange(user_.id, dateRange);
+  const browser = await getBrowser();
+  const page = await browser.newPage();
+  const html = `
+  <html>
+    <head>
+      <style>
+        body {
+          font-family: sans-serif;
+        }
+        table {
+          border-collapse: collapse;
+          width: 100%;
+        }
+        table, th, td {
+          border: 1px solid black;
+        }
+        th, td {
+          padding: 5px;
+          text-align: left;
+        }
+        table tr:nth-child(even) {
+          background-color: #eee;
+        }
+        table tr:nth-child(odd) {
+          background-color: #fff;
+        }
+        table th {
+          background-color: black;
+          color: white;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>Report for ${user_.name}</h1>
+      <h2>STUFF</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Total Distance</th>
+            <th>Driven Distance</th>
+            <th>Tour Count</th>
+            <th>Cash</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${dayEntries
+            .map(
+              (entry) => `
+            <tr>
+              <td>${entry.date}</td>
+              <td>${entry.total_distance}</td>
+              <td>${entry.driven_distance}</td>
+              <td>${entry.tour_count}</td>
+              <td>${entry.cash}</td>
+            </tr>
+          `
+            )
+            .join("")}
+        </tbody>
+      </table>
+    </body>
+  </html>
+  `;
+  await page.setContent(html);
+
+  const pdf = await page.pdf({ format: "A4" });
+  const pdfString = pdf.toString("base64");
+  await page.close();
+  await browser.close();
+
+  return {
+    headers: {
+      "Content-Type": "application/pdf",
+    },
+    body: pdfString,
     statusCode: 200,
   };
 });

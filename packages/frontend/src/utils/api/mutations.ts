@@ -96,3 +96,26 @@ export const deleteDayEntry = deleteDayEntryZod.implement(async (token, input) =
     body: JSON.stringify(input),
   }).then((x) => x.json() as Promise<UpdateDayEntryResult>)
 );
+
+export const createReportZod = z.function(
+  z.tuple([
+    z.string(),
+    z
+      .object({
+        from: z.date(),
+        to: z.date(),
+      })
+      .or(z.enum(["month", "year", "all"])),
+  ])
+);
+
+export const createReport = createReportZod.implement(async (token, input) =>
+  fetch(`${API_BASE}/user/report/create`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ date_range: input }),
+  }).then((x) => x.text() as Promise<string>)
+);
