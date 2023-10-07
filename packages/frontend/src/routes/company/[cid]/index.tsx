@@ -1,16 +1,14 @@
-import { createMutation, createQuery, useQueryClient } from "@tanstack/solid-query";
+import { createIdleTimer } from "@solid-primitives/idle";
+import { createQuery, useQueryClient } from "@tanstack/solid-query";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
-import { For, Match, Show, Suspense, Switch, createEffect, createSignal } from "solid-js";
-import { createIdleTimer } from "@solid-primitives/idle";
-import toast from "solid-toast";
+import { For, Show, Suspense, createSignal } from "solid-js";
 import { useAuth } from "../../../components/Auth";
-import { Modal } from "../../../components/Modal";
-import { Mutations } from "../../../utils/api/mutations";
-import { Queries } from "../../../utils/api/queries";
 import { Button } from "../../../components/Button";
-import { CreateEntryModal, EditEntryModal } from "../../../components/EntryModal";
 import { DeleteEntryButton } from "../../../components/DeleteEntryButton";
+import { CreateEntryModal, EditEntryModal } from "../../../components/EntryModal";
+import { Queries } from "../../../utils/api/queries";
+import { ReportsMenu } from "../../../components/ReportsMenu";
 dayjs.extend(advancedFormat);
 
 const Modes = {
@@ -227,43 +225,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                       </div>
                       <div class="select-none text-base font-bold">Share</div>
                     </Button.Secondary>
-                    <Button.Secondary aria-label="reports menu">
-                      <div class="w-4 h-4 relative">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-                          <path
-                            d="M9.66666 1.83334H3.99999C3.64637 1.83334 3.30723 1.97382 3.05718 2.22387C2.80713 2.47392 2.66666 2.81305 2.66666 3.16668V13.8333C2.66666 14.187 2.80713 14.5261 3.05718 14.7762C3.30723 15.0262 3.64637 15.1667 3.99999 15.1667H12C12.3536 15.1667 12.6928 15.0262 12.9428 14.7762C13.1928 14.5261 13.3333 14.187 13.3333 13.8333V5.50001L9.66666 1.83334Z"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          />
-                          <path
-                            d="M9.33331 1.83334V5.83334H13.3333"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          />
-                          <path
-                            d="M10.6666 9.16666H5.33331"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          />
-                          <path
-                            d="M10.6666 11.8333H5.33331"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          />
-                          <path
-                            d="M6.66665 6.5H5.33331"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          />
-                        </svg>
-                      </div>
-                      <div class="select-none text-base font-bold">Reports</div>
-                    </Button.Secondary>
+                    <ReportsMenu />
                   </div>
                 </div>
               </div>
