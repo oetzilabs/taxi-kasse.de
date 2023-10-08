@@ -1,7 +1,12 @@
 import { Company } from "@taxi-kassede/core/entities/company";
 import { User } from "@taxi-kassede/core/entities/users";
 import { z } from "zod";
-import { CreateDayEntryResult, UpdateDayEntryResult, UserCreateReportResult } from "../../../../functions/src/user";
+import {
+  CreateDayEntryResult,
+  UpdateDayEntryResult,
+  UserCreateReportResult,
+  UserDownloadFileSignedUrl,
+} from "../../../../functions/src/user";
 
 export * as Mutations from "./mutations";
 
@@ -118,4 +123,26 @@ export const createReport = createReportZod.implement(async (token, input) =>
     },
     body: JSON.stringify({ date_range: input }),
   }).then((x) => x.json() as Promise<UserCreateReportResult>)
+);
+
+export const downloadReportZod = z.function(z.tuple([z.string(), z.string()]));
+
+export const downloadReport = downloadReportZod.implement(async (token, key) =>
+  fetch(`${API_BASE}/user/report/sign`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ key }),
+  })
+    .then((x) => x.json() as Promise<UserDownloadFileSignedUrl>)
+    .then((x) => {
+      const success = x.success;
+      if (!success && x.error) throw new Error(x.error);
+      return x.url!;
+    })
+    .then((x) => fetch(x))
+    .then((x) => x.blob())
+    .then((x) => new File([x], "report.pdf", { type: "application/pdf" }))
 );

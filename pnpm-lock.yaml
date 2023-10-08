@@ -18,8 +18,8 @@ importers:
         specifier: 10.2.69
         version: 10.2.69
       sst:
-        specifier: ^2.28.0
-        version: 2.28.0
+        specifier: ^2.28.1
+        version: 2.28.1
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -55,8 +55,8 @@ importers:
         specifier: ^0.19.13
         version: 0.19.13
       sst:
-        specifier: ^2.28.0
-        version: 2.28.0
+        specifier: ^2.28.1
+        version: 2.28.1
       vitest:
         specifier: ^0.34.6
         version: 0.34.6
@@ -128,8 +128,8 @@ importers:
         specifier: ^0.3.6
         version: 0.3.6(solid-start@0.3.6)(vite@4.4.11)
       solid-start-sst:
-        specifier: ^2.28.0
-        version: 2.28.0(solid-start@0.3.6)(vite@4.4.11)
+        specifier: ^2.28.1
+        version: 2.28.1(solid-start@0.3.6)(vite@4.4.11)
       tailwindcss:
         specifier: ^3.3.3
         version: 3.3.3
@@ -145,6 +145,9 @@ importers:
       '@aws-sdk/client-s3':
         specifier: ^3.427.0
         version: 3.427.0
+      '@aws-sdk/s3-request-presigner':
+        specifier: 3.427.0
+        version: 3.427.0
       '@libsql/client':
         specifier: 0.3.5
         version: 0.3.5
@@ -154,6 +157,9 @@ importers:
       '@sparticuz/chromium':
         specifier: ^117.0.0
         version: 117.0.0
+      '@types/uuid':
+        specifier: ^9.0.5
+        version: 9.0.5
       dayjs:
         specifier: 1.11.10
         version: 1.11.10
@@ -166,6 +172,9 @@ importers:
       puppeteer-core:
         specifier: ^21.3.8
         version: 21.3.8
+      uuid:
+        specifier: 9.0.1
+        version: 9.0.1
       zod:
         specifier: ^3.22.4
         version: 3.22.4
@@ -177,8 +186,8 @@ importers:
         specifier: ^20.8.3
         version: 20.8.3
       sst:
-        specifier: ^2.28.0
-        version: 2.28.0
+        specifier: ^2.28.1
+        version: 2.28.1
       vitest:
         specifier: ^0.34.6
         version: 0.34.6
@@ -223,14 +232,14 @@ packages:
     resolution: {integrity: sha512-DDt4SLdLOwWCjGtltH4VCST7hpOI5DzieuhGZsBpZ+AgJdSI2GCjklCXm0GCTwJG/SolkL5dtQXyUKgg9luBDg==}
     dev: true
 
-  /@aws-cdk/aws-apigatewayv2-alpha@2.95.1-alpha.0(aws-cdk-lib@2.91.0)(constructs@10.2.69):
+  /@aws-cdk/aws-apigatewayv2-alpha@2.95.1-alpha.0(aws-cdk-lib@2.95.1)(constructs@10.2.69):
     resolution: {integrity: sha512-01CjocOWbt5XF2aaLWXSOrWlCevmebwLUtivlRhCMpLXfpIQVwMRWbPdzZvpjcsUm5e3ptHUe9aNDZfpWEWahg==}
     engines: {node: '>= 14.15.0'}
     peerDependencies:
       aws-cdk-lib: 2.95.1
       constructs: ^10.0.0
     dependencies:
-      aws-cdk-lib: 2.91.0(constructs@10.2.69)
+      aws-cdk-lib: 2.95.1(constructs@10.2.69)
       constructs: 10.2.69
     dev: true
 
@@ -242,7 +251,7 @@ packages:
       aws-cdk-lib: 2.95.1
       constructs: ^10.0.0
     dependencies:
-      '@aws-cdk/aws-apigatewayv2-alpha': 2.95.1-alpha.0(aws-cdk-lib@2.91.0)(constructs@10.2.69)
+      '@aws-cdk/aws-apigatewayv2-alpha': 2.95.1-alpha.0(aws-cdk-lib@2.95.1)(constructs@10.2.69)
       aws-cdk-lib: 2.95.1(constructs@10.2.69)
       constructs: 10.2.69
     dev: true
@@ -255,7 +264,7 @@ packages:
       aws-cdk-lib: 2.95.1
       constructs: ^10.0.0
     dependencies:
-      '@aws-cdk/aws-apigatewayv2-alpha': 2.95.1-alpha.0(aws-cdk-lib@2.91.0)(constructs@10.2.69)
+      '@aws-cdk/aws-apigatewayv2-alpha': 2.95.1-alpha.0(aws-cdk-lib@2.95.1)(constructs@10.2.69)
       aws-cdk-lib: 2.95.1(constructs@10.2.69)
       constructs: 10.2.69
     dev: true
@@ -1267,6 +1276,20 @@ packages:
       '@smithy/util-middleware': 2.0.4
       tslib: 2.6.2
 
+  /@aws-sdk/s3-request-presigner@3.427.0:
+    resolution: {integrity: sha512-BJuzCADG8XJoqEM9lTi402tFDF0URWnj2YGWdKSbW/ISsBt5qsp6SDcFFMr+vAR1jbSJK8zdx3Jhtxrp2xIoWg==}
+    engines: {node: '>=14.0.0'}
+    dependencies:
+      '@aws-sdk/signature-v4-multi-region': 3.425.0
+      '@aws-sdk/types': 3.425.0
+      '@aws-sdk/util-format-url': 3.425.0
+      '@smithy/middleware-endpoint': 2.0.11
+      '@smithy/protocol-http': 3.0.7
+      '@smithy/smithy-client': 2.1.10
+      '@smithy/types': 2.3.5
+      tslib: 2.6.2
+    dev: false
+
   /@aws-sdk/signature-v4-crt@3.425.0:
     resolution: {integrity: sha512-vJrWO24J82Yp5hfil18vqpxXDSthprfI8s6vDjWXZ9wA+CajCsMJuMEufjyDv2PwKFw9CHY5I5Xb2mtsFiETDQ==}
     engines: {node: '>=14.0.0'}
@@ -1366,6 +1389,16 @@ packages:
       '@aws-sdk/types': 3.425.0
       '@smithy/node-config-provider': 2.1.1
       tslib: 2.6.2
+
+  /@aws-sdk/util-format-url@3.425.0:
+    resolution: {integrity: sha512-qkqua+CwQqv15OMQ5Bb5n182Jt26DSZH2zzj3T1helEeJQJeywAInUYaq+ncIZLx7qKlWMWR/7ICTTSQiredCQ==}
+    engines: {node: '>=14.0.0'}
+    dependencies:
+      '@aws-sdk/types': 3.425.0
+      '@smithy/querystring-builder': 2.0.11
+      '@smithy/types': 2.3.5
+      tslib: 2.6.2
+    dev: false
 
   /@aws-sdk/util-locate-window@3.310.0:
     resolution: {integrity: sha512-qo2t/vBTnoXpjKxlsC2e1gBrRm80M3bId27r0BRB2VniSSe7bL1mmzM+/HFtujm0iAxtPM+aLEflLJlJeDPg0w==}
@@ -3258,20 +3291,20 @@ packages:
   /@internationalized/date@3.5.0:
     resolution: {integrity: sha512-nw0Q+oRkizBWMioseI8+2TeUPEyopJVz5YxoYVzR0W1v+2YytiYah7s/ot35F149q/xAg4F1gT/6eTd+tsUpFQ==}
     dependencies:
-      '@swc/helpers': 0.5.2
+      '@swc/helpers': 0.5.3
     dev: false
 
   /@internationalized/message@3.1.1:
     resolution: {integrity: sha512-ZgHxf5HAPIaR0th+w0RUD62yF6vxitjlprSxmLJ1tam7FOekqRSDELMg4Cr/DdszG5YLsp5BG3FgHgqquQZbqw==}
     dependencies:
-      '@swc/helpers': 0.5.2
+      '@swc/helpers': 0.5.3
       intl-messageformat: 10.5.3
     dev: false
 
   /@internationalized/number@3.3.0:
     resolution: {integrity: sha512-PuxgnKE5NJMOGKUcX1QROo8jq7sW7UWLrL5B6Rfe8BdWgU/be04cVvLyCeALD46vvbAv3d1mUvyHav/Q9a237g==}
     dependencies:
-      '@swc/helpers': 0.5.2
+      '@swc/helpers': 0.5.3
     dev: false
 
   /@jest/schemas@29.6.3:
@@ -4351,8 +4384,8 @@ packages:
       - debug
     dev: false
 
-  /@swc/helpers@0.5.2:
-    resolution: {integrity: sha512-E4KcWTpoLHqwPHLxidpOqQbcrZVgi0rsmmZXUle1jXmJfuIf/UWpczUJ7MZZ5tlxytgJXyp0w4PGkkeLiuIdZw==}
+  /@swc/helpers@0.5.3:
+    resolution: {integrity: sha512-FaruWX6KdudYloq1AHD/4nU+UsMTdNE8CKyrseXWEcgjDAbvkwJg2QGPAnfIJLIWsjZOSPLOAykK6fuYp4vp4A==}
     dependencies:
       tslib: 2.6.2
     dev: false
@@ -4462,7 +4495,6 @@ packages:
 
   /@types/uuid@9.0.5:
     resolution: {integrity: sha512-xfHdwa1FMJ082prjSJpoEI57GZITiQz10r3vEJCHa2khEFQjKy91aWKz6+zybzssCvXUwE1LQWgWVwZ4nYUvHQ==}
-    dev: true
 
   /@types/ws@8.5.6:
     resolution: {integrity: sha512-8B5EO9jLVCy+B58PLHvLDuOD8DRVMgQzq8d55SjLCOn9kqGyqOvy27exVaTio1q1nX5zLu8/6N0n2ThSxOM6tg==}
@@ -8413,8 +8445,8 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /solid-start-sst@2.28.0(solid-start@0.3.6)(vite@4.4.11):
-    resolution: {integrity: sha512-SY+/B105MZWdx6PoUdxQVMlChJLY/tuOzoIcdTXDBgxHXhB2IlszHgE0c13z5OIlAIwE3y/BI5ZOWaAOcqoW3Q==}
+  /solid-start-sst@2.28.1(solid-start@0.3.6)(vite@4.4.11):
+    resolution: {integrity: sha512-69Z4MUs5ELMtaaloulrMwLdqPqLgtlTcXfZESd+tDx/CYi8zXul5sy18LrTX/mx9qccdvtKKWw3jRxSQyZg0kg==}
     peerDependencies:
       solid-start: '*'
       vite: '*'
@@ -8550,8 +8582,8 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /sst@2.28.0:
-    resolution: {integrity: sha512-w8Ui3m4wgPhJqBMr3S5Dcu0SobhwJ+H8Wd0mey/HRP4V/XmfO6RTAwUJB+P5/mWlowwuw+fdA32IddEfE3/yTw==}
+  /sst@2.28.1:
+    resolution: {integrity: sha512-jAeQlIz98E7vh7Z7BNIavKOv+8YWUQQrp8orBiVWOLmdUm9qJVtAA5cgtDMvi9zOyJ/gHzcQwOJ+PCnuisZiBA==}
     hasBin: true
     peerDependencies:
       '@sls-next/lambda-at-edge': ^3.7.0
@@ -8559,7 +8591,7 @@ packages:
       '@sls-next/lambda-at-edge':
         optional: true
     dependencies:
-      '@aws-cdk/aws-apigatewayv2-alpha': 2.95.1-alpha.0(aws-cdk-lib@2.91.0)(constructs@10.2.69)
+      '@aws-cdk/aws-apigatewayv2-alpha': 2.95.1-alpha.0(aws-cdk-lib@2.95.1)(constructs@10.2.69)
       '@aws-cdk/aws-apigatewayv2-authorizers-alpha': 2.95.1-alpha.0(@aws-cdk/aws-apigatewayv2-alpha@2.95.1-alpha.0)(aws-cdk-lib@2.95.1)(constructs@10.2.69)
       '@aws-cdk/aws-apigatewayv2-integrations-alpha': 2.95.1-alpha.0(@aws-cdk/aws-apigatewayv2-alpha@2.95.1-alpha.0)(aws-cdk-lib@2.95.1)(constructs@10.2.69)
       '@aws-cdk/cloud-assembly-schema': 2.95.1

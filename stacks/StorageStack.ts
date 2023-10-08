@@ -13,6 +13,7 @@ export function StorageStack({ stack, app }: StackContext) {
 
   stack.addOutputs({
     BucketName: bucket.bucketName,
+    BucketArn: bucket.bucketArn,
     BucketRegion: app.region,
   });
 

@@ -118,6 +118,12 @@ export function ApiStack({ stack }: StackContext) {
           timeout: 29,
         },
       },
+      "POST /user/report/sign": {
+        function: {
+          handler: "packages/functions/src/user.downloadFileSignedUrl",
+          description: "This is the user downloadFileSignedUrl function",
+        },
+      },
       "POST /user/day_entry/create": {
         function: {
           handler: "packages/functions/src/user.createDayEntry",

@@ -11,7 +11,7 @@ type ReportsMenuProps = {};
 export function ReportsMenu(props: ReportsMenuProps) {
   const [user] = useAuth();
   const itemClass =
-    "flex flex-row gap-2.5 p-2 py-1.5 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-900 active:bg-neutral-100 dark:active:bg-neutral-800 font-medium items-center justify-between select-none";
+    "flex flex-row gap-2.5 p-2 py-1.5 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-900 active:bg-neutral-100 dark:active:bg-neutral-800 font-medium items-center justify-start select-none";
   const [isVisible, setIsVisible] = createSignal(false);
   const queryClient = useQueryClient();
 
@@ -51,14 +51,19 @@ export function ReportsMenu(props: ReportsMenuProps) {
       return Mutations.createReport(token, range);
     },
     {
-      onSuccess: (report) => {
-        toast.success("Report created");
-      },
       onError: (err) => {
         toast.error("Report not created");
       },
     }
   );
+
+  const downLoadFile = createMutation((key: string) => {
+    let token = user().token;
+    if (!token) {
+      throw new Error("No token");
+    }
+    return Mutations.downloadReport(token, key);
+  });
 
   return (
     <DropdownMenu.Root placement="bottom-end" open={isVisible()} onOpenChange={setIsVisible}>
@@ -114,10 +119,37 @@ export function ReportsMenu(props: ReportsMenuProps) {
                     {(report) => (
                       <DropdownMenu.Item
                         class={cn(itemClass)}
-                        onSelect={() => {
-                          window.open(report.href);
+                        onSelect={async () => {
+                          const file = await downLoadFile.mutateAsync(report.key).catch((err) => {
+                            toast.error("Report not downloaded");
+                            return null;
+                          });
+                          if (file) {
+                            const url = window.URL.createObjectURL(file);
+                            const a = document.createElement("a");
+                            a.href = url;
+                            a.download = report.name;
+                            a.click();
+                          }
                         }}
                       >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" x2="8" y1="13" y2="13" />
+                          <line x1="16" x2="8" y1="17" y2="17" />
+                          <line x1="10" x2="8" y1="9" y2="9" />
+                        </svg>
                         <span>{report.name}</span>
                       </DropdownMenu.Item>
                     )}
@@ -131,11 +163,22 @@ export function ReportsMenu(props: ReportsMenuProps) {
             class={cn(itemClass, "text-teal-400 hover:bg-teal-400 hover:text-white dark:hover:bg-teal-600")}
             closeOnSelect={false}
             onSelect={async () => {
-              const s3URL = await createReport.mutateAsync("month");
-              const success = s3URL.success;
+              const s3URLResult = await createReport.mutateAsync("month");
+              const success = s3URLResult.success;
               await queryClient.invalidateQueries(["reports"]);
               if (success) {
-                window.open(s3URL.report);
+                toast.success("Report created, downloading now");
+                const file = await downLoadFile.mutateAsync(s3URLResult.report.url).catch((err) => {
+                  toast.error("Report not downloaded");
+                  return null;
+                });
+                if (file) {
+                  const url = window.URL.createObjectURL(file);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = s3URLResult.report.name;
+                  a.click();
+                }
               }
             }}
           >

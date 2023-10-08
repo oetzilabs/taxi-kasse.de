@@ -8,7 +8,11 @@ import puppeteerCore, { type Browser } from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer";
 import { Bucket } from "sst/node/bucket";
-import { S3Client, PutObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Template } from "./templates";
+import { Style } from "./templates/style";
+import * as uuid from "uuid";
 
 dayjs.extend(advancedFormat);
 
@@ -651,7 +655,10 @@ export type UserCreateReportResult =
   | {
       success: true;
       error: null;
-      report: string;
+      report: {
+        name: string;
+        url: string;
+      };
     };
 
 export const createReport = ApiHandler(async (x) => {
@@ -710,6 +717,7 @@ export const createReport = ApiHandler(async (x) => {
       statusCode: 200,
     };
   }
+  const company = user_.company!;
   const body = useBody();
   if (!body) {
     return {
@@ -750,53 +758,21 @@ export const createReport = ApiHandler(async (x) => {
   const dayEntries = await User.getDayEntriesByRange(user_.id, dateRange);
   const browser = await getBrowser();
   const page = await browser.newPage();
-  const html = `
-  <html>
-    <head>
-      <script src="https://cdn.tailwindcss.com"></script>
-    </head>
-    <body>
-      <div class="p-4">
-        <div class="flex justify-between">
-          <div>
-            <h1 class="text-2xl font-bold">Taxi Kassede</h1>
-            <h2 class="text-lg font-bold">Fahrer: ${user_.name}</h2>
-            <h2 class="text-lg font-bold"></h2>
-          </div>
-          </div>
-          <table class="w-full">
-            <thead>
-              <tr>
-                <th class="text-left">Datum</th>
-                <th class="text-left">Gesamtkilometer</th>
-                <th class="text-left">Gefahrene Kilometer</th>
-                <th class="text-left">Anzahl Fahrten</th>
-                <th class="text-left">Kasseneinnahmen</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${dayEntries
-                .map(
-                  (entry) => `
-              <tr>
-                <td class="text-left">${dayjs(entry.date).format("DD.MM.YYYY")}</td>
-                <td class="text-left">${entry.total_distance}</td>
-                <td class="text-left">${entry.driven_distance}</td>
-                <td class="text-left">${entry.tour_count}</td>
-                <td class="text-left">${entry.cash}</td>
-              </tr>
-              `
-                )
-                .join("")}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </body>
-  </html>
-  `;
-  await page.setContent(html, { waitUntil: "networkidle2" });
-  const pdf = await page.pdf({ format: "A4" });
+  await page.setJavaScriptEnabled(true);
+  // generate random report number
+  const reportnumber = uuid.v4();
+  const html = Template.Simple(reportnumber, user_, company, dayEntries, 1);
+  await page.setViewport({ width: 595, height: 842, deviceScaleFactor: 0.5 });
+  page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));
+  await page.setContent(html, { waitUntil: ["load", "domcontentloaded", "networkidle0"] });
+  page.on("requestfailed", (request) => {
+    console.error(`Failed to load resource: ${request.url()} (${request.failure()?.errorText ?? "unknown error"})`);
+  });
+  await page.emulateMediaType("screen");
+  const pdf = await page.pdf({
+    format: "A4",
+    printBackground: true,
+  });
   await page.close();
   await browser.close();
   // upload to s3 bucket
@@ -807,7 +783,6 @@ export const createReport = ApiHandler(async (x) => {
   const command = new PutObjectCommand({
     Bucket: Bucket["taxikassede-bucket"].bucketName,
     Key: url,
-    ACL: "public-read",
     Body: pdf,
   });
   await s3client.send(command);
@@ -819,7 +794,10 @@ export const createReport = ApiHandler(async (x) => {
     body: JSON.stringify({
       success: true,
       error: null,
-      report: `https://${Bucket["taxikassede-bucket"].bucketName}.s3.eu-central-1.amazonaws.com/${url}`,
+      report: {
+        name: `${user_.name}-${dayjs().format("YYYY-MM-DD")}.pdf`,
+        url: url,
+      },
     } as UserCreateReportResult),
     statusCode: 200,
   };
@@ -829,7 +807,7 @@ export type UserGetReportsListResult =
   | {
       success: true;
       error: null;
-      reports: { name: string; href: string }[];
+      reports: { name: string; key: string }[];
     }
   | {
       success: false;
@@ -917,11 +895,97 @@ export const listReports = ApiHandler(async (x) => {
       success: true,
       error: null,
       reports:
-        result.Contents?.map((x) => ({
-          name: getFileName(x.Key ?? ""),
-          href: `https://${Bucket["taxikassede-bucket"].bucketName}.s3.eu-central-1.amazonaws.com/${x.Key}`,
-        })) ?? ([] as string[]),
+        (result.Contents ?? ([] as NonNullable<(typeof result)["Contents"]>))
+          .filter((c) => typeof c.Key === "string" && c.Key.endsWith(".pdf"))
+          .map((x) => ({
+            name: getFileName(x.Key ?? ""),
+            key: x.Key!,
+          })) ?? ([] as string[]),
     } as UserGetReportsListResult),
+    statusCode: 200,
+  };
+});
+
+export type UserDownloadFileSignedUrl =
+  | {
+      success: true;
+      error: null;
+      url: string;
+    }
+  | {
+      success: false;
+      error: string;
+      url: null;
+    };
+
+export const downloadFileSignedUrl = ApiHandler(async (x) => {
+  const user = await getUser(x);
+  if (user instanceof Error) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ success: false, error: user.message, url: null } as UserDownloadFileSignedUrl),
+      statusCode: 200,
+    };
+  }
+  if (!user || !user.id) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ success: false, error: "No user found", url: null } as UserDownloadFileSignedUrl),
+      statusCode: 200,
+    };
+  }
+
+  const user_ = await User.findById(user.id);
+  if (!user_) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ success: false, error: "No user found", url: null } as UserDownloadFileSignedUrl),
+      statusCode: 200,
+    };
+  }
+  if (!user_.companyId) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ success: false, error: "User has no company", url: null } as UserDownloadFileSignedUrl),
+      statusCode: 200,
+    };
+  }
+  const body = useBody();
+  if (!body) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ success: false, error: "No body found", url: null } as UserDownloadFileSignedUrl),
+      statusCode: 200,
+    };
+  }
+  const data = JSON.parse(body);
+  const key = data.key;
+  const s3client = new S3Client({
+    region: "eu-central-1",
+  });
+
+  const command = new GetObjectCommand({
+    Bucket: Bucket["taxikassede-bucket"].bucketName,
+    Key: key,
+  });
+
+  const url = await getSignedUrl(s3client, command);
+
+  return {
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ success: true, error: null, url } as UserDownloadFileSignedUrl),
     statusCode: 200,
   };
 });
