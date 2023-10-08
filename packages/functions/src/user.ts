@@ -733,6 +733,7 @@ export const createReport = ApiHandler(async (x) => {
     };
   }
   const date_range = JSON.parse(body).date_range;
+  const template = JSON.parse(body).template ?? "simple";
   const dateRangeZod = z
     .object({
       from: z.date(),
@@ -761,18 +762,44 @@ export const createReport = ApiHandler(async (x) => {
   await page.setJavaScriptEnabled(true);
   // generate random report number
   const reportnumber = uuid.v4();
-  const html = Template.Simple(reportnumber, user_, company, dayEntries, 1);
+  // const html = Template.Simple(reportnumber, user_, company, dayEntries, 1);
   await page.setViewport({ width: 595, height: 842, deviceScaleFactor: 0.5 });
-  page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));
-  await page.setContent(html, { waitUntil: ["load", "domcontentloaded", "networkidle0"] });
+
+  const sp = new URLSearchParams();
+  sp.set("reportnumber", reportnumber);
+  sp.set("company", company.name);
+  sp.set("contact", "teststreet");
+  sp.set("user", user_.name);
+  sp.set(
+    "entries",
+    JSON.stringify(
+      dayEntries.map((x) => ({
+        date: x.date,
+        total_distance: x.total_distance,
+        driven_distance: x.driven_distance,
+        tour_count: x.tour_count,
+        cash: x.cash,
+      }))
+    )
+  );
+  sp.set("locale", user_.profile.locale ?? "de-DE");
+  sp.set("printcount", "1");
+
+  await page.goto(`http://localhost:3000/templates/${template}?${sp.toString()}`, {
+    waitUntil: ["load", "domcontentloaded", "networkidle0"],
+  });
+
   page.on("requestfailed", (request) => {
     console.error(`Failed to load resource: ${request.url()} (${request.failure()?.errorText ?? "unknown error"})`);
   });
+  await new Promise((resolve) => setTimeout(resolve, 100));
   await page.emulateMediaType("screen");
+
   const pdf = await page.pdf({
-    format: "A4",
+    format: "A5",
     printBackground: true,
   });
+
   await page.close();
   await browser.close();
   // upload to s3 bucket

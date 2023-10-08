@@ -232,14 +232,14 @@ packages:
     resolution: {integrity: sha512-DDt4SLdLOwWCjGtltH4VCST7hpOI5DzieuhGZsBpZ+AgJdSI2GCjklCXm0GCTwJG/SolkL5dtQXyUKgg9luBDg==}
     dev: true
 
-  /@aws-cdk/aws-apigatewayv2-alpha@2.95.1-alpha.0(aws-cdk-lib@2.95.1)(constructs@10.2.69):
+  /@aws-cdk/aws-apigatewayv2-alpha@2.95.1-alpha.0(aws-cdk-lib@2.91.0)(constructs@10.2.69):
     resolution: {integrity: sha512-01CjocOWbt5XF2aaLWXSOrWlCevmebwLUtivlRhCMpLXfpIQVwMRWbPdzZvpjcsUm5e3ptHUe9aNDZfpWEWahg==}
     engines: {node: '>= 14.15.0'}
     peerDependencies:
       aws-cdk-lib: 2.95.1
       constructs: ^10.0.0
     dependencies:
-      aws-cdk-lib: 2.95.1(constructs@10.2.69)
+      aws-cdk-lib: 2.91.0(constructs@10.2.69)
       constructs: 10.2.69
     dev: true
 
@@ -251,7 +251,7 @@ packages:
       aws-cdk-lib: 2.95.1
       constructs: ^10.0.0
     dependencies:
-      '@aws-cdk/aws-apigatewayv2-alpha': 2.95.1-alpha.0(aws-cdk-lib@2.95.1)(constructs@10.2.69)
+      '@aws-cdk/aws-apigatewayv2-alpha': 2.95.1-alpha.0(aws-cdk-lib@2.91.0)(constructs@10.2.69)
       aws-cdk-lib: 2.95.1(constructs@10.2.69)
       constructs: 10.2.69
     dev: true
@@ -264,7 +264,7 @@ packages:
       aws-cdk-lib: 2.95.1
       constructs: ^10.0.0
     dependencies:
-      '@aws-cdk/aws-apigatewayv2-alpha': 2.95.1-alpha.0(aws-cdk-lib@2.95.1)(constructs@10.2.69)
+      '@aws-cdk/aws-apigatewayv2-alpha': 2.95.1-alpha.0(aws-cdk-lib@2.91.0)(constructs@10.2.69)
       aws-cdk-lib: 2.95.1(constructs@10.2.69)
       constructs: 10.2.69
     dev: true
@@ -8591,7 +8591,7 @@ packages:
       '@sls-next/lambda-at-edge':
         optional: true
     dependencies:
-      '@aws-cdk/aws-apigatewayv2-alpha': 2.95.1-alpha.0(aws-cdk-lib@2.95.1)(constructs@10.2.69)
+      '@aws-cdk/aws-apigatewayv2-alpha': 2.95.1-alpha.0(aws-cdk-lib@2.91.0)(constructs@10.2.69)
       '@aws-cdk/aws-apigatewayv2-authorizers-alpha': 2.95.1-alpha.0(@aws-cdk/aws-apigatewayv2-alpha@2.95.1-alpha.0)(aws-cdk-lib@2.95.1)(constructs@10.2.69)
       '@aws-cdk/aws-apigatewayv2-integrations-alpha': 2.95.1-alpha.0(@aws-cdk/aws-apigatewayv2-alpha@2.95.1-alpha.0)(aws-cdk-lib@2.95.1)(constructs@10.2.69)
       '@aws-cdk/cloud-assembly-schema': 2.95.1
