@@ -1,18 +1,21 @@
+import { GetObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import chromium from "@sparticuz/chromium";
 import { User } from "@taxi-kassede/core/entities/users";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
-import { ApiHandler, useBody, useQueryParams } from "sst/node/api";
-import { z } from "zod";
-import { getUser } from "./utils";
-import puppeteerCore, { type Browser } from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer";
+import puppeteerCore, { type Browser } from "puppeteer-core";
+import { ApiHandler, useBody, useQueryParams } from "sst/node/api";
 import { Bucket } from "sst/node/bucket";
-import { S3Client, PutObjectCommand, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { z } from "zod";
 import { Template } from "./templates";
-import { Style } from "./templates/style";
-import * as uuid from "uuid";
+import { getUser } from "./utils";
+import Handlebars from "handlebars";
+import "dayjs/locale/de";
+import "dayjs/locale/en";
+import "dayjs/locale/fr";
+import * as Locales from "./templates/locales";
 
 dayjs.extend(advancedFormat);
 
@@ -717,6 +720,7 @@ export const createReport = ApiHandler(async (x) => {
       statusCode: 200,
     };
   }
+  dayjs.locale(user_.profile.locale?.split("-")[0] ?? "de");
   const company = user_.company!;
   const body = useBody();
   if (!body) {
@@ -760,43 +764,59 @@ export const createReport = ApiHandler(async (x) => {
   const browser = await getBrowser();
   const page = await browser.newPage();
   await page.setJavaScriptEnabled(true);
-  // generate random report number
-  const reportnumber = uuid.v4();
-  // const html = Template.Simple(reportnumber, user_, company, dayEntries, 1);
-  await page.setViewport({ width: 595, height: 842, deviceScaleFactor: 0.5 });
 
-  const sp = new URLSearchParams();
-  sp.set("reportnumber", reportnumber);
-  sp.set("company", company.name);
-  sp.set("contact", "teststreet");
-  sp.set("user", user_.name);
-  sp.set(
-    "entries",
-    JSON.stringify(
-      dayEntries.map((x) => ({
-        date: x.date,
-        total_distance: x.total_distance,
-        driven_distance: x.driven_distance,
-        tour_count: x.tour_count,
-        cash: x.cash,
-      }))
-    )
-  );
-  sp.set("locale", user_.profile.locale ?? "de-DE");
-  sp.set("printcount", "1");
+  const reportnumber = Math.floor(Math.random() * 10000) + "-" + Math.floor(Math.random() * 100000000);
+  await page.setViewport({ width: 595, height: 842 });
 
-  await page.goto(`http://localhost:3000/templates/${template}?${sp.toString()}`, {
+  const lol_ = await Template.Simple();
+  Handlebars.registerHelper("formatDate", function (date: string, format: string) {
+    dayjs(date).format(format);
+  });
+  Handlebars.registerHelper("formatCurrency", function (number: number, format: string) {
+    return new Intl.NumberFormat(format).format(number);
+  });
+  Handlebars.registerHelper("intro", function (locale: keyof (typeof Locales)["default"]) {
+    return Locales.default[locale].introduction;
+  });
+
+  Handlebars.registerHelper("outro", function (locale: keyof (typeof Locales)["default"]) {
+    return Locales.default[locale].outro;
+  });
+
+  const l = Handlebars.compile(lol_);
+  let total = 0;
+  for (let i = 0; i < dayEntries.length; i++) {
+    total += dayEntries[i].cash;
+  }
+  const currency = "CHF";
+
+  const ll = l({
+    user: user_.name,
+    company: company.name,
+    contact: "teststreet",
+    entries: dayEntries.map((x) => ({
+      date_1: dayjs(x.date).format("ddd"),
+      date_2: dayjs(x.date).format("Do MMM"),
+      total_distance: x.total_distance,
+      driven_distance: x.driven_distance,
+      tour_count: x.tour_count,
+      cash: `${new Intl.NumberFormat(user.profile.locale ?? "de-CH").format(x.cash)} ${currency}`,
+    })),
+    total,
+    locale: user_.profile.locale ?? "de-DE",
+    currency,
+    reportnumber,
+    printnumber: 1,
+    today: dayjs().format("Do MMMM YYYY"),
+  });
+
+  await page.setContent(ll, {
     waitUntil: ["load", "domcontentloaded", "networkidle0"],
   });
-
-  page.on("requestfailed", (request) => {
-    console.error(`Failed to load resource: ${request.url()} (${request.failure()?.errorText ?? "unknown error"})`);
-  });
-  await new Promise((resolve) => setTimeout(resolve, 100));
   await page.emulateMediaType("screen");
 
   const pdf = await page.pdf({
-    format: "A5",
+    format: "A4",
     printBackground: true,
   });
 
@@ -806,7 +826,7 @@ export const createReport = ApiHandler(async (x) => {
   const s3client = new S3Client({
     region: "eu-central-1",
   });
-  const url = `reports/${user_.id}/${dayjs().format("YYYY-MM-DD")}.pdf`;
+  const url = `reports/${user_.id}/${dayjs().format("YYYY-MM-DD")}-${reportnumber}.pdf`;
   const command = new PutObjectCommand({
     Bucket: Bucket["taxikassede-bucket"].bucketName,
     Key: url,
