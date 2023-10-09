@@ -7,7 +7,9 @@ import { cn } from "../utils/cn";
 import { useAuth } from "./Auth";
 import { Queries } from "../utils/api/queries";
 
-type ReportsMenuProps = {};
+type ReportsMenuProps = {
+  date: Date;
+};
 export function ReportsMenu(props: ReportsMenuProps) {
   const [user] = useAuth();
   const itemClass =
@@ -26,7 +28,8 @@ export function ReportsMenu(props: ReportsMenuProps) {
           reports: null,
         } as Awaited<ReturnType<typeof Queries.listReports>>);
       }
-      return Queries.listReports(token);
+
+      return Queries.listReports(token, props.date);
     },
     {
       refetchOnMount: true,

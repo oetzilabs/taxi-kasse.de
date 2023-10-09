@@ -923,6 +923,8 @@ export const listReports = ApiHandler(async (x) => {
       statusCode: 200,
     };
   }
+  const { date } = useQueryParams();
+  const _date = dayjs(date).toDate();
   const s3client = new S3Client({
     region: "eu-central-1",
   });
@@ -944,6 +946,7 @@ export const listReports = ApiHandler(async (x) => {
       reports:
         (result.Contents ?? ([] as NonNullable<(typeof result)["Contents"]>))
           .filter((c) => typeof c.Key === "string" && c.Key.endsWith(".pdf"))
+          .filter((c) => dayjs(c.LastModified ?? "").isSame(_date, "month"))
           .map((x) => ({
             name: getFileName(x.Key ?? ""),
             key: x.Key!,

@@ -11,6 +11,7 @@ type CreateEntryModalProps = {
   token: string;
   children: JSX.Element;
   onOpenChange?: (open: boolean) => void;
+  initialDate?: Date;
 };
 
 export function CreateEntryModal(props: CreateEntryModalProps) {
@@ -18,7 +19,7 @@ export function CreateEntryModal(props: CreateEntryModalProps) {
   const queryClient = useQueryClient();
   const [entryData, setEntryData] = createSignal<Parameters<typeof Mutations.createDayEntry>[1]>({
     cash: 0,
-    date: new Date(),
+    date: props.initialDate || new Date(),
     driven_distance: 0,
     total_distance: 0,
     tour_count: 0,

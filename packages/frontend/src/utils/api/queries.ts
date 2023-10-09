@@ -105,10 +105,10 @@ export const session = sessionZod.implement(async (token) =>
   }).then((res) => res.json() as Promise<SessionResult>)
 );
 
-export const listReportsZod = z.function(z.tuple([z.string()]));
+export const listReportsZod = z.function(z.tuple([z.string(), z.date()]));
 
-export const listReports = listReportsZod.implement(async (token) =>
-  fetch(`${API_BASE}/user/report/list`, {
+export const listReports = listReportsZod.implement(async (token, date) =>
+  fetch(`${API_BASE}/user/report/list?date=${dayjs(date.toISOString()).startOf("month").toISOString()}`, {
     headers: {
       authorization: `Bearer ${token}`,
     },
