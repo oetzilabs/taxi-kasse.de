@@ -1,29 +1,41 @@
 // @refresh reload
 import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
-import { Suspense, createContext, createEffect, createSignal, onCleanup, Setter, Accessor, JSX } from "solid-js";
-import { Body, ErrorBoundary, FileRoutes, Head, Html, Meta, Routes, Scripts, Title } from "solid-start";
+import { Suspense, createEffect, createSignal, onCleanup } from "solid-js";
+import { Body, ErrorBoundary, Head, Html, Meta, Scripts, Title } from "solid-start";
 import { Toaster } from "solid-toast";
 import { AuthC, AuthP } from "./components/Auth";
-import "./root.css";
-import { Header } from "./components/Header";
 import Content from "./components/Content";
+import { Header } from "./components/Header";
+import "./root.css";
 
 const queryClient = new QueryClient();
 
 export default function Root() {
   // colormode
-  const [colorMode, setColorMode] = createSignal("light");
-  const toggleColorMode = () => {
-    setColorMode(colorMode() === "light" ? "dark" : "light");
+  const [colorMode, setColorMode] = createSignal<"dark" | "light">("dark");
+  const toggleColorMode = async () => {
+    const cm = colorMode() === "light" ? "dark" : "light";
+    setColorMode(cm);
+    // store color mode in local storage
+    window.localStorage.setItem("colorMode", cm);
   };
+
   createEffect(() => {
+    // get color mode from local storage
+
+    const cm = (window.localStorage.getItem("colorMode") as "dark" | "light" | null) ?? "dark";
+    if (cm) {
+      setColorMode(cm);
+    }
+
     // keybind CTRL+B
-    const handler = (e: KeyboardEvent) => {
+    const handler = async (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "b") {
         e.preventDefault();
-        toggleColorMode();
+        await toggleColorMode();
       }
     };
+
     document.addEventListener("keydown", handler);
     onCleanup(() => {
       document.removeEventListener("keydown", handler);

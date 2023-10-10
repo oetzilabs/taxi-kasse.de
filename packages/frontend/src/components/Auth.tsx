@@ -33,7 +33,8 @@ export const AuthC = () => {
     },
     {
       get enabled() {
-        return AuthStore().token !== null;
+        const _as = AuthStore();
+        return _as.token !== null;
       },
       refetchInterval: 1000 * 60 * 5,
     }

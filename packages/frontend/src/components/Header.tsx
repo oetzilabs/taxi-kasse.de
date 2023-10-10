@@ -11,9 +11,6 @@ export const HeaderContext = createContext({
 
 export const Header = (props: { children: JSX.Element; header: JSX.Element }) => {
   const [visible, setVisible] = createSignal(true);
-  createEffect(() => {
-    console.log("Header is visible: ", visible());
-  });
   return (
     <HeaderContext.Provider
       value={{

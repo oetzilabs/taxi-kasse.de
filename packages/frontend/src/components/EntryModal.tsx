@@ -111,19 +111,53 @@ export function CreateEntryModal(props: CreateEntryModalProps) {
             class="w-full rounded-md bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
           />
         </label>
-        <button
-          type="button"
-          disabled={createEntry.isLoading}
-          class="flex items-center justify-center p-2 py-1 bg-black rounded-md border-black/10 text-white dark:bg-white dark:border-white/10 dark:text-black"
-          onClick={async () => {
-            await createEntry.mutateAsync();
-          }}
-        >
-          <Switch>
-            <Match when={createEntry.isLoading}>Adding entry</Match>
-            <Match when={!createEntry.isLoading}>Add entry</Match>
-          </Switch>
-        </button>
+        <div class="flex flex-row justify-end w-full">
+          <button
+            type="button"
+            disabled={createEntry.isLoading}
+            class="flex items-center justify-center p-2 py-1 bg-black rounded-md border-black/10 text-white dark:bg-white dark:border-white/10 dark:text-black gap-2"
+            onClick={async () => {
+              await createEntry.mutateAsync();
+            }}
+          >
+            <Switch>
+              <Match when={createEntry.isLoading}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="animate-spin"
+                >
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                </svg>
+                <span>Adding entry</span>
+              </Match>
+              <Match when={!createEntry.isLoading}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 12h14" />
+                  <path d="M12 5v14" />
+                </svg>
+                <span>Add entry</span>
+              </Match>
+            </Switch>
+          </button>
+        </div>
       </div>
     </Modal>
   );
@@ -228,19 +262,39 @@ export function EditEntryModal(props: EditEntryModalProps) {
             class="w-full rounded-md bg-transparent border border-neutral-200 dark:border-neutral-800 px-2 py-1"
           />
         </label>
-        <button
-          type="button"
-          disabled={updateEntry.isLoading}
-          class="flex items-center justify-center p-2 py-1 bg-black rounded-md border-black/10 text-white dark:bg-white dark:border-white/10 dark:text-black"
-          onClick={async () => {
-            await updateEntry.mutateAsync();
-          }}
-        >
-          <Switch>
-            <Match when={updateEntry.isLoading}>Saving entry</Match>
-            <Match when={!updateEntry.isLoading}>Save entry</Match>
-          </Switch>
-        </button>
+        <div class="flex flex-row justify-end w-full">
+          <button
+            type="button"
+            disabled={updateEntry.isLoading}
+            class="flex items-center justify-center p-2 py-1 bg-black rounded-md border-black/10 text-white dark:bg-white dark:border-white/10 dark:text-black"
+            onClick={async () => {
+              await updateEntry.mutateAsync();
+            }}
+          >
+            <Switch>
+              <Match when={updateEntry.isLoading}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="animate-spin"
+                >
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                </svg>
+                <span>Saving entry</span>
+              </Match>
+              <Match when={!updateEntry.isLoading}>
+                <span>Save entry</span>
+              </Match>
+            </Switch>
+          </button>
+        </div>
       </div>
     </Modal>
   );

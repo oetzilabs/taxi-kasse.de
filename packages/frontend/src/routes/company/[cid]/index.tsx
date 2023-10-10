@@ -85,10 +85,44 @@ function CalendarWrapper(props: CalendarWrapperProps) {
 
   const calculatedTotal = () => {
     let total = 0;
-    for (const entry of calendar.data?.calendar ?? []) {
-      total += entry.cash;
+    for (let i = 0; i < (calendar.data?.calendar ?? []).length; i++) {
+      total += calendar.data?.calendar?.[i].cash ?? 0;
     }
     return total;
+  };
+  // fill the calendar month with the calendar.data days, match the days in the weekly days.
+  // ex: monday, tuesday, wednesday, thursday, friday, saturday, sunday.
+  // meaning I need to get the previous month's days and the next month's days. to fill the gaps.
+  // startOfWeek always Monday.
+  const calendarMonthDays = () => {
+    const startOfMonth = dayjs(range().from).startOf("month");
+    const endOfMonth = dayjs(range().from).endOf("month");
+    const startOfWeek = startOfMonth.startOf("week");
+    const endOfWeek = endOfMonth.endOf("week");
+    const monthDays = [];
+    const weekDays = [];
+    let day = startOfWeek;
+    while (day <= endOfWeek) {
+      monthDays.push(day.toDate());
+      day = day.add(1, "day");
+    }
+    for (const day of monthDays) {
+      const entry = (calendar.data?.calendar ?? []).find((e) => dayjs(e.date).isSame(day, "day"));
+      if (entry) {
+        weekDays.push(entry);
+      } else {
+        weekDays.push({
+          id: "",
+          date: day,
+          distance: 0,
+          driven_distance: 0,
+          total_distance: 0,
+          tour_count: 0,
+          cash: 0,
+        });
+      }
+    }
+    return weekDays;
   };
 
   return (
@@ -124,7 +158,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                     initialDate={dayjs(range().from).startOf("month").toDate()}
                   >
                     <button
-                      class="flex items-center justify-center gap-2.5 p-1 px-2 bg-white dark:bg-black rounded-md border border-black/10 dark:border-white/10 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-950 active:bg-neutral-100 dark:active:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+                      class="p-2 py-1 flex items-center justify-center bg-black dark:bg-white gap-2.5 hover:bg-neutral-950 rounded-md active:bg-neutral-900 dark:hover:bg-neutral-100 dark:active:bg-neutral-200 text-white dark:text-black"
                       aria-label="add entry"
                     >
                       <svg
@@ -255,42 +289,16 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                 </div>
               </div>
             </div>
-            <div class="flex w-full flex-grow relative bg-neutral-50 dark:bg-neutral-950 rounded-md border border-black/[0.03] dark:border-white/[0.03]">
-              <Show when={(calendar.data?.calendar ?? []).length === 0}>
-                <div class="flex flex-col gap-4 items-center justify-center w-full h-full p-40">
-                  <div class="opacity-25 flex flex-col items-center justify-center gap-2] -rotate-[10deg]">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="48"
-                      height="48"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <circle cx="8" cy="8" r="6" />
-                      <path d="M18.09 10.37A6 6 0 1 1 10.34 18" />
-                      <path d="M7 6h1v4" />
-                      <path d="m16.71 13.88.7.71-2.82 2.82" />
-                    </svg>
-                  </div>
-                  <div class="text-neutral-500 select-none">There is no data for this month.</div>
-                  <div class="flex flex-col items-center justify-center gap-6">
-                    <CreateEntryModal
-                      token={props.user.token}
-                      onOpenChange={setModalOpen}
-                      initialDate={dayjs(range().from).startOf("month").toDate()}
-                    >
-                      <button
-                        class="flex items-center justify-center p-2 py-1 bg-black rounded-md border-black/10 text-white dark:bg-white dark:border-white/10 dark:text-black"
-                        aria-label="add entry"
-                      >
+            <div class="flex w-full flex-grow relative bg-neutral-50 dark:bg-neutral-950 rounded-md border border-black/[0.03] dark:border-white/[0.03] overflow-clip">
+              <div class="flex flex-col gap-2 items-center justify-center w-full">
+                <Show when={(calendar.data?.calendar ?? []).length == 0}>
+                  <div class="absolute inset-0 flex flex-col gap-8 items-center justify-center w-full h-full p-40 dark:bg-black/20 bg-white/5 backdrop-blur-xl z-20">
+                    <div class="flex flex-col gap-4 dark:bg-white/10 bg-black/5 rounded-md p-10">
+                      <div class="opacity-25 flex flex-col items-center justify-center gap-2] -rotate-[10deg]">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
+                          width="48"
+                          height="48"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
@@ -298,61 +306,104 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                           stroke-linecap="round"
                           stroke-linejoin="round"
                         >
-                          <path d="M5 12h14" />
-                          <path d="M12 5v14" />
+                          <circle cx="8" cy="8" r="6" />
+                          <path d="M18.09 10.37A6 6 0 1 1 10.34 18" />
+                          <path d="M7 6h1v4" />
+                          <path d="m16.71 13.88.7.71-2.82 2.82" />
                         </svg>
-                        Add entry
-                      </button>
-                    </CreateEntryModal>
+                      </div>
+                      <div class="dark:text-white/50 text-black/50 select-none font-medium">
+                        There is no data for this month.
+                      </div>
+                    </div>
+                    <div class="flex flex-col items-center justify-center gap-6">
+                      <CreateEntryModal
+                        token={props.user.token}
+                        onOpenChange={setModalOpen}
+                        initialDate={dayjs(range().from).startOf("month").toDate()}
+                      >
+                        <button
+                          class="flex items-center justify-center p-2 py-1 bg-black rounded-md border-black/10 text-white dark:bg-white dark:border-white/10 dark:text-black"
+                          aria-label="add entry"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path d="M5 12h14" />
+                            <path d="M12 5v14" />
+                          </svg>
+                          Add entry
+                        </button>
+                      </CreateEntryModal>
+                    </div>
                   </div>
-                </div>
-              </Show>
-              <Show when={(calendar.data?.calendar ?? []).length > 0}>
-                <div class="flex flex-col gap-2 items-center justify-center w-full">
-                  <For each={calendar.data?.calendar ?? []}>
+                </Show>
+                <div class="grid grid-cols-7 w-full">
+                  <For each={calendarMonthDays()}>
                     {(entry) => (
-                      <div class="flex flex-col gap-2 w-full p-4 last:border-none border-b border-neutral-100 dark:border-neutral-900">
-                        <div class="flex w-full justify-between">
-                          <div class="w-fit flex flex-row gap-2">
-                            <div class="font-medium">{dayjs(entry.date).format("Do MMM. YYYY")}</div>
+                      <div
+                        class={cn(
+                          "flex flex-col gap-2 w-full p-4 border-b border-r border-neutral-100 dark:border-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-900 cursor-pointer text-sm min-h-[80px]",
+                          { "bg-opacity-20": !dayjs(entry.date).isSame(range().from, "month") },
+                          { "bg-opacity-40": entry.cash === 0 },
+                          { "text-blue-500": !!entry.id },
+                          // last 7 days have no bottom border
+                          {
+                            "!border-b-0": calendarMonthDays().indexOf(entry) >= calendarMonthDays().length - 7,
+                          },
+                          {
+                            "!border-r-0": dayjs(entry.date).day() === 7,
+                          }
+                        )}
+                      >
+                        <div class="flex w-full h-full justify-between">
+                          <div class="w-max h-full flex flex-row gap-2 ">
+                            <div class="font-medium ">{dayjs(entry.date).format("ddd Do")}</div>
                             <div class="flex flex-row gap-2">
-                              <EditEntryModal
-                                onOpenChange={setModalOpen}
-                                date={entry.date}
-                                token={props.user.token}
-                                entry={entry}
-                              >
-                                <button class="p-2 rounded-md hover:bg-neutral-100 hover:dark:bg-neutral-800">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="14"
-                                    height="14"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                  >
-                                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                                    <path d="m15 5 4 4" />
-                                  </svg>
-                                </button>
-                              </EditEntryModal>
-                              <DeleteEntryButton token={props.user.token} entryId={entry.id} />
+                              {/* <EditEntryModal
+                                  onOpenChange={setModalOpen}
+                                  date={entry.date}
+                                  token={props.user.token}
+                                  entry={entry}
+                                >
+                                  <button class="p-2 rounded-md hover:bg-neutral-100 hover:dark:bg-neutral-800">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="14"
+                                      height="14"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                    >
+                                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                                      <path d="m15 5 4 4" />
+                                    </svg>
+                                  </button>
+                                </EditEntryModal>
+                                <DeleteEntryButton token={props.user.token} entryId={entry.id} /> */}
                             </div>
                           </div>
-                          <div class="">{entry.total_distance} km</div>
-                        </div>
-                        <div class="flex w-full justify-between">
-                          <div class="font-medium">{entry.driven_distance} km</div>
-                          <div class="font-bold">{new Intl.NumberFormat(props.locale).format(entry.cash)} CHF</div>
+                          <div class="font-bold w-max">
+                            {new Intl.NumberFormat(props.locale).format(entry.cash)} CHF
+                          </div>
                         </div>
                       </div>
                     )}
                   </For>
                 </div>
-              </Show>
+              </div>
+              {/* </Show> */}
             </div>
             <div class="flex w-full py-4">
               <div class="flex items-center justify-between flex-wrap container mx-auto px-2">
@@ -404,7 +455,6 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                 <span class="select-none">Refresh</span>
               </button>
             </div>
-            <div class="w-full flex flex-col text-opacity-50 items-center justify-center h-[200px]"></div>
           </div>
         </Suspense>
       </div>

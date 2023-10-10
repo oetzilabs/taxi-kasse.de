@@ -7,7 +7,7 @@ export default function Content() {
   const { visible } = useHeader();
   return (
     <div
-      class={cn("pt-[49px]", {
+      class={cn("pt-[49px] h-[100svh]", {
         "pt-0": !visible(),
       })}
     >
