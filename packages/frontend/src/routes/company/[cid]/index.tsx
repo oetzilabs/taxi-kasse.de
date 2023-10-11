@@ -216,7 +216,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                       </div>
                       <div class="select-none text-base font-bold">Share</div>
                     </button>
-                    <ReportsMenu date={range().from} />
+                    <ReportsMenu range={range()} />
                     <button
                       disabled
                       class="p-2 bg-white dark:bg-black rounded-md border border-black/10 dark:border-white/10 justify-center items-center gap-2.5 flex cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-950 active:bg-neutral-100 dark:active:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"

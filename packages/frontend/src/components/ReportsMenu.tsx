@@ -8,7 +8,10 @@ import { useAuth } from "./Auth";
 import { Queries } from "../utils/api/queries";
 
 type ReportsMenuProps = {
-  date: Date;
+  range: {
+    from: Date;
+    to: Date;
+  };
 };
 export function ReportsMenu(props: ReportsMenuProps) {
   const [user] = useAuth();
@@ -29,7 +32,7 @@ export function ReportsMenu(props: ReportsMenuProps) {
         } as Awaited<ReturnType<typeof Queries.listReports>>);
       }
 
-      return Queries.listReports(token, props.date);
+      return Queries.listReports(token, props.range.from);
     },
     {
       refetchOnWindowFocus: false,
@@ -205,7 +208,7 @@ export function ReportsMenu(props: ReportsMenuProps) {
             class={cn(itemClass, "text-teal-400 hover:bg-teal-400 hover:text-white dark:hover:bg-teal-600")}
             closeOnSelect={false}
             onSelect={async () => {
-              const s3URLResult = await createReport.mutateAsync("month");
+              const s3URLResult = await createReport.mutateAsync(props.range);
               const success = s3URLResult.success;
               await queryClient.invalidateQueries(["reports"]);
               if (success) {

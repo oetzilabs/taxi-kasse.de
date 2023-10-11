@@ -740,8 +740,8 @@ export const createReport = ApiHandler(async (x) => {
   const template = JSON.parse(body).template ?? "simple";
   const dateRangeZod = z
     .object({
-      from: z.date(),
-      to: z.date(),
+      from: z.string().transform((value) => dayjs(value).toDate()),
+      to: z.string().transform((value) => dayjs(value).toDate()),
     })
     .or(z.enum(["month", "year", "all"]));
   const dateRange = dateRangeZod.parse(date_range);
