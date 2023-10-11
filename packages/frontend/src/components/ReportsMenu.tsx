@@ -32,7 +32,7 @@ export function ReportsMenu(props: ReportsMenuProps) {
       return Queries.listReports(token, props.date);
     },
     {
-      refetchOnMount: true,
+      refetchOnWindowFocus: false,
     }
   );
 
@@ -72,27 +72,66 @@ export function ReportsMenu(props: ReportsMenuProps) {
     <DropdownMenu.Root placement="bottom-end" open={isVisible()} onOpenChange={setIsVisible}>
       <DropdownMenu.Trigger>
         <button
-          class="p-2 py-1 flex items-center justify-center gap-2.5 hover:bg-neutral-50 rounded-md border border-black/10 dark:border-white/10 active:bg-neutral-100 dark:hover:bg-neutral-900 dark:active:bg-neutral-800"
+          disabled={reportsList.isLoading || reportsList.isFetching}
+          class="p-2 py-1 flex items-center justify-center gap-2.5 hover:bg-neutral-50 rounded-md border border-black/10 dark:border-white/10 active:bg-neutral-100 dark:hover:bg-neutral-900 dark:active:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="reports menu"
         >
           <div class="w-4 h-4 relative">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-              <path
-                d="M9.66666 1.83334H3.99999C3.64637 1.83334 3.30723 1.97382 3.05718 2.22387C2.80713 2.47392 2.66666 2.81305 2.66666 3.16668V13.8333C2.66666 14.187 2.80713 14.5261 3.05718 14.7762C3.30723 15.0262 3.64637 15.1667 3.99999 15.1667H12C12.3536 15.1667 12.6928 15.0262 12.9428 14.7762C13.1928 14.5261 13.3333 14.187 13.3333 13.8333V5.50001L9.66666 1.83334Z"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M9.33331 1.83334V5.83334H13.3333"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path d="M10.6666 9.16666H5.33331" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-              <path d="M10.6666 11.8333H5.33331" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-              <path d="M6.66665 6.5H5.33331" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
+            <div class="flex justify-center items-center ">
+              <Switch
+                fallback={
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
+                    <path
+                      d="M9.66666 1.83334H3.99999C3.64637 1.83334 3.30723 1.97382 3.05718 2.22387C2.80713 2.47392 2.66666 2.81305 2.66666 3.16668V13.8333C2.66666 14.187 2.80713 14.5261 3.05718 14.7762C3.30723 15.0262 3.64637 15.1667 3.99999 15.1667H12C12.3536 15.1667 12.6928 15.0262 12.9428 14.7762C13.1928 14.5261 13.3333 14.187 13.3333 13.8333V5.50001L9.66666 1.83334Z"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M9.33331 1.83334V5.83334H13.3333"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M10.6666 9.16666H5.33331"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M10.6666 11.8333H5.33331"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M6.66665 6.5H5.33331"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                }
+              >
+                <Match when={reportsList.isLoading || reportsList.isFetching}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="animate-spin"
+                  >
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                  </svg>
+                </Match>
+              </Switch>
+            </div>
           </div>
           <div class="select-none text-base font-bold">Reports</div>
         </button>
@@ -186,7 +225,7 @@ export function ReportsMenu(props: ReportsMenuProps) {
             }}
           >
             <Switch>
-              <Match when={createReport.isLoading}>
+              <Match when={createReport.isLoading || downLoadFile.isLoading}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"

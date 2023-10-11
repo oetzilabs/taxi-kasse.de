@@ -2,9 +2,9 @@ import { createIdleTimer } from "@solid-primitives/idle";
 import { createQuery, useQueryClient } from "@tanstack/solid-query";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
-import { For, Show, Suspense, createSignal } from "solid-js";
+import { For, Match, Show, Suspense, Switch, createEffect, createMemo, createSignal } from "solid-js";
 import { useAuth } from "../../../components/Auth";
-import { DeleteEntryButton } from "../../../components/DeleteEntryButton";
+import { DayEntry } from "../../../components/DayEntry";
 import { CreateEntryModal, EditEntryModal } from "../../../components/EntryModal";
 import { ReportsMenu } from "../../../components/ReportsMenu";
 import { Queries } from "../../../utils/api/queries";
@@ -37,35 +37,8 @@ function CalendarWrapper(props: CalendarWrapperProps) {
 
   const queryClient = useQueryClient();
 
-  const [entryData, setEntryData] = createSignal<
-    | {
-        mode: "CREATE";
-        date: Date;
-        distance: number;
-        driven_distance: number;
-        tour_count: number;
-        cash: number;
-      }
-    | {
-        mode: "EDIT";
-        id: string;
-        date: Date;
-        distance: number;
-        driven_distance: number;
-        tour_count: number;
-        cash: number;
-      }
-  >({
-    mode: "CREATE",
-    date: new Date(),
-    distance: 0,
-    driven_distance: 0,
-    tour_count: 0,
-    cash: 0,
-  });
-
   const { isIdle, isPrompted, reset } = createIdleTimer({
-    idleTimeout: 30_000,
+    idleTimeout: 25_000,
   });
 
   const calendar = createQuery(
@@ -75,7 +48,9 @@ function CalendarWrapper(props: CalendarWrapperProps) {
     },
     {
       get enabled() {
-        return !modalOpen() && !isIdle();
+        const en = !modalOpen() && !isIdle();
+        console.log("enabled", en);
+        return en;
       },
       refetchInterval: 10_000,
       keepPreviousData: true,
@@ -83,47 +58,18 @@ function CalendarWrapper(props: CalendarWrapperProps) {
     }
   );
 
-  const calculatedTotal = () => {
+  const calculatedTotal = createMemo(() => {
     let total = 0;
     for (let i = 0; i < (calendar.data?.calendar ?? []).length; i++) {
       total += calendar.data?.calendar?.[i].cash ?? 0;
     }
     return total;
-  };
-  // fill the calendar month with the calendar.data days, match the days in the weekly days.
-  // ex: monday, tuesday, wednesday, thursday, friday, saturday, sunday.
-  // meaning I need to get the previous month's days and the next month's days. to fill the gaps.
-  // startOfWeek always Monday.
-  const calendarMonthDays = () => {
-    const startOfMonth = dayjs(range().from).startOf("month");
-    const endOfMonth = dayjs(range().from).endOf("month");
-    const startOfWeek = startOfMonth.startOf("week");
-    const endOfWeek = endOfMonth.endOf("week");
-    const monthDays = [];
-    const weekDays = [];
-    let day = startOfWeek;
-    while (day <= endOfWeek) {
-      monthDays.push(day.toDate());
-      day = day.add(1, "day");
-    }
-    for (const day of monthDays) {
-      const entry = (calendar.data?.calendar ?? []).find((e) => dayjs(e.date).isSame(day, "day"));
-      if (entry) {
-        weekDays.push(entry);
-      } else {
-        weekDays.push({
-          id: "",
-          date: day,
-          distance: 0,
-          driven_distance: 0,
-          total_distance: 0,
-          tour_count: 0,
-          cash: 0,
-        });
-      }
-    }
-    return weekDays;
-  };
+  });
+
+  createEffect(() => {
+    // modal is open
+    console.log("modalOpen", modalOpen());
+  });
 
   return (
     <div class="container mx-auto flex flex-col gap-2">
@@ -188,7 +134,10 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                           from: dayjs(md.from).subtract(1, "month").startOf("month").toDate(),
                           to: dayjs(md.to).subtract(1, "month").toDate(),
                         }));
-                        await queryClient.invalidateQueries(["calendar"]);
+                        await Promise.all([
+                          queryClient.invalidateQueries(["calendar"]),
+                          queryClient.invalidateQueries(["reports"]),
+                        ]);
                       }}
                       aria-label="Previous month"
                     >
@@ -220,7 +169,10 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                           to: dayjs(md.to).add(1, "month").toDate(),
                         }));
 
-                        await queryClient.invalidateQueries(["calendar"]);
+                        await Promise.all([
+                          queryClient.invalidateQueries(["calendar"]),
+                          queryClient.invalidateQueries(["reports"]),
+                        ]);
                       }}
                       disabled={calendar.isFetching}
                       aria-label="Next month"
@@ -289,7 +241,7 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                 </div>
               </div>
             </div>
-            <div class="flex w-full flex-grow relative bg-neutral-50 dark:bg-neutral-950 rounded-md border border-black/[0.03] dark:border-white/[0.03] overflow-clip">
+            <div class="flex w-full flex-grow relative bg-neutral-50 dark:bg-neutral-950 rounded-md border border-neutral-200 dark:border-neutral-900 overflow-clip">
               <div class="flex flex-col gap-2 items-center justify-center w-full">
                 <Show when={(calendar.data?.calendar ?? []).length == 0}>
                   <div class="absolute inset-0 flex flex-col gap-8 items-center justify-center w-full h-full p-40 dark:bg-black/20 bg-white/5 backdrop-blur-xl z-20">
@@ -347,63 +299,46 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                   </div>
                 </Show>
                 <div class="grid grid-cols-7 w-full">
-                  <For each={calendarMonthDays()}>
-                    {(entry) => (
-                      <div
-                        class={cn(
-                          "flex flex-col gap-2 w-full p-4 border-b border-r border-neutral-100 dark:border-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-900 cursor-pointer text-sm min-h-[80px]",
-                          { "bg-opacity-20": !dayjs(entry.date).isSame(range().from, "month") },
-                          { "bg-opacity-40": entry.cash === 0 },
-                          { "text-blue-500": !!entry.id },
-                          // last 7 days have no bottom border
-                          {
-                            "!border-b-0": calendarMonthDays().indexOf(entry) >= calendarMonthDays().length - 7,
-                          },
-                          {
-                            "!border-r-0": dayjs(entry.date).day() === 7,
-                          }
-                        )}
+                  <For each={calendar.isSuccess && calendar.data.calendar}>
+                    {(entry, index) => (
+                      <Switch
+                        fallback={
+                          <CreateEntryModal
+                            onOpenChange={setModalOpen}
+                            initialDate={entry.date}
+                            token={props.user.token}
+                          >
+                            <DayEntry
+                              entry={entry}
+                              calendarDays={(calendar.isSuccess ? calendar.data.calendar : []).length}
+                              range={range()}
+                              locale={props.locale}
+                              index={index()}
+                            />
+                          </CreateEntryModal>
+                        }
                       >
-                        <div class="flex w-full h-full justify-between">
-                          <div class="w-max h-full flex flex-row gap-2 ">
-                            <div class="font-medium ">{dayjs(entry.date).format("ddd Do")}</div>
-                            <div class="flex flex-row gap-2">
-                              {/* <EditEntryModal
-                                  onOpenChange={setModalOpen}
-                                  date={entry.date}
-                                  token={props.user.token}
-                                  entry={entry}
-                                >
-                                  <button class="p-2 rounded-md hover:bg-neutral-100 hover:dark:bg-neutral-800">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="14"
-                                      height="14"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      stroke-width="2"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                    >
-                                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                                      <path d="m15 5 4 4" />
-                                    </svg>
-                                  </button>
-                                </EditEntryModal>
-                                <DeleteEntryButton token={props.user.token} entryId={entry.id} /> */}
-                            </div>
-                          </div>
-                          <div class="font-bold w-max">
-                            {new Intl.NumberFormat(props.locale).format(entry.cash)} CHF
-                          </div>
-                        </div>
-                      </div>
+                        <Match when={entry.id} keyed>
+                          <EditEntryModal
+                            onOpenChange={setModalOpen}
+                            date={entry.date}
+                            token={props.user.token}
+                            entry={entry}
+                          >
+                            <DayEntry
+                              entry={entry}
+                              calendarDays={(calendar.isSuccess ? calendar.data.calendar : []).length}
+                              range={range()}
+                              locale={props.locale}
+                              index={index()}
+                            />
+                          </EditEntryModal>
+                        </Match>
+                      </Switch>
                     )}
                   </For>
                 </div>
               </div>
-              {/* </Show> */}
             </div>
             <div class="flex w-full py-4">
               <div class="flex items-center justify-between flex-wrap container mx-auto px-2">

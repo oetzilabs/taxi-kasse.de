@@ -220,7 +220,7 @@ export const listAll = ApiHandler(async (x) => {
 
 export type CalendarResult = {
   error: string | null;
-  calendar: Awaited<ReturnType<typeof User.calendar>> | null;
+  calendar: Awaited<ReturnType<typeof User.calendar>>;
 };
 
 export const calendar = ApiHandler(async (x) => {
@@ -232,7 +232,7 @@ export const calendar = ApiHandler(async (x) => {
       },
       body: JSON.stringify({
         error: user.message,
-        calendar: null,
+        calendar: [],
       } as CalendarResult),
       statusCode: 200,
     };
@@ -244,7 +244,7 @@ export const calendar = ApiHandler(async (x) => {
       },
       body: JSON.stringify({
         error: "No user found",
-        calendar: null,
+        calendar: [],
       } as CalendarResult),
       statusCode: 200,
     };
@@ -258,7 +258,7 @@ export const calendar = ApiHandler(async (x) => {
       },
       body: JSON.stringify({
         error: "No user found",
-        calendar: null,
+        calendar: [],
       } as CalendarResult),
       statusCode: 200,
     };
@@ -270,7 +270,7 @@ export const calendar = ApiHandler(async (x) => {
       },
       body: JSON.stringify({
         error: "User has no company",
-        calendar: null,
+        calendar: [],
       } as CalendarResult),
       statusCode: 200,
     };
