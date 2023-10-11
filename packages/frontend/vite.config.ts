@@ -4,7 +4,7 @@ import aws from "solid-start-sst";
 import devtools from "@solid-devtools/transform";
 
 export default defineConfig({
-  plugins: [devtools({ autoname: true }), solid({ adapter: aws() })],
+  plugins: [solid({ adapter: aws() }), devtools({ autoname: true })],
   ssr: {
     noExternal: ["@kobalte/core", "@internationalized/message"],
   },

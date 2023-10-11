@@ -243,8 +243,8 @@ function CalendarWrapper(props: CalendarWrapperProps) {
             </div>
             <div class="flex w-full flex-grow relative bg-neutral-50 dark:bg-neutral-950 rounded-md border border-neutral-200 dark:border-neutral-900 overflow-clip">
               <div class="flex flex-col gap-2 items-center justify-center w-full">
-                <Show when={(calendar.data?.calendar ?? []).length == 0}>
-                  <div class="absolute inset-0 flex flex-col gap-8 items-center justify-center w-full h-full p-40 dark:bg-black/20 bg-white/5 backdrop-blur-xl z-20">
+                <Switch fallback={<div class="flex justify-center items-center p-40">Loading...</div>}>
+                  <Match when={calendar.isError}>
                     <div class="flex flex-col gap-4 dark:bg-white/10 bg-black/5 rounded-md p-10">
                       <div class="opacity-25 flex flex-col items-center justify-center gap-2] -rotate-[10deg]">
                         <svg
@@ -258,86 +258,119 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                           stroke-linecap="round"
                           stroke-linejoin="round"
                         >
-                          <circle cx="8" cy="8" r="6" />
-                          <path d="M18.09 10.37A6 6 0 1 1 10.34 18" />
-                          <path d="M7 6h1v4" />
-                          <path d="m16.71 13.88.7.71-2.82 2.82" />
+                          <circle cx="12" cy="12" r="10" />
+                          <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                          <line x1="9" y1="9" x2="9.01" y2="9" />
+                          <line x1="15" y1="9" x2="15.01" y2="9" />
                         </svg>
                       </div>
                       <div class="dark:text-white/50 text-black/50 select-none font-medium">
-                        There is no data for this month.
+                        An error occurred while fetching data.
                       </div>
                     </div>
-                    <div class="flex flex-col items-center justify-center gap-6">
-                      <CreateEntryModal
-                        token={props.user.token}
-                        onOpenChange={setModalOpen}
-                        initialDate={dayjs(range().from).startOf("month").toDate()}
-                      >
-                        <button
-                          class="flex items-center justify-center p-2 py-1 bg-black rounded-md border-black/10 text-white dark:bg-white dark:border-white/10 dark:text-black"
-                          aria-label="add entry"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <path d="M5 12h14" />
-                            <path d="M12 5v14" />
-                          </svg>
-                          Add entry
-                        </button>
-                      </CreateEntryModal>
-                    </div>
-                  </div>
-                </Show>
-                <div class="grid grid-cols-7 w-full">
-                  <For each={calendar.isSuccess && calendar.data.calendar}>
-                    {(entry, index) => (
-                      <Switch
-                        fallback={
-                          <CreateEntryModal
-                            onOpenChange={setModalOpen}
-                            initialDate={entry.date}
-                            token={props.user.token}
-                          >
-                            <DayEntry
-                              entry={entry}
-                              calendarDays={(calendar.isSuccess ? calendar.data.calendar : []).length}
-                              range={range()}
-                              locale={props.locale}
-                              index={index()}
-                            />
-                          </CreateEntryModal>
-                        }
-                      >
-                        <Match when={entry.id} keyed>
-                          <EditEntryModal
-                            onOpenChange={setModalOpen}
-                            date={entry.date}
-                            token={props.user.token}
-                            entry={entry}
-                          >
-                            <DayEntry
-                              entry={entry}
-                              calendarDays={(calendar.isSuccess ? calendar.data.calendar : []).length}
-                              range={range()}
-                              locale={props.locale}
-                              index={index()}
-                            />
-                          </EditEntryModal>
-                        </Match>
-                      </Switch>
+                  </Match>
+                  <Match when={calendar.isSuccess && calendar.data.calendar}>
+                    {(d) => (
+                      <>
+                        <Show when={d().length == 0}>
+                          <div class="absolute inset-0 flex flex-col gap-8 items-center justify-center w-full h-full p-40 dark:bg-black/20 bg-white/5 backdrop-blur-xl z-20">
+                            <div class="flex flex-col gap-4 dark:bg-white/10 bg-black/5 rounded-md p-10">
+                              <div class="opacity-25 flex flex-col items-center justify-center gap-2] -rotate-[10deg]">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="48"
+                                  height="48"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
+                                  <circle cx="8" cy="8" r="6" />
+                                  <path d="M18.09 10.37A6 6 0 1 1 10.34 18" />
+                                  <path d="M7 6h1v4" />
+                                  <path d="m16.71 13.88.7.71-2.82 2.82" />
+                                </svg>
+                              </div>
+                              <div class="dark:text-white/50 text-black/50 select-none font-medium">
+                                There is no data for this month.
+                              </div>
+                            </div>
+                            <div class="flex flex-col items-center justify-center gap-6">
+                              <CreateEntryModal
+                                token={props.user.token}
+                                onOpenChange={setModalOpen}
+                                initialDate={dayjs(range().from).startOf("month").toDate()}
+                              >
+                                <button
+                                  class="flex items-center justify-center p-2 py-1 bg-black rounded-md border-black/10 text-white dark:bg-white dark:border-white/10 dark:text-black"
+                                  aria-label="add entry"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                  >
+                                    <path d="M5 12h14" />
+                                    <path d="M12 5v14" />
+                                  </svg>
+                                  Add entry
+                                </button>
+                              </CreateEntryModal>
+                            </div>
+                          </div>
+                        </Show>
+                        <div class="grid grid-cols-7 w-full">
+                          <For each={d()}>
+                            {(entry, index) => (
+                              <Switch
+                                fallback={
+                                  <CreateEntryModal
+                                    onOpenChange={setModalOpen}
+                                    initialDate={dayjs(entry.date).toDate()}
+                                    token={props.user.token}
+                                  >
+                                    <DayEntry
+                                      entry={entry}
+                                      calendarDays={d().length}
+                                      range={range()}
+                                      locale={props.locale}
+                                      index={index()}
+                                    />
+                                  </CreateEntryModal>
+                                }
+                              >
+                                <Match when={entry.id}>
+                                  <EditEntryModal
+                                    onOpenChange={setModalOpen}
+                                    date={entry.date}
+                                    token={props.user.token}
+                                    entry={entry}
+                                  >
+                                    <DayEntry
+                                      entry={entry}
+                                      calendarDays={d().length}
+                                      range={range()}
+                                      locale={props.locale}
+                                      index={index()}
+                                    />
+                                  </EditEntryModal>
+                                </Match>
+                              </Switch>
+                            )}
+                          </For>
+                        </div>
+                      </>
                     )}
-                  </For>
-                </div>
+                  </Match>
+                </Switch>
               </div>
             </div>
             <div class="flex w-full py-4">

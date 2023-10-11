@@ -17,20 +17,23 @@ type CreateEntryModalProps = {
 export function CreateEntryModal(props: CreateEntryModalProps) {
   const [modalOpen, setModalOpen] = createSignal(false);
   const queryClient = useQueryClient();
+  console.log("iD", typeof props.initialDate);
   const [entryData, setEntryData] = createSignal<Parameters<typeof Mutations.createDayEntry>[1]>({
     cash: 0,
-    date: props.initialDate || new Date(),
+    date: props.initialDate ?? new Date(),
     driven_distance: 0,
     total_distance: 0,
     tour_count: 0,
   });
   const createEntry = createMutation(
     () => {
-      return Mutations.createDayEntry(props.token, entryData());
+      const ed = entryData();
+      console.log(ed);
+      return Mutations.createDayEntry(props.token, ed);
     },
     {
-      onSuccess: (entry) => {
-        queryClient.invalidateQueries(["calendar"]);
+      onSuccess: async (entry) => {
+        await queryClient.invalidateQueries(["calendar"]);
         toast.success("Entry created");
         setModalOpen(false);
         props.onOpenChange && props.onOpenChange(false);
@@ -181,18 +184,20 @@ export function EditEntryModal(props: EditEntryModalProps) {
       return Mutations.updateDayEntry(props.token, entryData());
     },
     {
-      onSuccess: (data) => {
+      onSuccess: async (data) => {
         if (data.success) {
           toast.success(`Updated ${dayjs(data.entry.date).format("Do MMM")}`);
-          queryClient.invalidateQueries(["calendar"]);
+          await queryClient.invalidateQueries(["calendar"]);
         } else {
           toast.error(`Entry not updated`);
         }
         setModalOpen(false);
+        props.onOpenChange && props.onOpenChange(false);
       },
       onError: (err) => {
         toast.error(`Entry not updated`);
         setModalOpen(false);
+        props.onOpenChange && props.onOpenChange(false);
       },
     }
   );
