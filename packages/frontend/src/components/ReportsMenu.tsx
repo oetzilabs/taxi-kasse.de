@@ -21,7 +21,7 @@ export function ReportsMenu(props: ReportsMenuProps) {
   const queryClient = useQueryClient();
 
   const reportsList = createQuery(
-    () => ["reports"],
+    () => ["reports", props.range.from, props.range.to],
     () => {
       const token = user().token;
       if (!token) {

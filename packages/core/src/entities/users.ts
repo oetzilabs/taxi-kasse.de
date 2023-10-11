@@ -427,6 +427,11 @@ export const getDayEntriesByRange = z
           ? { from: dayjs().startOf("year").toDate(), to: dayjs().endOf("year").toDate() }
           : undefined
         : { from: input.from, to: input.to };
+    const user = await db.query.users.findFirst({
+      where: (users, operations) => operations.eq(users.id, id),
+    });
+    if (!user) throw new Error("User not found");
+    if (!user.companyId) throw new Error("User has no company");
 
     const cData = await db.query.users.findFirst({
       where: (users, operations) => operations.eq(users.id, id),
@@ -434,6 +439,7 @@ export const getDayEntriesByRange = z
         day_entries: {
           where: (day_entries, operations) =>
             operations.and(
+              operations.eq(day_entries.companyId, user.companyId!),
               ...(range
                 ? [operations.gte(day_entries.date, range.from), operations.lte(day_entries.date, range.to)]
                 : []),

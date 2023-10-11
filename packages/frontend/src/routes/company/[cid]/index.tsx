@@ -365,7 +365,10 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                   "dark:hover:bg-neutral-900 dark:active:bg-neutral-800"
                 )}
                 onClick={async () => {
-                  await queryClient.invalidateQueries(["calendar"]);
+                  await Promise.all([
+                    queryClient.invalidateQueries(["calendar"]),
+                    queryClient.invalidateQueries(["reports"]),
+                  ]);
                 }}
                 aria-label="refresh"
                 disabled={calendar.isFetching}

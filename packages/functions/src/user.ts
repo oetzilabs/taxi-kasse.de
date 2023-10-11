@@ -826,7 +826,16 @@ export const createReport = ApiHandler(async (x) => {
   const s3client = new S3Client({
     region: "eu-central-1",
   });
-  const url = `reports/${user_.id}/${dayjs().format("YYYY-MM-DD")}-${reportnumber}.pdf`;
+  const _date =
+    typeof dateRange === "object"
+      ? dateRange.from
+      : dateRange === "month"
+      ? dayjs().startOf("month").toDate()
+      : dayjs().startOf("year").toDate();
+  const filename = `${dayjs(_date).format(
+    dateRange === "month" ? "YYYY-MM" : dateRange === "year" ? "YYYY" : "YYYY-MM-DD"
+  )}-${reportnumber}.pdf`;
+  const url = `reports/${user_.id}/${filename}`;
   const command = new PutObjectCommand({
     Bucket: Bucket["taxikassede-bucket"].bucketName,
     Key: url,
@@ -842,7 +851,7 @@ export const createReport = ApiHandler(async (x) => {
       success: true,
       error: null,
       report: {
-        name: `${user_.name}-${dayjs().format("YYYY-MM-DD")}.pdf`,
+        name: `${user_.name}-${filename}`,
         url: url,
       },
     } as UserCreateReportResult),
@@ -946,7 +955,14 @@ export const listReports = ApiHandler(async (x) => {
       reports:
         (result.Contents ?? ([] as NonNullable<(typeof result)["Contents"]>))
           .filter((c) => typeof c.Key === "string" && c.Key.endsWith(".pdf"))
-          .filter((c) => dayjs(c.LastModified ?? "").isSame(_date, "month"))
+          .filter((c) => {
+            const filename = c.Key ?? "";
+            const parts = filename.split("/");
+            const date_with_ref = parts[parts.length - 1].split(".pdf")[0];
+            // const remove the ref number `<date>-4digit-8digit.pdf`
+            const date = date_with_ref.split("-").slice(0, -2).join("-");
+            return dayjs(date).isSame(_date, "month");
+          })
           .map((x) => ({
             name: getFileName(x.Key ?? ""),
             key: x.Key!,
