@@ -111,30 +111,32 @@ export const UserMenu = () => {
           </A>
           <Switch fallback={<div class="animate-pulse w-24 h-4 bg-neutral-100 dark:bg-neutral-800 rounded-md"></div>}>
             <Match when={AuthStore().isAuthenticated || true}>
-              <A
-                href="/dashboard"
-                class="px-2 py-1 rounded-md border border-neutral-300 dark:border-neutral-800 text-neutral-800 dark:text-neutral-400 justify-start items-center gap-1 flex select-none"
-              >
-                <div class="relative">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <rect width="7" height="9" x="3" y="3" rx="1" />
-                    <rect width="7" height="5" x="14" y="3" rx="1" />
-                    <rect width="7" height="9" x="14" y="12" rx="1" />
-                    <rect width="7" height="5" x="3" y="16" rx="1" />
-                  </svg>
-                </div>
-                <div class="text-center text-xs font-medium items-center flex">Dashboard</div>
-              </A>
+              <>
+                <A
+                  href="/dashboard"
+                  class="px-2 py-1 rounded-md border border-neutral-300 dark:border-neutral-800 text-neutral-800 dark:text-neutral-400 justify-start items-center gap-1 flex select-none"
+                >
+                  <div class="relative">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect width="7" height="9" x="3" y="3" rx="1" />
+                      <rect width="7" height="5" x="14" y="3" rx="1" />
+                      <rect width="7" height="9" x="14" y="12" rx="1" />
+                      <rect width="7" height="5" x="3" y="16" rx="1" />
+                    </svg>
+                  </div>
+                  <div class="text-center text-xs font-medium items-center flex">Dashboard</div>
+                </A>
+              </>
             </Match>
           </Switch>
         </div>

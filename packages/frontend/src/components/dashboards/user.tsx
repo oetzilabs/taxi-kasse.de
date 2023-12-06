@@ -60,55 +60,51 @@ export function UserDashboard(props: UserDashboardProps) {
         stats.data
       }
       fallback={
-        <div class="flex flex-col gap-4">
-          <div class="flex flex-col gap-4">
-            <div class="relative flex flex-col">
+        <div class="relative flex flex-col">
+          <Switch
+            fallback={
               <Switch
                 fallback={
-                  <Switch
-                    fallback={
-                      <div class="flex flex-col gap-4">
-                        <div class="flex flex-col gap-4">
-                          <div class="relative flex flex-col">
-                            <div class="flex flex-col gap-2">
-                              <div class="text-2xl font-bold">Error</div>
-                              <div class="text-xl font-bold">Something went wrong</div>
-                              <div class="text-sm">An unexpected error occurred, please retry in a few minutes</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    }
-                  >
-                    <Match when={stats.isError}>
-                      <div class="flex flex-col gap-4">
-                        <div class="flex flex-col gap-4">
-                          <div class="relative flex flex-col">
-                            <div class="flex flex-col gap-2">
-                              <div class="text-2xl font-bold">Error</div>
-                              <div class="text-xl font-bold">Something went wrong</div>
-                              <div class="text-sm">We were unable to load the statistics</div>
-                              <div class="text-xs">
-                                <pre>{stats.error?.message}</pre>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Match>
-                  </Switch>
-                }
-              >
-                <Match when={stats.isLoading}>
                   <div class="flex flex-col gap-4">
                     <div class="flex flex-col gap-4">
-                      <div class="relative flex flex-col"></div>
+                      <div class="relative flex flex-col">
+                        <div class="flex flex-col gap-2">
+                          <div class="text-2xl font-bold">Error</div>
+                          <div class="text-xl font-bold">Something went wrong</div>
+                          <div class="text-sm">An unexpected error occurred, please retry in a few minutes</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+              >
+                <Match when={stats.isError}>
+                  <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-4">
+                      <div class="relative flex flex-col">
+                        <div class="flex flex-col gap-2">
+                          <div class="text-2xl font-bold">Error</div>
+                          <div class="text-xl font-bold">Something went wrong</div>
+                          <div class="text-sm">We were unable to load the statistics</div>
+                          <div class="text-xs">
+                            <pre>{stats.error?.message}</pre>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </Match>
               </Switch>
-            </div>
-          </div>
+            }
+          >
+            <Match when={stats.isLoading}>
+              <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-4">
+                  <div class="relative flex flex-col"></div>
+                </div>
+              </div>
+            </Match>
+          </Switch>
         </div>
       }
     >
