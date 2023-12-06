@@ -130,7 +130,7 @@ export default function Root() {
                             <div class="text-center text-xs font-medium select-none">
                               <Switch fallback="Updated">
                                 <Match when={queryClient.isFetching()}>Updating...</Match>
-                                <Match when={queryClient.isFetching()}>Updating...</Match>
+                                <Match when={queryClient.isMutating()}>Syncing...</Match>
                                 <Match when={isRouting()}>Routing...</Match>
                               </Switch>
                             </div>
