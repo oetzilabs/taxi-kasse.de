@@ -4,6 +4,6 @@ export default {
   out: "./src/drizzle/migrations",
   schema: "./src/drizzle/sql/schema.ts",
   verbose: true,
-  driver: "pg",
+  driver: "turso",
   strict: true,
 } satisfies Config;

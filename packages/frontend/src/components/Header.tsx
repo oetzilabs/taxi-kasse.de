@@ -1,32 +1,44 @@
-import { JSX, Setter, createContext, createSignal, useContext, Accessor, createEffect } from "solid-js";
+import { Accessor, JSX, Setter, createContext, createEffect, createSignal, useContext } from "solid-js";
 import { cn } from "../utils/cn";
+import { UserMenu } from "./UserMenu";
 
-export const HeaderContext = createContext({
+const HeaderContext = createContext({
   visible: () => true,
   setVisible: () => {},
+  height: () => 0,
 } as {
   visible: Accessor<boolean>;
   setVisible: Setter<boolean>;
+  height: Accessor<number>;
 });
 
-export const Header = (props: { children: JSX.Element; header: JSX.Element }) => {
+export const Header = (props: { children: JSX.Element }) => {
   const [visible, setVisible] = createSignal(true);
+  const [height, setHeight] = createSignal(0);
+
+  createEffect(() => {
+    setHeight(document.querySelector("nav")?.clientHeight ?? 0);
+  });
+
   return (
     <HeaderContext.Provider
       value={{
         visible,
         setVisible,
+        height,
       }}
     >
       <nav
         class={cn(
-          "flex items-center justify-between flex-wrap bg-white dark:bg-black border-b border-black/5 dark:border-white/5 fixed w-screen top-0 z-50",
+          "flex items-center justify-between flex-wrap bg-white dark:bg-black border-b border-neutral-200 dark:border-neutral-800 w-full",
           {
             "hidden !h-0": !visible(),
           }
         )}
       >
-        {props.header}
+        <div class="flex items-center justify-between flex-wrap w-full mx-auto p-8">
+          <UserMenu />
+        </div>
       </nav>
       {props.children}
     </HeaderContext.Provider>

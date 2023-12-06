@@ -1,19 +1,13 @@
-import { JSX } from "solid-js";
 import { FileRoutes, Routes } from "solid-start";
-import { useHeader } from "./Header";
-import { cn } from "../utils/cn";
 
 export default function Content() {
-  const { visible } = useHeader();
   return (
-    <div
-      class={cn("pt-[49px] h-[100svh]", {
-        "pt-0": !visible(),
-      })}
-    >
-      <Routes>
-        <FileRoutes />
-      </Routes>
+    <div class="inline-flex flex-col flex-1 w-full items-stretch ">
+      <div class="w-full flex-col flex-1 gap-2.5 inline-flex overflow-auto">
+        <Routes>
+          <FileRoutes />
+        </Routes>
+      </div>
     </div>
   );
 }
