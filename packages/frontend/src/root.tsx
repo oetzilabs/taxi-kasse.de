@@ -1,7 +1,7 @@
 // @refresh reload
 import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
 import { Match, Suspense, Switch, createEffect, createSignal, onCleanup } from "solid-js";
-import { Body, ErrorBoundary, Head, Html, Meta, Scripts, Title } from "solid-start";
+import { Body, ErrorBoundary, Head, Html, Meta, Scripts, Title, useIsRouting } from "solid-start";
 import { Toaster } from "solid-toast";
 import { AuthP } from "./components/Auth";
 import Content from "./components/Content";
@@ -46,6 +46,7 @@ export default function Root() {
   });
 
   const buildVersion = "0.0.1";
+  const isRouting = useIsRouting();
 
   return (
     <Html lang="en" classList={{ dark: colorMode() === "dark" }}>
@@ -109,7 +110,7 @@ export default function Root() {
                                 </svg>
                               }
                             >
-                              <Match when={queryClient.isFetching() || queryClient.isMutating()}>
+                              <Match when={queryClient.isFetching() || queryClient.isMutating() || isRouting()}>
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="14"
@@ -129,7 +130,8 @@ export default function Root() {
                             <div class="text-center text-xs font-medium select-none">
                               <Switch fallback="Updated">
                                 <Match when={queryClient.isFetching()}>Updating...</Match>
-                                <Match when={queryClient.isMutating()}>Syncing...</Match>
+                                <Match when={queryClient.isFetching()}>Updating...</Match>
+                                <Match when={isRouting()}>Routing...</Match>
                               </Switch>
                             </div>
                           </div>
