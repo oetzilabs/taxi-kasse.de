@@ -9,7 +9,7 @@ export default function Dashboard() {
     <Show
       when={!user().isLoading && user().isAuthenticated && user()}
       fallback={
-        <div class="flex flex-col gap-4 items-center justify-center p-0 md:p-4 h-full">
+        <div class="flex flex-col gap-4 items-center p-0 md:p-4 md:py-10 h-full">
           <div class="w-full md:w-auto h-full md:h-auto relative flex flex-col gap-6 items-center justify-center bg-neutral-50/50 p-16 px-28 dark:bg-black border-0 md:border border-neutral-200 dark:border-neutral-800 rounded-md md:shadow-sm shadow-none select-none">
             <div class="text-neutral-300 dark:text-neutral-800">
               <svg
@@ -43,7 +43,7 @@ export default function Dashboard() {
               <A href="/" class="text-sm bg-neutral-200 dark:bg-neutral-900 px-4 py-2 rounded-md shadow-sm">
                 Go Home
               </A>
-              <A href="/login" class="text-sm text-white bg-blue-500 px-4 py-2 rounded-md shadow-sm">
+              <A href="/login" class="text-sm text-white bg-blue-900 px-4 py-2 rounded-md shadow-sm">
                 Sign in
               </A>
             </div>

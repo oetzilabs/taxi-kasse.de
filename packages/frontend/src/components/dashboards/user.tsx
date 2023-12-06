@@ -41,6 +41,7 @@ export function UserDashboard(props: UserDashboardProps) {
       return props.user.companyId !== null;
     },
   }));
+
   const company = createQuery(() => ({
     queryKey: ["company"],
     queryFn: () => Queries.company(props.token),
