@@ -89,7 +89,7 @@ export const UserMenu = () => {
         <div class="w-full justify-start items-center gap-2 inline-flex">
           <A
             href="/"
-            class="px-2 py-1 rounded-md border border-neutral-300 dark:border-neutral-800 text-neutral-800 dark:text-neutral-400 justify-start items-center gap-1 flex"
+            class="px-2 py-1 rounded-md border border-neutral-300 dark:border-neutral-800 text-neutral-800 dark:text-neutral-400 justify-start items-center gap-1 flex select-none"
           >
             <div class="relative">
               <svg
@@ -113,7 +113,7 @@ export const UserMenu = () => {
             <Match when={AuthStore().isAuthenticated || true}>
               <A
                 href="/dashboard"
-                class="px-2 py-1 rounded-md border border-neutral-300 dark:border-neutral-800 text-neutral-800 dark:text-neutral-400 justify-start items-center gap-1 flex"
+                class="px-2 py-1 rounded-md border border-neutral-300 dark:border-neutral-800 text-neutral-800 dark:text-neutral-400 justify-start items-center gap-1 flex select-none"
               >
                 <div class="relative">
                   <svg
@@ -168,7 +168,7 @@ export const UserMenu = () => {
                         import.meta.env.VITE_AUTH_URL
                       }/authorize?provider=google&response_type=code&client_id=google&redirect_uri=http://localhost:3000/api/auth/callback`}
                       rel="noreferrer"
-                      class="py-1 text-xs px-2 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-800 w-max flex flex-row items-center justify-start gap-2 border border-transparent dark:border-neutral-800"
+                      class="py-1 text-xs px-2 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-800 w-max flex flex-row items-center justify-start gap-2 border border-transparent dark:border-neutral-800 select-none"
                     >
                       Sign in
                     </A>
@@ -288,7 +288,7 @@ export const UserMenu = () => {
       <Switch>
         <Match when={!breadCrumbs.isLoading() && breadCrumbs.value[0]().length > 0 && breadCrumbs.value[0]()}>
           <div class="justify-start items-start gap-1 inline-flex text-neutral-700">
-            <Breadcrumbs.Root class="w-auto h-auto justify-start items-start gap-1 inline-flex text-xs">
+            <Breadcrumbs.Root class="w-auto h-auto justify-start items-start gap-1 inline-flex text-xs select-none">
               <For each={breadCrumbs.value[0]()}>
                 {(breadcrumb) => (
                   <>

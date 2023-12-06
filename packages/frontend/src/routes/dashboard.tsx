@@ -1,126 +1,7 @@
 import { A } from "@solidjs/router";
-import { createQuery, useQueryClient } from "@tanstack/solid-query";
-import dayjs from "dayjs";
-import { Match, Show, Switch, createSignal } from "solid-js";
+import { Show } from "solid-js";
 import { useAuth } from "../components/Auth";
-import { Queries } from "../utils/api/queries";
-
-type StatisticsProps = {
-  value: number;
-  label: string;
-  description: string;
-  unit: string;
-};
-
-const Statistics = (props: StatisticsProps) => {
-  return (
-    <div class="flex flex-col bg-neutral-100 p-4 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-sm gap-2">
-      <div class="text-2xl font-bold">{props.value}</div>
-      <div class="text-xl font-bold">{props.label}</div>
-      <div class="text-sm">{props.description}</div>
-      <div class="text-sm">{props.unit}</div>
-    </div>
-  );
-};
-
-type UserDashboardProps = {
-  user: NonNullable<ReturnType<ReturnType<typeof useAuth>[0]>["user"]>;
-  token: string;
-};
-
-function UserDashboard(props: UserDashboardProps) {
-  const [range, setRange] = createSignal({
-    from: dayjs().startOf("week").toDate(),
-    to: dayjs().endOf("week").toDate(),
-  });
-  const queryClient = useQueryClient();
-
-  const stats = createQuery(() => ({
-    queryKey: ["stats", range()],
-    queryFn: () => Queries.statistics(props.token, range()),
-    get enabled() {
-      return props.user.companyId !== null;
-    },
-  }));
-  const company = createQuery(() => ({
-    queryKey: ["company"],
-    queryFn: () => Queries.company(props.token),
-    get enabled() {
-      return props.user.companyId !== null;
-    },
-  }));
-
-  return (
-    <Show
-      when={
-        !company.isLoading &&
-        company.isSuccess &&
-        company.data.company &&
-        !stats.isLoading &&
-        stats.isSuccess &&
-        stats.data
-      }
-      fallback={
-        <div class="flex flex-col gap-4">
-          <div class="flex flex-col gap-4">
-            <div class="relative flex flex-col">
-              <Switch
-                fallback={
-                  <Switch
-                    fallback={
-                      <div class="flex flex-col gap-4">
-                        <div class="flex flex-col gap-4">
-                          <div class="relative flex flex-col">
-                            <div class="flex flex-col gap-2">
-                              <div class="text-2xl font-bold">Error</div>
-                              <div class="text-xl font-bold">Something went wrong</div>
-                              <div class="text-sm">An unexpected error occurred, please retry in a few minutes</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    }
-                  >
-                    <Match when={stats.isError}>
-                      <div class="flex flex-col gap-4">
-                        <div class="flex flex-col gap-4">
-                          <div class="relative flex flex-col">
-                            <div class="flex flex-col gap-2">
-                              <div class="text-2xl font-bold">Error</div>
-                              <div class="text-xl font-bold">Something went wrong</div>
-                              <div class="text-sm">We were unable to load the statistics</div>
-                              <div class="text-xs">
-                                <pre>{stats.error?.message}</pre>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Match>
-                  </Switch>
-                }
-              >
-                <Match when={stats.isLoading}>
-                  <div class="flex flex-col gap-4">
-                    <div class="flex flex-col gap-4">
-                      <div class="relative flex flex-col"></div>
-                    </div>
-                  </div>
-                </Match>
-              </Switch>
-            </div>
-          </div>
-        </div>
-      }
-    >
-      {(s) => (
-        <>
-          <pre class="text-xs">{JSON.stringify(s(), null, 2)}</pre>
-        </>
-      )}
-    </Show>
-  );
-}
+import { UserDashboard } from "../components/dashboards/user";
 
 export default function Dashboard() {
   const [user] = useAuth();
@@ -128,8 +9,8 @@ export default function Dashboard() {
     <Show
       when={!user().isLoading && user().isAuthenticated && user()}
       fallback={
-        <div class="flex flex-col gap-4 items-center justify-center p-4 h-full">
-          <div class="relative flex flex-col gap-6 items-center justify-center bg-neutral-50/50 p-16 px-28 dark:bg-transparent border border-neutral-200 dark:border-neutral-950 rounded-md shadow-sm">
+        <div class="flex flex-col gap-4 items-center justify-center p-0 md:p-4 h-full">
+          <div class="w-full md:w-auto h-full md:h-auto relative flex flex-col gap-6 items-center justify-center bg-neutral-50/50 p-16 px-28 dark:bg-black border-0 md:border border-neutral-200 dark:border-neutral-800 rounded-md md:shadow-sm shadow-none select-none">
             <div class="text-neutral-300 dark:text-neutral-800">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -154,11 +35,14 @@ export default function Dashboard() {
               </svg>
             </div>
             <div class="text-xl font-bold">Seems like you're not logged in</div>
-            <div class="flex flex-col gap-3 items-center">
+            <div class="flex flex-col gap-4 items-center">
               <div class="text-sm font-medium">You need to be logged in to access this page.</div>
-              <div class="text-sm">If you don't have an account, you can create one for free.</div>
+              <div class="text-sm opacity-30">If you don't have an account, you can create one for free.</div>
             </div>
-            <div class="text-md font-medium pt-4">
+            <div class="text-md font-medium pt-4 gap-4 flex flex-row">
+              <A href="/" class="text-sm bg-neutral-200 dark:bg-neutral-900 px-4 py-2 rounded-md shadow-sm">
+                Go Home
+              </A>
               <A href="/login" class="text-sm text-white bg-blue-500 px-4 py-2 rounded-md shadow-sm">
                 Sign in
               </A>

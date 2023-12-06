@@ -82,7 +82,7 @@ export default function Root() {
                               <path d="M12 16v-4" />
                               <path d="M12 8h.01" />
                             </svg>
-                            <div class="text-center text-neutral-600 text-xs font-medium font-['Inter']">
+                            <div class="text-center text-neutral-600 text-xs font-medium select-none">
                               Build Version: {buildVersion}
                             </div>
                           </div>
@@ -126,7 +126,7 @@ export default function Root() {
                                 </svg>
                               </Match>
                             </Switch>
-                            <div class="text-center text-xs font-medium">
+                            <div class="text-center text-xs font-medium select-none">
                               <Switch fallback="Updated">
                                 <Match when={queryClient.isFetching()}>Updating...</Match>
                                 <Match when={queryClient.isMutating()}>Syncing...</Match>
