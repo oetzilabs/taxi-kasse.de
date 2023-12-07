@@ -42,7 +42,7 @@ export const BreadcrumbsP = () => {
       const _breadcrumbs = paths.map((p, i) => {
         return {
           label: p,
-          href: paths.slice(0, i + 1).join("/"),
+          href: `/${paths.slice(0, i + 1).join("/")}`,
         };
       });
       setBreadcrumbsStore(

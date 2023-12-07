@@ -1,6 +1,6 @@
 import { Breadcrumbs, DropdownMenu } from "@kobalte/core";
 import { A } from "@solidjs/router";
-import { For, Match, Suspense, Switch } from "solid-js";
+import { For, Match, Show, Suspense, Switch } from "solid-js";
 import { cn } from "../utils/cn";
 import { useAuth, useAuthUrl } from "./Auth";
 import { useBreadcrumbs } from "./Breadcrumbs";
@@ -154,11 +154,9 @@ export const UserMenu = () => {
                 {(user) => (
                   <DropdownMenu.Root placement="bottom-end">
                     <DropdownMenu.Trigger>
-                      <div class="flex w-max flex-row items-center gap-1">
-                        <div class="flex items-center text-sm gap-1 cursor-pointer">
-                          <img class="w-7 h-7 rounded-full" src={user().profile.image} alt={user().name} />
-                          <span class="text-sm">{user().name}</span>
-                        </div>
+                      <div class="flex w-max flex-row items-center gap-2 cursor-pointer">
+                        <img class="w-7 h-7 rounded-full" src={user().profile.image} alt={user().name} />
+                        <span class="text-sm">{user().name}</span>
                       </div>
                     </DropdownMenu.Trigger>
                     <DropdownMenu.Portal>
@@ -169,8 +167,8 @@ export const UserMenu = () => {
                             <A href="/profile" class="flex flex-row items-center justify-start gap-2 w-full h-full">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
+                                width="14"
+                                height="14"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
@@ -192,8 +190,8 @@ export const UserMenu = () => {
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
+                                width="14"
+                                height="14"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
@@ -217,8 +215,8 @@ export const UserMenu = () => {
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
+                              width="14"
+                              height="14"
                               viewBox="0 0 24 24"
                               fill="none"
                               stroke="currentColor"
@@ -247,12 +245,14 @@ export const UserMenu = () => {
           <div class="justify-start items-start gap-1 inline-flex text-neutral-700">
             <Breadcrumbs.Root class="w-auto h-auto justify-start items-start gap-1 inline-flex text-xs select-none">
               <For each={bcs.breadcrumbs}>
-                {(breadcrumb) => (
+                {(breadcrumb, index) => (
                   <>
-                    <Breadcrumbs.Link href={breadcrumb.href} class="font-bold">
+                    <Breadcrumbs.Link as={A} href={breadcrumb.href} class="font-bold">
                       {breadcrumb.label}
                     </Breadcrumbs.Link>
-                    <Breadcrumbs.Separator class="font-normal" />
+                    <Show when={index() !== bcs.breadcrumbs.length - 1 && index() !== 0}>
+                      <Breadcrumbs.Separator class="text-neutral-400 dark:text-neutral-600">/</Breadcrumbs.Separator>
+                    </Show>
                   </>
                 )}
               </For>
