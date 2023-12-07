@@ -17,6 +17,9 @@ export type UserSessionAuthenticated = Extract<UserSession, { type: "user" }>;
 
 export const handler = AuthHandler({
   callbacks: {
+    error: async (error) => {
+      return { body: JSON.stringify(error), statusCode: 500, headers: {} };
+    },
     auth: {
       async allowClient(clientID, redirect) {
         if (clientID === "google") return true;
@@ -80,8 +83,5 @@ export const handler = AuthHandler({
       clientID: Config.GOOGLE_CLIENT_ID,
       mode: "oidc",
     }),
-  },
-  onError: async (error) => {
-    return { body: JSON.stringify(error), statusCode: 500, headers: {} };
   },
 });

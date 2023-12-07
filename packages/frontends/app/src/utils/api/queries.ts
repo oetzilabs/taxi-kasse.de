@@ -2,8 +2,8 @@ import { Company } from "@taxi-kassede/core/entities/company";
 import { User } from "@taxi-kassede/core/entities/users";
 import dayjs from "dayjs";
 import { z } from "zod";
-import { SessionResult } from "../../../../functions/src/session";
-import { CalendarResult, UserGetReportsListResult } from "../../../../functions/src/user";
+import { SessionResult } from "../../../../../functions/src/session";
+import { CalendarResult, UserGetReportsListResult } from "../../../../../functions/src/user";
 
 export * as Queries from "./queries";
 
@@ -42,6 +42,7 @@ export const calendarQueryZod = z.function(
     }),
   ])
 );
+
 export const calendar = calendarQueryZod.implement(async (token, range) =>
   fetch(
     `${API_BASE}/user/calendar?from=${encodeURIComponent(dayjs(range.from).toISOString())}&to=${encodeURIComponent(

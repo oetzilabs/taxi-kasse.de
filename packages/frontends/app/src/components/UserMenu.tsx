@@ -1,74 +1,16 @@
 import { Breadcrumbs, DropdownMenu } from "@kobalte/core";
 import { A } from "@solidjs/router";
-import { createQuery } from "@tanstack/solid-query";
-import {
-  Accessor,
-  For,
-  Match,
-  Setter,
-  Suspense,
-  Switch,
-  createContext,
-  createEffect,
-  createSignal,
-  onCleanup,
-  useContext,
-} from "solid-js";
-import { parseCookie } from "solid-start";
-import { Queries } from "../utils/api/queries";
+import { For, Match, Suspense, Switch } from "solid-js";
 import { cn } from "../utils/cn";
-import { useAuth } from "./Auth";
+import { useAuth, useAuthUrl } from "./Auth";
 import { useBreadcrumbs } from "./Breadcrumbs";
 import { useTitle } from "./Title";
 
 export const UserMenu = () => {
-  const [AuthStore, setAuthStore] = useAuth();
-  const title = useTitle();
+  const [auth, setAuthStore] = useAuth();
+  const ts = useTitle();
   const itemClass =
     "flex flex-row gap-2.5 p-2 py-1.5 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-900 active:bg-neutral-100 dark:active:bg-neutral-800 font-medium items-center justify-start select-none min-w-[150px]";
-
-  const sessionQuery = createQuery(() => ({
-    queryKey: ["session"],
-    queryFn: () => {
-      const _as = AuthStore();
-      const token = _as.token;
-      if (!token) return Promise.reject({ success: false, error: { message: "No token found", code: "NO_TOKEN" } });
-      return Queries.session(token);
-    },
-    get enabled() {
-      const _as = AuthStore();
-      return _as.token !== null && false;
-    },
-    refetchInterval: 1000 * 60 * 5,
-  }));
-
-  createEffect(() => {
-    if (!sessionQuery.isSuccess) return;
-    const isLoading = sessionQuery.isLoading;
-    const isAuthenticated = sessionQuery.data?.success && sessionQuery.data?.user ? true : false ?? false;
-    let user = null;
-    switch (sessionQuery.data?.success ?? false) {
-      case true:
-        // @ts-ignore
-        user = sessionQuery.data?.user;
-        break;
-      case false:
-        user = null;
-        break;
-      default:
-        user = null;
-        break;
-    }
-    const cookie = parseCookie(document.cookie);
-    const sessionToken = cookie["session"];
-
-    setAuthStore({
-      isLoading,
-      isAuthenticated,
-      token: sessionToken,
-      user,
-    });
-  });
 
   const signOut = () => {
     // remove cookie
@@ -81,7 +23,8 @@ export const UserMenu = () => {
     });
   };
 
-  const breadCrumbs = useBreadcrumbs();
+  const authUrl = useAuthUrl();
+  const bcs = useBreadcrumbs();
 
   return (
     <div class="w-full h-auto flex-col justify-start items-start gap-2 inline-flex">
@@ -110,7 +53,7 @@ export const UserMenu = () => {
             <div class="text-center text-xs font-medium items-center flex">Home</div>
           </A>
           <Switch fallback={<div class="animate-pulse w-24 h-4 bg-neutral-100 dark:bg-neutral-800 rounded-md"></div>}>
-            <Match when={AuthStore().isAuthenticated || true}>
+            <Match when={auth.isAuthenticated}>
               <>
                 <A
                   href="/dashboard"
@@ -165,18 +108,30 @@ export const UserMenu = () => {
               fallback={
                 <Switch
                   fallback={
-                    <A
-                      href={`${
-                        import.meta.env.VITE_AUTH_URL
-                      }/authorize?provider=google&response_type=code&client_id=google&redirect_uri=http://localhost:3000/api/auth/callback`}
-                      rel="noreferrer"
-                      class="py-1 text-xs px-2 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-800 w-max flex flex-row items-center justify-start gap-2 border border-transparent dark:border-neutral-800 select-none"
-                    >
-                      Sign in
+                    <A href={`${import.meta.env.VITE_AUTH_URL}/authorize?${authUrl.toString()}`} rel="noreferrer">
+                      <div class="py-1 px-2 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-800 w-max flex flex-row items-center justify-start gap-2 border border-neutral-200 dark:border-neutral-800 select-none shadow-sm">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="lucide lucide-log-in"
+                        >
+                          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                          <polyline points="10 17 15 12 10 7" />
+                          <line x1="15" x2="3" y1="12" y2="12" />
+                        </svg>
+                        <span class="text-xs font-medium">Sign in</span>
+                      </div>
                     </A>
                   }
                 >
-                  <Match when={sessionQuery.isFetching && sessionQuery.isLoading}>
+                  <Match when={auth.isLoading}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
@@ -195,7 +150,7 @@ export const UserMenu = () => {
                 </Switch>
               }
             >
-              <Match when={AuthStore().isAuthenticated && AuthStore().user}>
+              <Match when={auth.isAuthenticated && auth.user}>
                 {(user) => (
                   <DropdownMenu.Root placement="bottom-end">
                     <DropdownMenu.Trigger>
@@ -207,7 +162,7 @@ export const UserMenu = () => {
                       </div>
                     </DropdownMenu.Trigger>
                     <DropdownMenu.Portal>
-                      <DropdownMenu.Content class="z-50 self-end mt-3 w-fit bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800 shadow-md overflow-clip">
+                      <DropdownMenu.Content class="text-sm z-50 self-end mt-3 w-fit bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800 shadow-md overflow-clip">
                         <DropdownMenu.Group>
                           <DropdownMenu.GroupLabel class="font-semibold p-2 select-none">User</DropdownMenu.GroupLabel>
                           <DropdownMenu.Item class={cn(itemClass, "select-none")}>
@@ -288,10 +243,10 @@ export const UserMenu = () => {
         </div>
       </div>
       <Switch>
-        <Match when={!breadCrumbs.isLoading() && breadCrumbs.value[0]().length > 0 && breadCrumbs.value[0]()}>
+        <Match when={!bcs.isLoading && bcs.breadcrumbs.length > 0}>
           <div class="justify-start items-start gap-1 inline-flex text-neutral-700">
             <Breadcrumbs.Root class="w-auto h-auto justify-start items-start gap-1 inline-flex text-xs select-none">
-              <For each={breadCrumbs.value[0]()}>
+              <For each={bcs.breadcrumbs}>
                 {(breadcrumb) => (
                   <>
                     <Breadcrumbs.Link href={breadcrumb.href} class="font-bold">
@@ -304,16 +259,14 @@ export const UserMenu = () => {
             </Breadcrumbs.Root>
           </div>
         </Match>
-        <Match when={breadCrumbs.isLoading()}>
+        <Match when={bcs.isLoading}>
           <div class="animate-pulse w-24 h-4 bg-neutral-100 dark:bg-neutral-800 rounded-md"></div>
         </Match>
       </Switch>
       <div class="justify-start items-start inline-flex">
         <Switch>
-          <Match when={!title.isLoading() && title.value[0]()}>
-            {(title) => <div class="text-2xl font-medium">{title()}</div>}
-          </Match>
-          <Match when={title.isLoading()}>
+          <Match when={!ts.isLoading && ts.value}>{(title) => <div class="text-2xl font-medium">{title()}</div>}</Match>
+          <Match when={ts.isLoading}>
             <div class="animate-pulse w-36 h-8 bg-neutral-100 dark:bg-neutral-800 rounded-lg"></div>
           </Match>
         </Switch>

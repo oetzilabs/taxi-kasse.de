@@ -6,7 +6,7 @@ import {
   UpdateDayEntryResult,
   UserCreateReportResult,
   UserDownloadFileSignedUrl,
-} from "../../../../functions/src/user";
+} from "../../../../../functions/src/user";
 
 export * as Mutations from "./mutations";
 

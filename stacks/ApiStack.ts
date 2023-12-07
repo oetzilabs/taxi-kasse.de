@@ -1,8 +1,11 @@
 import { Api, Config, StackContext, use } from "sst/constructs";
 import { Auth } from "sst/constructs/future";
 import { StorageStack } from "./StorageStack";
+import { DNSStack } from "./DNSStack";
 
 export function ApiStack({ stack }: StackContext) {
+  const domain = use(DNSStack);
+
   const secrets = Config.Secret.create(
     stack,
     "GOOGLE_CLIENT_ID",
@@ -18,9 +21,17 @@ export function ApiStack({ stack }: StackContext) {
       bind: [secrets.GOOGLE_CLIENT_ID, secrets.GOOGLE_CLIENT_SECRET, secrets.DATABASE_URL, secrets.DATABASE_AUTH_TOKEN],
       handler: "packages/functions/src/auth.handler",
     },
+    customDomain: {
+      domainName: "auth." + domain.domain,
+      hostedZone: domain.zone.zoneName,
+    },
   });
 
   const api = new Api(stack, "api", {
+    customDomain: {
+      domainName: "api." + domain.domain,
+      hostedZone: domain.zone.zoneName,
+    },
     defaults: {
       function: {
         // handler: "packages/functions/src/migrator.handler",
@@ -179,7 +190,7 @@ export function ApiStack({ stack }: StackContext) {
   });
 
   new Config.Parameter(stack, "APP_URL", {
-    value: api.url,
+    value: api.customDomainUrl || api.url,
   });
 
   new Config.Parameter(stack, "AUTH_URL", {
@@ -187,7 +198,7 @@ export function ApiStack({ stack }: StackContext) {
   });
 
   stack.addOutputs({
-    ApiEndpoint: api.url,
+    ApiEndpoint: api.customDomainUrl || api.url,
     AuthEndpoint: auth.url,
   });
 
