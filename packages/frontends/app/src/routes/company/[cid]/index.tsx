@@ -41,22 +41,20 @@ function CalendarWrapper(props: CalendarWrapperProps) {
     idleTimeout: 25_000,
   });
 
-  const calendar = createQuery(
-    () => ["calendar", props.user.token, range().from.toISOString(), range().to.toISOString()],
-    () => {
-      return Queries.calendar(props.user.token, range());
+  const calendar = createQuery(() => ({
+    queryKey: ["calendar", props.user.token, range().from.toISOString(), range().to.toISOString()],
+    queryFn: () => {
+      return Queries.Users.Calendar.get(props.user.token, range());
     },
-    {
-      get enabled() {
-        const en = !modalOpen() && !isIdle();
-        console.log("enabled", en);
-        return en;
-      },
-      refetchInterval: 10_000,
-      keepPreviousData: true,
-      refetchOnWindowFocus: false,
-    }
-  );
+    get enabled() {
+      const en = !modalOpen() && !isIdle();
+      console.log("enabled", en);
+      return en;
+    },
+    refetchInterval: 10_000,
+    keepPreviousData: true,
+    refetchOnWindowFocus: false,
+  }));
 
   const calculatedTotal = createMemo(() => {
     let total = 0;
@@ -135,8 +133,12 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                           to: dayjs(md.to).subtract(1, "month").toDate(),
                         }));
                         await Promise.all([
-                          queryClient.invalidateQueries(["calendar"]),
-                          queryClient.invalidateQueries(["reports"]),
+                          queryClient.invalidateQueries({
+                            queryKey: ["calendar"],
+                          }),
+                          queryClient.invalidateQueries({
+                            queryKey: ["reports"],
+                          }),
                         ]);
                       }}
                       aria-label="Previous month"
@@ -170,8 +172,12 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                         }));
 
                         await Promise.all([
-                          queryClient.invalidateQueries(["calendar"]),
-                          queryClient.invalidateQueries(["reports"]),
+                          queryClient.invalidateQueries({
+                            queryKey: ["calendar"],
+                          }),
+                          queryClient.invalidateQueries({
+                            queryKey: ["reports"],
+                          }),
                         ]);
                       }}
                       disabled={calendar.isFetching}
@@ -399,8 +405,12 @@ function CalendarWrapper(props: CalendarWrapperProps) {
                 )}
                 onClick={async () => {
                   await Promise.all([
-                    queryClient.invalidateQueries(["calendar"]),
-                    queryClient.invalidateQueries(["reports"]),
+                    queryClient.invalidateQueries({
+                      queryKey: ["calendar"],
+                    }),
+                    queryClient.invalidateQueries({
+                      queryKey: ["reports"],
+                    }),
                   ]);
                 }}
                 aria-label="refresh"
@@ -437,7 +447,7 @@ export default function CompanyPage() {
   // const { company_name } = useParams();
   const [user] = useAuth();
   return (
-    <Show when={user() && user()}>
+    <Show when={user && user}>
       {(u) => (
         <Show when={u().token && u().token}>
           {(t) => (

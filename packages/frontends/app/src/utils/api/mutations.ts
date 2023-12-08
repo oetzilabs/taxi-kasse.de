@@ -1,12 +1,7 @@
 import { Company } from "@taxi-kassede/core/entities/company";
 import { User } from "@taxi-kassede/core/entities/users";
 import { z } from "zod";
-import {
-  CreateDayEntryResult,
-  UpdateDayEntryResult,
-  UserCreateReportResult,
-  UserDownloadFileSignedUrl,
-} from "../../../../../functions/src/user";
+import { UserCreateReportResult } from "../../../../../functions/src/user";
 
 export * as Mutations from "./mutations";
 
@@ -55,7 +50,7 @@ export const createDayEntry = createDayEntryZod.implement(async (token, input) =
       "Content-Type": "application/json",
     },
     body: JSON.stringify(input),
-  }).then((x) => x.json() as Promise<CreateDayEntryResult>)
+  }).then((x) => x.json() as ReturnType<typeof User.createDayEntry>)
 );
 
 export const updateDayEntryZod = z.function(
@@ -79,7 +74,7 @@ export const updateDayEntry = updateDayEntryZod.implement(async (token, input) =
       "Content-Type": "application/json",
     },
     body: JSON.stringify(input),
-  }).then((x) => x.json() as Promise<UpdateDayEntryResult>)
+  }).then((x) => x.json() as ReturnType<typeof User.updateDayEntry>)
 );
 
 export const deleteDayEntryZod = z.function(
@@ -92,14 +87,13 @@ export const deleteDayEntryZod = z.function(
 );
 
 export const deleteDayEntry = deleteDayEntryZod.implement(async (token, input) =>
-  fetch(`${API_BASE}/user/day_entry/delete`, {
-    method: "POST",
+  fetch(`${API_BASE}/user/day_entry/${input.id}`, {
+    method: "DELETE",
     headers: {
       authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(input),
-  }).then((x) => x.json() as Promise<UpdateDayEntryResult>)
+  }).then((x) => x.json() as ReturnType<typeof User.deleteDayEntry>)
 );
 
 export const createReportZod = z.function(
@@ -136,12 +130,7 @@ export const downloadReport = downloadReportZod.implement(async (token, key) =>
     },
     body: JSON.stringify({ key }),
   })
-    .then((x) => x.json() as Promise<UserDownloadFileSignedUrl>)
-    .then((x) => {
-      const success = x.success;
-      if (!success && x.error) throw new Error(x.error);
-      return x.url!;
-    })
+    .then((x) => x.text())
     .then((x) => fetch(x))
     .then((x) => x.blob())
     .then((x) => new File([x], "report.pdf", { type: "application/pdf" }))

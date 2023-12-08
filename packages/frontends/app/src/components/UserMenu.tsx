@@ -250,8 +250,8 @@ export const UserMenu = () => {
                     <Breadcrumbs.Link as={A} href={breadcrumb.href} class="font-bold">
                       {breadcrumb.label}
                     </Breadcrumbs.Link>
-                    <Show when={index() !== bcs.breadcrumbs.length - 1 && index() !== 0}>
-                      <Breadcrumbs.Separator class="text-neutral-400 dark:text-neutral-600">/</Breadcrumbs.Separator>
+                    <Show when={index() !== bcs.breadcrumbs.length - 1}>
+                      <Breadcrumbs.Separator class="text-neutral-400 dark:text-neutral-600" />
                     </Show>
                   </>
                 )}

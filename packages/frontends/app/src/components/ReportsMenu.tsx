@@ -20,27 +20,21 @@ export function ReportsMenu(props: ReportsMenuProps) {
   const [isVisible, setIsVisible] = createSignal(false);
   const queryClient = useQueryClient();
 
-  const reportsList = createQuery(
-    () => ["reports", props.range.from, props.range.to],
-    () => {
-      const token = user().token;
+  const reportsList = createQuery(() => ({
+    queryKey: ["reports", props.range.from, props.range.to],
+    queryFn: async () => {
+      const token = user.token;
       if (!token) {
-        return Promise.resolve({
-          success: false,
-          error: "No token",
-          reports: null,
-        } as Awaited<ReturnType<typeof Queries.listReports>>);
+        return Promise.reject("No token");
       }
 
-      return Queries.listReports(token, props.range.from);
+      return Queries.Users.listReports(token, props.range.from);
     },
-    {
-      refetchOnWindowFocus: false,
-    }
-  );
+    refetchOnWindowFocus: false,
+  }));
 
-  const createReport = createMutation(
-    async (
+  const createReport = createMutation(() => ({
+    mutationFn: async (
       range:
         | {
             from: Date;
@@ -50,26 +44,26 @@ export function ReportsMenu(props: ReportsMenuProps) {
         | "year"
         | "all"
     ) => {
-      let token = user().token;
+      let token = user.token;
       if (!token) {
-        throw new Error("No token");
+        return Promise.reject("No token");
       }
       return Mutations.createReport(token, range);
     },
-    {
-      onError: (err) => {
-        toast.error("Report not created");
-      },
-    }
-  );
+    onError: (err) => {
+      toast.error("Report not created");
+    },
+  }));
 
-  const downLoadFile = createMutation((key: string) => {
-    let token = user().token;
-    if (!token) {
-      throw new Error("No token");
-    }
-    return Mutations.downloadReport(token, key);
-  });
+  const downLoadFile = createMutation(() => ({
+    mutationFn: (key: string) => {
+      let token = user.token;
+      if (!token) {
+        throw new Error("No token");
+      }
+      return Mutations.downloadReport(token, key);
+    },
+  }));
 
   return (
     <DropdownMenu.Root placement="bottom-end" open={isVisible()} onOpenChange={setIsVisible}>
@@ -149,23 +143,19 @@ export function ReportsMenu(props: ReportsMenuProps) {
                   <span>Loading...</span>
                 </DropdownMenu.Item>
               </Match>
-              <Match when={!reportsList.isLoading && (reportsList.data?.reports ?? []).length === 0}>
+              <Match when={!reportsList.isLoading && (reportsList.data ?? []).length === 0}>
                 <DropdownMenu.Item class={cn(itemClass, "select-none")} disabled>
                   <span>No reports</span>
                 </DropdownMenu.Item>
               </Match>
-              <Match
-                when={
-                  !reportsList.isLoading && (reportsList.data?.reports?.length ?? 0) > 0 && reportsList.data?.reports
-                }
-              >
+              <Match when={!reportsList.isLoading && (reportsList.data?.length ?? 0) > 0 && reportsList.data}>
                 {(reports) => (
                   <For each={reports()}>
                     {(report) => (
                       <DropdownMenu.Item
                         class={cn(itemClass)}
                         onSelect={async () => {
-                          const file = await downLoadFile.mutateAsync(report.key).catch((err) => {
+                          const file = await downLoadFile.mutateAsync(report.Key!).catch((err) => {
                             toast.error("Report not downloaded");
                             return null;
                           });
@@ -173,7 +163,7 @@ export function ReportsMenu(props: ReportsMenuProps) {
                             const url = window.URL.createObjectURL(file);
                             const a = document.createElement("a");
                             a.href = url;
-                            a.download = report.name;
+                            a.download = report.Key!;
                             a.click();
                           }
                         }}
@@ -195,7 +185,7 @@ export function ReportsMenu(props: ReportsMenuProps) {
                           <line x1="16" x2="8" y1="17" y2="17" />
                           <line x1="10" x2="8" y1="9" y2="9" />
                         </svg>
-                        <span>{report.name}</span>
+                        <span>{report.Key!}</span>
                       </DropdownMenu.Item>
                     )}
                   </For>
@@ -210,7 +200,7 @@ export function ReportsMenu(props: ReportsMenuProps) {
             onSelect={async () => {
               const s3URLResult = await createReport.mutateAsync(props.range);
               const success = s3URLResult.success;
-              await queryClient.invalidateQueries(["reports"]);
+              await queryClient.invalidateQueries({ queryKey: ["reports", props.range.from, props.range.to] });
               if (success) {
                 toast.success("Report created, downloading now");
                 const file = await downLoadFile.mutateAsync(s3URLResult.report.url).catch((err) => {
@@ -228,7 +218,7 @@ export function ReportsMenu(props: ReportsMenuProps) {
             }}
           >
             <Switch>
-              <Match when={createReport.isLoading || downLoadFile.isLoading}>
+              <Match when={createReport.isPending}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"
@@ -245,7 +235,7 @@ export function ReportsMenu(props: ReportsMenuProps) {
                 </svg>
                 Creating Report
               </Match>
-              <Match when={!createReport.isLoading}>
+              <Match when={!createReport.isPending}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"

@@ -7,7 +7,7 @@ import { Queries } from "../../utils/api/queries";
 
 export default function ConnectPage() {
   const [user] = useAuth();
-  const hasCompany = () => (user().isAuthenticated && !!user().user?.companyId) ?? true;
+  const hasCompany = () => (user.isAuthenticated && !!user.user?.companyId) ?? true;
   createEffect(() => {
     console.log(hasCompany());
   });
@@ -15,22 +15,20 @@ export default function ConnectPage() {
   const searchTrigger = debounce(setSearchQuery, 500);
   const queryClient = useQueryClient();
 
-  const searchResults = createQuery(
-    () => ["search_company"],
-    () => {
-      return Queries.searchCompany(searchQuery());
+  const searchResults = createQuery(() => ({
+    queryKey: ["search_company"],
+    queryFn: () => {
+      return Queries.Users.Company.search(searchQuery());
     },
-    {
-      get enabled() {
-        return !!searchQuery();
-      },
-      refetchInterval: 5 * 1000,
-    }
-  );
+    get enabled() {
+      return !!searchQuery();
+    },
+    refetchInterval: 5 * 1000,
+  }));
 
   return (
     <main class="container mx-auto p-4">
-      <Show when={!user().isLoading}>
+      <Show when={!user.isLoading}>
         <Show
           when={!hasCompany()}
           fallback={
@@ -38,7 +36,7 @@ export default function ConnectPage() {
               <div class="flex flex-col gap-2 items-center justify-center">
                 <p>You are already connected to a company.</p>
                 <A
-                  href={`/company/${user().user?.companyId}`}
+                  href={`/company/${user.user?.companyId}`}
                   class="p-1 px-2 w-fit flex gap-2 items-center justify-center text-base font-bold bg-black rounded-sm border-black !border-opacity-10 dark:bg-white dark:border-white text-white dark:text-black"
                 >
                   Back
@@ -89,7 +87,9 @@ export default function ConnectPage() {
                 value={searchQuery()}
                 onInput={async (e) => {
                   searchTrigger(e.currentTarget.value);
-                  await queryClient.invalidateQueries(["search_company"]);
+                  await queryClient.invalidateQueries({
+                    queryKey: ["search_company"],
+                  });
                 }}
               />
               <div class="flex flex-col bg-neutral-100 dark:bg-neutral-900">

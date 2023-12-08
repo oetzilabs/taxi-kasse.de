@@ -10,7 +10,7 @@ import { ApiHandler, useBody, useQueryParams } from "sst/node/api";
 import { Bucket } from "sst/node/bucket";
 import { z } from "zod";
 import { Template } from "./templates";
-import { getUser } from "./utils";
+import { error, getUser, json, text } from "./utils";
 import Handlebars from "handlebars";
 import "dayjs/locale/de";
 import "dayjs/locale/en";
@@ -147,75 +147,25 @@ export const hasCompany = ApiHandler(async (x) => {
 export const company = ApiHandler(async (x) => {
   const user = await getUser(x);
   if (user instanceof Error) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: user.message,
-        company: null,
-      }),
-      statusCode: 200,
-    };
+    return error(user.message);
   }
   if (!user || !user.id) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: "No user found",
-        company: null,
-      }),
-      statusCode: 200,
-    };
+    return error("No user found");
   }
   const user_ = await User.findById(user.id);
   if (!user_) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        error: "No user found",
-        company: null,
-      }),
-      statusCode: 200,
-    };
+    return error("No user found");
   }
-  if (!user_.companyId) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        error: "No company found",
-        company: null,
-      }),
-      statusCode: 200,
-    };
+  if (!user_.companyId || !user_.company) {
+    return error("No company found");
   }
 
-  return {
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ error: null, company: user.company }),
-    statusCode: 200,
-  };
+  return json(user.company);
 });
 
 export const listAll = ApiHandler(async (x) => {
   const users = await User.all();
-  return {
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ success: true, users }),
-    statusCode: 200,
-  };
+  return json(users);
 });
 
 export type CalendarResult = {
@@ -226,406 +176,128 @@ export type CalendarResult = {
 export const calendar = ApiHandler(async (x) => {
   const user = await getUser(x);
   if (user instanceof Error) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        error: user.message,
-        calendar: [],
-      } as CalendarResult),
-      statusCode: 200,
-    };
+    return error(user.message);
   }
   if (!user || !user.id) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        error: "No user found",
-        calendar: [],
-      } as CalendarResult),
-      statusCode: 200,
-    };
+    return error("No user found");
   }
 
-  const user_ = await User.findById(user.id);
-  if (!user_) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        error: "No user found",
-        calendar: [],
-      } as CalendarResult),
-      statusCode: 200,
-    };
-  }
-  if (!user_.companyId) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        error: "User has no company",
-        calendar: [],
-      } as CalendarResult),
-      statusCode: 200,
-    };
+  if (!user.companyId) {
+    return error("No company found");
   }
   const dateRange = useQueryParams();
   const from = dayjs(dateRange.from).toDate();
   const to = dayjs(dateRange.to).toDate();
-  const calendar = await User.calendar(user_.id, user_.companyId, { from, to });
+  const calendar = await User.calendar(user.id, user.companyId, { from, to });
 
-  return {
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ error: null, calendar } as CalendarResult),
-    statusCode: 200,
-  };
+  return json(calendar);
 });
-
-export type CreateDayEntryResult =
-  | {
-      success: true;
-      error: null;
-      entry: NonNullable<Awaited<ReturnType<typeof User.createDayEntry>>>;
-    }
-  | {
-      success: false;
-      error: string;
-      entry: null;
-    };
 
 export const createDayEntry = ApiHandler(async (x) => {
   const user = await getUser(x);
   if (user instanceof Error) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: user.message,
-        entry: null,
-      } as CreateDayEntryResult),
-      statusCode: 200,
-    };
+    return error(user.message);
   }
   if (!user || !user.id) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: "No user found",
-        entry: null,
-      } as CreateDayEntryResult),
-      statusCode: 200,
-    };
+    return error("No user found");
   }
 
-  const user_ = await User.findById(user.id);
-  if (!user_) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: "No user found",
-        entry: null,
-      } as CreateDayEntryResult),
-      statusCode: 200,
-    };
-  }
   const body = useBody();
   if (!body) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: "No body found",
-        entry: null,
-      } as CreateDayEntryResult),
-      statusCode: 200,
-    };
+    return error("No body found");
   }
   const data = JSON.parse(body);
-  const date = dayjs(data.date).toDate();
-  const e: Awaited<ReturnType<typeof User.createDayEntry>> | Error = await User.createDayEntry(user_.id, {
-    date,
-    total_distance: data.total_distance,
-    driven_distance: data.driven_distance,
-    tour_count: data.tour_count,
-    cash: data.cash,
-  }).catch((e) => {
-    return e;
-  });
-  if (e instanceof Error) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: e.message,
-        entry: null,
-      } as CreateDayEntryResult),
-      statusCode: 422,
-    };
+  const validation = z
+    .object({
+      date: z.string(),
+      total_distance: z.number(),
+      driven_distance: z.number(),
+      tour_count: z.number(),
+      cash: z.number(),
+    })
+    .safeParse(data);
+  if (!validation.success) {
+    return error(validation.error);
   }
-  return {
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      success: true,
-      error: null,
-      entry: e,
-    } as CreateDayEntryResult),
-    statusCode: 200,
-  };
-});
 
-export type UpdateDayEntryResult =
-  | {
-      success: true;
-      error: null;
-      entry: NonNullable<Awaited<ReturnType<typeof User.updateDayEntry>>>;
-      changes: Partial<NonNullable<Awaited<ReturnType<typeof User.updateDayEntry>>>>;
+  const date = dayjs(validation.data.date).toDate();
+  try {
+    const entry = await User.createDayEntry(user.id, {
+      date,
+      total_distance: validation.data.total_distance,
+      driven_distance: validation.data.driven_distance,
+      tour_count: validation.data.tour_count,
+      cash: validation.data.cash,
+    });
+    return json(entry);
+  } catch (e) {
+    if (e instanceof Error) {
+      return error(e.message);
     }
-  | {
-      success: false;
-      error: string;
-      entry: null;
-      changes: null;
-    };
+    return error("Unknown error");
+  }
+});
 
 export const updateDayEntry = ApiHandler(async (x) => {
   const user = await getUser(x);
   if (user instanceof Error) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: user.message,
-        entry: null,
-      } as UpdateDayEntryResult),
-      statusCode: 200,
-    };
+    return error(user.message);
   }
   if (!user || !user.id) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: "No user found",
-        entry: null,
-      } as UpdateDayEntryResult),
-      statusCode: 200,
-    };
+    return error("No user found");
   }
 
-  const user_ = await User.findById(user.id);
-  if (!user_) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: "No user found",
-        entry: null,
-      } as UpdateDayEntryResult),
-      statusCode: 200,
-    };
-  }
   const body = useBody();
   if (!body) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: "No body found",
-        entry: null,
-      } as UpdateDayEntryResult),
-      statusCode: 200,
-    };
+    return error("No body found");
   }
   const data = JSON.parse(body);
-  const oldEntry = await User.dayEntry(user_.id, { id: data.id });
+  const oldEntry = await User.dayEntry(user.id, { id: data.id });
   if (!oldEntry) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: `No entry found with id ${data.id}`,
-        entry: null,
-      } as UpdateDayEntryResult),
-      statusCode: 200,
-    };
+    return error("No entry found");
   }
-  const e: Awaited<ReturnType<typeof User.updateDayEntry>> | Error = await User.updateDayEntry(user_.id, {
-    id: data.id,
-    total_distance: data.total_distance,
-    driven_distance: data.driven_distance,
-    tour_count: data.tour_count,
-    cash: data.cash,
-  }).catch((e) => {
-    return e;
-  });
-  if (e instanceof Error) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: e.message,
-        entry: null,
-      } as UpdateDayEntryResult),
-      statusCode: 422,
-    };
-  }
-
-  let changes = {} as Partial<NonNullable<Awaited<ReturnType<typeof User.updateDayEntry>>>>;
-
-  Object.keys(data).forEach((key) => {
-    let k = key as keyof NonNullable<Awaited<ReturnType<typeof User.updateDayEntry>>>;
-    if (data[k] !== oldEntry[k]) {
-      changes[k] = data[k];
+  try {
+    const e = await User.updateDayEntry(user.id, {
+      id: data.id,
+      total_distance: data.total_distance,
+      driven_distance: data.driven_distance,
+      tour_count: data.tour_count,
+      cash: data.cash,
+    });
+    return json(e);
+  } catch (e) {
+    if (e instanceof Error) {
+      return error(e.message);
     }
-  });
-
-  return {
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      success: true,
-      error: null,
-      entry: e,
-      changes: changes,
-    } as UpdateDayEntryResult),
-    statusCode: 200,
-  };
+    return error("Unknown error");
+  }
 });
-
-export type DeleteDayEntryResult =
-  | {
-      success: true;
-      error: null;
-      entry: NonNullable<Awaited<ReturnType<typeof User.updateDayEntry>>>;
-    }
-  | {
-      success: false;
-      error: string;
-      entry: null;
-    };
 
 export const deleteDayEntry = ApiHandler(async (x) => {
   const user = await getUser(x);
   if (user instanceof Error) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: user.message,
-        entry: null,
-      } as DeleteDayEntryResult),
-      statusCode: 200,
-    };
+    return error(user.message);
   }
   if (!user || !user.id) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: "No user found",
-        entry: null,
-      } as DeleteDayEntryResult),
-      statusCode: 200,
-    };
+    return error("No user found");
   }
 
-  const user_ = await User.findById(user.id);
-  if (!user_) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: "No user found",
-        entry: null,
-      } as DeleteDayEntryResult),
-      statusCode: 200,
-    };
-  }
   const body = useBody();
   if (!body) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: "No body found",
-        entry: null,
-      } as DeleteDayEntryResult),
-      statusCode: 200,
-    };
+    return error("No body found");
   }
   const data = JSON.parse(body);
-  const e: Awaited<ReturnType<typeof User.deleteDayEntry>> | Error = await User.deleteDayEntry(user_.id, {
-    id: data.id,
-  }).catch((e) => {
-    return e;
-  });
-  if (e instanceof Error) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: e.message,
-        entry: null,
-      } as DeleteDayEntryResult),
-      statusCode: 422,
-    };
+  try {
+    const e = await User.deleteDayEntry(user.id, {
+      id: data.id,
+    });
+    return json(e);
+  } catch (e) {
+    if (e instanceof Error) {
+      return error(e.message);
+    }
+    return error("Unknown error");
   }
-  return {
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      success: true,
-      error: null,
-      entry: e,
-    } as DeleteDayEntryResult),
-    statusCode: 200,
-  };
 });
 
 async function getBrowser(): Promise<Browser> {
@@ -859,18 +531,6 @@ export const createReport = ApiHandler(async (x) => {
   };
 });
 
-export type UserGetReportsListResult =
-  | {
-      success: true;
-      error: null;
-      reports: { name: string; key: string }[];
-    }
-  | {
-      success: false;
-      error: string;
-      reports: null;
-    };
-
 const getFileName = (url: string) => {
   const parts = url.split("/");
   return parts[parts.length - 1];
@@ -879,160 +539,37 @@ const getFileName = (url: string) => {
 export const listReports = ApiHandler(async (x) => {
   const user = await getUser(x);
   if (user instanceof Error) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: user.message,
-        reports: null,
-      } as UserGetReportsListResult),
-      statusCode: 200,
-    };
+    return error(user.message);
   }
   if (!user || !user.id) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: "No user found",
-        reports: null,
-      } as UserGetReportsListResult),
-      statusCode: 200,
-    };
+    return error("No user found");
   }
 
-  const user_ = await User.findById(user.id);
-  if (!user_) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: "No user found",
-        reports: null,
-      } as UserGetReportsListResult),
-      statusCode: 200,
-    };
-  }
-  if (!user_.companyId) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        success: false,
-        error: "User has no company",
-        reports: null,
-      } as UserGetReportsListResult),
-      statusCode: 200,
-    };
+  if (!user.companyId) {
+    return error("No company found");
   }
   const { date } = useQueryParams();
   const _date = dayjs(date).toDate();
-  const s3client = new S3Client({
-    region: "eu-central-1",
-  });
 
-  const command = new ListObjectsV2Command({
-    Bucket: Bucket["taxikassede-bucket"].bucketName,
-    Prefix: `reports/${user_.id}/`,
-  });
-
-  const result = await s3client.send(command);
-
-  return {
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      success: true,
-      error: null,
-      reports:
-        (result.Contents ?? ([] as NonNullable<(typeof result)["Contents"]>))
-          .filter((c) => typeof c.Key === "string" && c.Key.endsWith(".pdf"))
-          .filter((c) => {
-            const filename = c.Key ?? "";
-            const parts = filename.split("/");
-            const date_with_ref = parts[parts.length - 1].split(".pdf")[0];
-            // const remove the ref number `<date>-4digit-8digit.pdf`
-            const date = date_with_ref.split("-").slice(0, -2).join("-");
-            return dayjs(date).isSame(_date, "month");
-          })
-          .map((x) => ({
-            name: getFileName(x.Key ?? ""),
-            key: x.Key!,
-          })) ?? ([] as string[]),
-    } as UserGetReportsListResult),
-    statusCode: 200,
-  };
+  const result = await User.listReports(user.id, user.companyId, _date);
+  return json(result);
 });
-
-export type UserDownloadFileSignedUrl =
-  | {
-      success: true;
-      error: null;
-      url: string;
-    }
-  | {
-      success: false;
-      error: string;
-      url: null;
-    };
 
 export const downloadFileSignedUrl = ApiHandler(async (x) => {
   const user = await getUser(x);
   if (user instanceof Error) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ success: false, error: user.message, url: null } as UserDownloadFileSignedUrl),
-      statusCode: 200,
-    };
+    return error(user.message);
   }
   if (!user || !user.id) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ success: false, error: "No user found", url: null } as UserDownloadFileSignedUrl),
-      statusCode: 200,
-    };
+    return error("No user found");
   }
 
-  const user_ = await User.findById(user.id);
-  if (!user_) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ success: false, error: "No user found", url: null } as UserDownloadFileSignedUrl),
-      statusCode: 200,
-    };
-  }
-  if (!user_.companyId) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ success: false, error: "User has no company", url: null } as UserDownloadFileSignedUrl),
-      statusCode: 200,
-    };
+  if (!user.companyId) {
+    return error("No company found");
   }
   const body = useBody();
   if (!body) {
-    return {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ success: false, error: "No body found", url: null } as UserDownloadFileSignedUrl),
-      statusCode: 200,
-    };
+    return error("No body found");
   }
   const data = JSON.parse(body);
   const key = data.key;
@@ -1047,11 +584,5 @@ export const downloadFileSignedUrl = ApiHandler(async (x) => {
 
   const url = await getSignedUrl(s3client, command);
 
-  return {
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ success: true, error: null, url } as UserDownloadFileSignedUrl),
-    statusCode: 200,
-  };
+  return text(url);
 });

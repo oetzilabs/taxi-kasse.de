@@ -27,8 +27,8 @@ export const Auth = () => {
     queryFn: () => {
       const _as = AuthStore;
       const token = _as.token;
-      if (!token) return Promise.reject({ success: false, error: { message: "No token found", code: "NO_TOKEN" } });
-      return Queries.session(token);
+      if (!token) return Promise.reject("No token");
+      return Queries.Users.session(token);
     },
     get enabled() {
       const _as = AuthStore;

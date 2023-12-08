@@ -32,7 +32,12 @@ export const BreadcrumbsP = () => {
 
       for (const filter of toBeFilteredOut) {
         if (path.startsWith(filter)) {
-          setBreadcrumbsStore(produce((s) => (s.isLoading = false)));
+          setBreadcrumbsStore(
+            produce((s) => {
+              s.breadcrumbs = [];
+              s.isLoading = false;
+            })
+          );
           return;
         }
       }

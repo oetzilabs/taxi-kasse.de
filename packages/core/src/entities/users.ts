@@ -4,6 +4,8 @@ import { z } from "zod";
 import { db } from "../drizzle/sql";
 import { ProfileSelect, day_entries, profiles, users } from "../drizzle/sql/schema";
 import dayjs from "dayjs";
+import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { Bucket } from "sst/node/bucket";
 
 export * as User from "./users";
 
@@ -38,7 +40,7 @@ export const countAll = z.function(z.tuple([])).implement(async () => {
 });
 
 export const findById = z.function(z.tuple([z.string()])).implement(async (input) => {
-  return db.query.users.findFirst({
+  const user = await db.query.users.findFirst({
     where: (users, operations) => operations.eq(users.id, input),
     with: {
       profile: true,
@@ -46,6 +48,10 @@ export const findById = z.function(z.tuple([z.string()])).implement(async (input
       day_entries: true,
     },
   });
+  if (!user) {
+    throw new Error("User not found");
+  }
+  return user;
 });
 
 export const findByEmail = z.function(z.tuple([z.string()])).implement(async (input) => {
@@ -276,10 +282,10 @@ export const createDayEntry = z
       },
     });
     if (!cData) {
-      return null;
+      throw new Error("User not found");
     }
     if (!cData.companyId) {
-      return null;
+      throw new Error("User has no company");
     }
     const existsX = await db.query.day_entries.findFirst({
       where: (day_entries, operations) =>
@@ -454,6 +460,46 @@ export const getDayEntriesByRange = z
       return [] as NEntries["day_entries"];
     }
     return cData.day_entries;
+  });
+
+export const listReports = z
+  .function(z.tuple([z.string().uuid(), z.string().uuid(), z.date()]))
+  .implement(async (userid, companyId, date) => {
+    const s3client = new S3Client({
+      region: "eu-central-1",
+    });
+
+    const command = new ListObjectsV2Command({
+      Bucket: Bucket["taxikassede-bucket"].bucketName,
+      Prefix: `reports/${userid}/`,
+    });
+
+    const result = await s3client.send(command);
+
+    const contents = result.Contents;
+    if (!contents) return [];
+    for (let i = 0; i < contents.length; i++) {
+      const filename = contents[i].Key ?? "";
+      const parts = filename.split("/");
+      const date_with_ref = parts[parts.length - 1].split(".pdf")[0];
+      // const remove the ref number `<date>-4digit-8digit.pdf`
+      const date = date_with_ref.split("-").slice(0, -2).join("-");
+      if (!dayjs(date).isSame(date, "month")) {
+        contents.splice(i, 1);
+      }
+    }
+    const resultContent = [];
+    for (let i = 0; i < contents.length; i++) {
+      const filename = contents[i].Key ?? "";
+      const parts = filename.split("/");
+      const date_with_ref = parts[parts.length - 1].split(".pdf")[0];
+      // const remove the ref number `<date>-4digit-8digit.pdf`
+      const date = date_with_ref.split("-").slice(0, -2).join("-");
+      if (dayjs(date).isSame(date, "month")) {
+        resultContent.push(contents[i]);
+      }
+    }
+    return resultContent;
   });
 
 export type Frontend = Awaited<ReturnType<typeof findById>>;

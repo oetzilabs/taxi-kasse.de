@@ -66,7 +66,7 @@ export default function Dashboard() {
     queryFn: () => {
       const token = auth.token;
       if (!token) return Promise.reject("You are not logged in");
-      return Queries.company(token);
+      return Queries.Users.Company.get(token);
     },
     get enabled() {
       const token = auth.token;
@@ -80,11 +80,15 @@ export default function Dashboard() {
     // set the title of the page
 
     if (!company.isSuccess) return;
-    if (!company.data.company) {
+    if (!company.data) {
       document.title = `Dashboard - Not found`;
       return;
     }
-    document.title = `Dashboard - ${company.data.company.name}`;
+    if (!company.data.name) {
+      document.title = `Dashboard - ${company.data.id}`;
+      return;
+    }
+    document.title = `Dashboard - ${company.data.name}`;
   });
 
   return (
@@ -134,7 +138,7 @@ export default function Dashboard() {
     >
       <Match when={!auth.isLoading && auth.isAuthenticated}>
         <Show
-          when={!company.isLoading && company.isSuccess && company.data.company}
+          when={!company.isLoading && company.isSuccess && company.data}
           fallback={
             <div class="relative flex flex-col">
               <Switch
