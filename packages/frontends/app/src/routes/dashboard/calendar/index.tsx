@@ -243,7 +243,7 @@ export default function Calendar() {
                 <div class="px-2 py-1.5 bg-white dark:bg-black rounded-md shadow-sm border border-neutral-300 dark:border-neutral-800 justify-center items-center gap-1 flex text-neutral-500 hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-950 cursor-pointer select-none">
                   <div class="text-center text-xs font-medium">
                     <Switch>
-                      <Match when={view() === "timeline"}>{dayjs(rangeDate().from).format("MMMM")}</Match>
+                      <Match when={view() === "timeline"}>{dayjs(rangeDate().from).format("MMMM YYYY")}</Match>
                       <Match when={view() === "grid"}>Week {dayjs(rangeDate().from).format("w")}</Match>
                     </Switch>
                   </div>
@@ -276,7 +276,7 @@ export default function Calendar() {
                     <Switch>
                       <Match when={view() === "timeline"}>
                         <div class="flex flex-col gap-2">
-                          <div class="px-2 py-1.5 bg-white dark:bg-black rounded shadow-sm border border-neutral-300 dark:border-neutral-800 items-center gap-1 flex  cursor-pointer select-none justify-between">
+                          <div class="px-2 py-1.5 bg-white dark:bg-black rounded shadow-sm border border-neutral-300 dark:border-neutral-800 items-center gap-1 flex select-none justify-between">
                             <button
                               class="p-0.5 text-neutral-500 hover:text-black dark:hover:text-white"
                               onClick={() => {
@@ -358,7 +358,7 @@ export default function Calendar() {
                       </Match>
                       <Match when={view() === "grid"}>
                         <div class="flex flex-col gap-2">
-                          <div class="px-2 py-1.5 bg-white dark:bg-black rounded shadow-sm border border-neutral-300 dark:border-neutral-800 items-center gap-1 flex  cursor-pointer select-none justify-between">
+                          <div class="px-2 py-1.5 bg-white dark:bg-black rounded shadow-sm border border-neutral-300 dark:border-neutral-800 items-center gap-1 flex select-none justify-between">
                             <button
                               class="p-0.5 text-neutral-500 hover:text-black dark:hover:text-white"
                               onClick={() => {
