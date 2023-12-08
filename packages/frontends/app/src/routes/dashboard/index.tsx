@@ -32,26 +32,31 @@ const stats: Array<Stat> = [
 ];
 
 const calendarEntries: Array<{
+  id: string;
   date: Date;
   entries: number;
   revenue: number;
 }> = [
   {
+    id: "1",
     date: dayjs().subtract(3, "day").startOf("day").toDate(),
     entries: 40,
     revenue: 40 * 6.8 + 40 * 3.4 * 12 + 40 * 0.25,
   },
   {
+    id: "2",
     date: dayjs().subtract(2, "day").startOf("day").toDate(),
     entries: 14,
     revenue: 14 * 6.8 + 14 * 3.4 * 12 + 14 * 0.25,
   },
   {
+    id: "3",
     date: dayjs().subtract(1, "day").startOf("day").toDate(),
     entries: 8,
     revenue: 8 * 6.8 + 8 * 3.4 * 12 + 8 * 0.25,
   },
   {
+    id: "4",
     date: dayjs().subtract(0, "day").startOf("day").toDate(),
     entries: 7,
     revenue: 7 * 6.8 + 7 * 3.4 * 12 + 7 * 0.25,
@@ -287,7 +292,10 @@ export default function Dashboard() {
                 <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-8 w-full gap-2">
                   <For each={calendarEntries}>
                     {(entry) => (
-                      <div class="w-full p-2 bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 flex-col justify-start items-start inline-flex rounded-md gap-2 select-none shadow-sm">
+                      <A
+                        href={`./calendar/entry/${entry.id}`}
+                        class="w-full p-2 bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 flex-col justify-start items-start inline-flex rounded-md gap-2 select-none shadow-sm hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                      >
                         <div class="text-xs font-medium">{dayjs(entry.date).format("dddd")}</div>
                         <div class="self-stretch justify-between items-start inline-flex">
                           <div class="justify-start items-start gap-1 flex">
@@ -316,7 +324,7 @@ export default function Dashboard() {
                             <div class="text-xs font-medium">{Math.floor(entry.revenue)} CHF</div>
                           </div>
                         </div>
-                      </div>
+                      </A>
                     )}
                   </For>
                 </div>
