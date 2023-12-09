@@ -186,39 +186,8 @@ export const calendar = z
     if (!cData) {
       return [] as NEntries["day_entries"];
     }
-    const startOfMonth = dayjs(range.from).startOf("month");
-    const endOfMonth = dayjs(range.from).endOf("month");
-    const startOfWeek = startOfMonth.startOf("week");
-    const endOfWeek = endOfMonth.endOf("week");
-    const monthDays = [];
-    const weekDays = [];
-    let day = startOfWeek;
-    while (day <= endOfWeek) {
-      monthDays.push(day.toDate());
-      day = day.add(1, "day");
-    }
-    for (const day of monthDays) {
-      const entry = cData.day_entries.find((e) => dayjs(e.date).isSame(day, "day"));
-      if (entry) {
-        weekDays.push(entry);
-      } else {
-        weekDays.push({
-          companyId: userWithCompany.companyId,
-          createdAt: new Date(),
-          updatedAt: null,
-          deletedAt: null,
-          ownerId: "",
-          id: "",
-          date: day,
-          distance: 0,
-          driven_distance: 0,
-          total_distance: 0,
-          tour_count: 0,
-          cash: 0,
-        } as (typeof cData.day_entries)[number]);
-      }
-    }
-    return weekDays;
+
+    return cData.day_entries;
   });
 
 export const dayEntry = z

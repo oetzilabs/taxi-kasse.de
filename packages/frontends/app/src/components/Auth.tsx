@@ -63,7 +63,7 @@ export const Auth = () => {
       }
       return;
     }
-    const isLoading = sessionQuery.isLoading || sessionQuery.isFetching;
+    const isLoading = sessionQuery.isPending;
     const isAuthenticated = sessionQuery.data.success && sessionQuery.data.user ? true : false ?? false;
     let user = null;
     switch (sessionQuery.data.success) {

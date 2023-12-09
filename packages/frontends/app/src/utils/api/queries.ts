@@ -74,12 +74,7 @@ export const Users = {
               authorization: `Bearer ${token}`,
             },
           }
-        )
-          .then((res) => res.json() as Promise<CalendarResult>)
-          .then((res) => {
-            if (res.error) throw new Error(res.error);
-            return { ...res, lastUpdated: new Date() };
-          })
+        ).then((res) => res.json() as ReturnType<typeof User.calendar>)
       ),
   },
   Company: {

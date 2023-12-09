@@ -18,8 +18,8 @@ importers:
         specifier: 10.3.0
         version: 10.3.0
       sst:
-        specifier: 2.38.0
-        version: 2.38.0
+        specifier: 2.38.4
+        version: 2.38.4
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -58,8 +58,8 @@ importers:
         specifier: ^0.19.13
         version: 0.19.13
       sst:
-        specifier: 2.38.0
-        version: 2.38.0
+        specifier: 2.38.4
+        version: 2.38.4
       vitest:
         specifier: ^0.34.6
         version: 0.34.6
@@ -131,8 +131,8 @@ importers:
         specifier: ^0.3.6
         version: 0.3.6(solid-start@0.3.10)(vite@4.4.11)
       solid-start-sst:
-        specifier: 2.38.0
-        version: 2.38.0(solid-start@0.3.10)(vite@4.4.11)
+        specifier: 2.38.4
+        version: 2.38.4(solid-start@0.3.10)(vite@4.4.11)
       tailwindcss:
         specifier: ^3.3.3
         version: 3.3.3
@@ -195,8 +195,8 @@ importers:
         specifier: ^20.8.4
         version: 20.8.4
       sst:
-        specifier: 2.38.0
-        version: 2.38.0
+        specifier: 2.38.4
+        version: 2.38.4
       vitest:
         specifier: ^0.34.6
         version: 0.34.6
@@ -380,7 +380,7 @@ packages:
     engines: {node: '>=16.0.0'}
     dependencies:
       '@aws-crypto/util': 5.2.0
-      '@aws-sdk/types': 3.465.0
+      '@aws-sdk/types': 3.468.0
       tslib: 2.6.2
     dev: true
 
@@ -399,7 +399,7 @@ packages:
   /@aws-crypto/util@5.2.0:
     resolution: {integrity: sha512-4RkU9EsI6ZpBve5fseQlGNUWKMa1RLPQ1dnjnQoe07ldfIzcsGb5hC5W0Dm7u423KWzawlrpbjXBrXCEv9zazQ==}
     dependencies:
-      '@aws-sdk/types': 3.465.0
+      '@aws-sdk/types': 3.468.0
       '@smithy/util-utf8': 2.0.2
       tslib: 2.6.2
     dev: true
@@ -439,7 +439,7 @@ packages:
       '@smithy/types': 2.7.0
       '@smithy/url-parser': 2.0.15
       '@smithy/util-base64': 2.0.1
-      '@smithy/util-body-length-browser': 2.0.0
+      '@smithy/util-body-length-browser': 2.0.1
       '@smithy/util-body-length-node': 2.1.0
       '@smithy/util-defaults-mode-browser': 2.0.22
       '@smithy/util-defaults-mode-node': 2.0.28
@@ -489,7 +489,7 @@ packages:
       '@smithy/types': 2.7.0
       '@smithy/url-parser': 2.0.15
       '@smithy/util-base64': 2.0.1
-      '@smithy/util-body-length-browser': 2.0.0
+      '@smithy/util-body-length-browser': 2.0.1
       '@smithy/util-body-length-node': 2.1.0
       '@smithy/util-defaults-mode-browser': 2.0.22
       '@smithy/util-defaults-mode-node': 2.0.28
@@ -536,7 +536,7 @@ packages:
       '@smithy/types': 2.7.0
       '@smithy/url-parser': 2.0.15
       '@smithy/util-base64': 2.0.1
-      '@smithy/util-body-length-browser': 2.0.0
+      '@smithy/util-body-length-browser': 2.0.1
       '@smithy/util-body-length-node': 2.1.0
       '@smithy/util-defaults-mode-browser': 2.0.22
       '@smithy/util-defaults-mode-node': 2.0.28
@@ -586,7 +586,7 @@ packages:
       '@smithy/types': 2.7.0
       '@smithy/url-parser': 2.0.15
       '@smithy/util-base64': 2.0.1
-      '@smithy/util-body-length-browser': 2.0.0
+      '@smithy/util-body-length-browser': 2.0.1
       '@smithy/util-body-length-node': 2.1.0
       '@smithy/util-defaults-mode-browser': 2.0.22
       '@smithy/util-defaults-mode-node': 2.0.28
@@ -633,7 +633,7 @@ packages:
       '@smithy/types': 2.7.0
       '@smithy/url-parser': 2.0.15
       '@smithy/util-base64': 2.0.1
-      '@smithy/util-body-length-browser': 2.0.0
+      '@smithy/util-body-length-browser': 2.0.1
       '@smithy/util-body-length-node': 2.1.0
       '@smithy/util-defaults-mode-browser': 2.0.22
       '@smithy/util-defaults-mode-node': 2.0.28
@@ -682,7 +682,7 @@ packages:
       '@smithy/types': 2.7.0
       '@smithy/url-parser': 2.0.15
       '@smithy/util-base64': 2.0.1
-      '@smithy/util-body-length-browser': 2.0.0
+      '@smithy/util-body-length-browser': 2.0.1
       '@smithy/util-body-length-node': 2.1.0
       '@smithy/util-defaults-mode-browser': 2.0.22
       '@smithy/util-defaults-mode-node': 2.0.28
@@ -730,7 +730,7 @@ packages:
       '@smithy/types': 2.7.0
       '@smithy/url-parser': 2.0.15
       '@smithy/util-base64': 2.0.1
-      '@smithy/util-body-length-browser': 2.0.0
+      '@smithy/util-body-length-browser': 2.0.1
       '@smithy/util-body-length-node': 2.1.0
       '@smithy/util-defaults-mode-browser': 2.0.22
       '@smithy/util-defaults-mode-node': 2.0.28
@@ -781,7 +781,7 @@ packages:
       '@smithy/types': 2.7.0
       '@smithy/url-parser': 2.0.15
       '@smithy/util-base64': 2.0.1
-      '@smithy/util-body-length-browser': 2.0.0
+      '@smithy/util-body-length-browser': 2.0.1
       '@smithy/util-body-length-node': 2.1.0
       '@smithy/util-defaults-mode-browser': 2.0.22
       '@smithy/util-defaults-mode-node': 2.0.28
@@ -830,7 +830,7 @@ packages:
       '@smithy/types': 2.7.0
       '@smithy/url-parser': 2.0.15
       '@smithy/util-base64': 2.0.1
-      '@smithy/util-body-length-browser': 2.0.0
+      '@smithy/util-body-length-browser': 2.0.1
       '@smithy/util-body-length-node': 2.1.0
       '@smithy/util-defaults-mode-browser': 2.0.22
       '@smithy/util-defaults-mode-node': 2.0.28
@@ -1068,7 +1068,7 @@ packages:
       '@smithy/types': 2.7.0
       '@smithy/url-parser': 2.0.15
       '@smithy/util-base64': 2.0.1
-      '@smithy/util-body-length-browser': 2.0.0
+      '@smithy/util-body-length-browser': 2.0.1
       '@smithy/util-body-length-node': 2.1.0
       '@smithy/util-defaults-mode-browser': 2.0.22
       '@smithy/util-defaults-mode-node': 2.0.28
@@ -9829,8 +9829,8 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /solid-start-sst@2.38.0(solid-start@0.3.10)(vite@4.4.11):
-    resolution: {integrity: sha512-EWaRqTmsopXTXZQ41NfyUDpd1L9nniCm/xJlvx7yvL1QQSMoOLtFskFefrFIme8C/FDCQ8/1M1swb1aOWhi/qQ==}
+  /solid-start-sst@2.38.4(solid-start@0.3.10)(vite@4.4.11):
+    resolution: {integrity: sha512-oY12FXETl8CeW8n2HGhcsgRZTMEsrsHXz0ck3cwleNxRWmp0tNvygw2kA5w6FeWfPUuMm9Yi/Xe9bieYWSvKng==}
     peerDependencies:
       solid-start: '*'
       vite: '*'
@@ -9966,8 +9966,8 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /sst@2.38.0:
-    resolution: {integrity: sha512-FZWcyR6p9X6GTnWSVTO3kqGg6Q/4k9VzAPFTL1kG9du5PJtXc8n7F+5VuZhfLe+q0AaXW8KrgV/7T/KDg3Ippg==}
+  /sst@2.38.4:
+    resolution: {integrity: sha512-tpJg/PXGGW80rD6DpdueFEXfEqF0kOBzD1NwrwrmhkPspYFcQoai48ijxQtTnO1x5JWjJs0oOGBeOuHXxuAp6Q==}
     hasBin: true
     peerDependencies:
       '@sls-next/lambda-at-edge': ^3.7.0
@@ -9992,11 +9992,11 @@ packages:
       '@aws-sdk/client-rds-data': 3.465.0
       '@aws-sdk/client-s3': 3.468.0
       '@aws-sdk/client-ssm': 3.465.0
-      '@aws-sdk/client-sts': 3.465.0
+      '@aws-sdk/client-sts': 3.468.0
       '@aws-sdk/config-resolver': 3.374.0
       '@aws-sdk/credential-providers': 3.465.0
       '@aws-sdk/middleware-retry': 3.374.0
-      '@aws-sdk/middleware-signing': 3.465.0
+      '@aws-sdk/middleware-signing': 3.468.0
       '@aws-sdk/signature-v4-crt': 3.465.0
       '@aws-sdk/smithy-client': 3.374.0
       '@babel/core': 7.23.0
