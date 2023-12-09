@@ -75,3 +75,49 @@ export const getFillDaysForLastWeek = (date: dayjs.Dayjs) => {
 
   return days;
 };
+
+export const getMonthFromRange = (range: { from: dayjs.Dayjs; to: dayjs.Dayjs }) => {
+  const monthDays: Record<number, number> = {};
+  const amountOfDays = range.to.diff(range.from, "days");
+  for (let i = 0; i <= amountOfDays; i++) {
+    const day = range.from.add(i, "day");
+    const month = day.month();
+    if (!monthDays[month]) {
+      monthDays[month] = 0;
+    }
+    monthDays[month] += 1;
+  }
+  let biggestMonth;
+  for (const month in monthDays) {
+    if (!biggestMonth) {
+      biggestMonth = Number(month);
+    }
+    if (monthDays[month] > monthDays[biggestMonth]) {
+      biggestMonth = Number(month);
+    }
+  }
+  return range.from.startOf("month").set("month", biggestMonth!);
+};
+
+export const createRangeFromMonth = (date: dayjs.Dayjs) => {
+  const fillerDaysFirstWeek = getFillDaysForFirstWeek(date.startOf("month"));
+  const fillterDaysLastWeek = getFillDaysForLastWeek(date.endOf("month"));
+  const daysInMonth = getDaysInMonth(date.startOf("month"));
+  const days = [...fillerDaysFirstWeek, ...daysInMonth, ...fillterDaysLastWeek];
+  const range = {
+    from: days[0].toDate(),
+    to: days[days.length - 1].toDate(),
+  };
+  return { range, days };
+};
+
+export const createCalendarMonth = ({ from, to }: { from: dayjs.Dayjs; to: dayjs.Dayjs }) => {
+  // date here is the first day of the last months, last week.
+  const days = [];
+  const diff = to.diff(from, "days");
+  for (let i = 0; i < diff; i++) {
+    days.push(from.add(i, "day"));
+  }
+  days.push(to);
+  return days;
+};

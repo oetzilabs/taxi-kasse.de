@@ -6,6 +6,7 @@ import { createQuery } from "@tanstack/solid-query";
 import { useAuth } from "./Auth";
 import { Queries } from "../utils/api/queries";
 import { CalendarEntry } from "./Entry";
+import { CalendarUtils } from "../utils/calendar";
 
 interface CalendarProps {
   range: () => {
@@ -19,9 +20,8 @@ interface CalendarProps {
   calendar: {
     weeks: () => Array<dayjs.Dayjs>;
     monthsInYear: () => Array<dayjs.Dayjs>;
-    daysInMonth: () => Array<dayjs.Dayjs>;
-    fillFirstWeekOfTheMonth: () => Array<dayjs.Dayjs>;
-    fillLastWeekOfTheMonth: () => Array<dayjs.Dayjs>;
+    days: () => Array<dayjs.Dayjs>;
+    monthFromRange: () => dayjs.Dayjs;
   };
 }
 
@@ -138,33 +138,18 @@ export const Calendar = (props: CalendarProps) => {
                 <Match when={props.view() === "month"}>
                   <div
                     class={cn("grid grid-cols-7 grid-rows-5 w-full h-full", {
-                      "grid-rows-6":
-                        props.calendar.fillFirstWeekOfTheMonth().length +
-                          props.calendar.daysInMonth().length +
-                          props.calendar.fillLastWeekOfTheMonth().length ===
-                        42,
+                      "grid-rows-6": props.calendar.days().length === 42,
                     })}
                   >
-                    <For each={props.calendar.fillFirstWeekOfTheMonth()}>
-                      {(entry) => (
-                        <div
-                          class={cn("w-full h-full p-4", {
-                            "bg-emerald-100 dark:bg-emerald-950": c().some((e) => dayjs(e.date).isSame(entry, "day")),
-                            "opacity-50": !dayjs(entry).isSame(dayjs(props.range().from), "month"),
-                          })}
-                        >
-                          <div class="flex flex-col gap-2">{entry.format("ddd Do")}</div>
-                        </div>
-                      )}
-                    </For>
-                    <For each={props.calendar.daysInMonth()}>
+                    <For each={props.calendar.days()}>
                       {(entry) => (
                         <div
                           class={cn("w-full h-full", {
-                            "bg-emerald-100 dark:bg-emerald-950": c().some((e) => dayjs(e.date).isSame(entry, "day")),
+                            "bg-neutral-100 dark:bg-neutral-950": c().some((e) => dayjs(e.date).isSame(entry, "day")),
                             "hover:bg-neutral-100 dark:hover:bg-neutral-950": !c().some((e) =>
                               dayjs(e.date).isSame(entry, "day")
                             ),
+                            "opacity-50": !props.calendar.monthFromRange().isSame(entry, "month"),
                           })}
                           onMouseEnter={() => {
                             setCurrentHovered(entry);
@@ -180,18 +165,6 @@ export const Calendar = (props: CalendarProps) => {
                             date={entry}
                             entry={c().find((e) => dayjs(e.date).isSame(entry, "day"))}
                           />
-                        </div>
-                      )}
-                    </For>
-                    <For each={props.calendar.fillLastWeekOfTheMonth()}>
-                      {(entry, index) => (
-                        <div
-                          class={cn("w-full h-full p-4", {
-                            "bg-emerald-100 dark:bg-emerald-950": c().some((e) => dayjs(e.date).isSame(entry, "day")),
-                            "opacity-50": !dayjs(entry).isSame(dayjs(props.range().from), "month"),
-                          })}
-                        >
-                          <div class="flex flex-col gap-2">{entry.format("ddd Do")}</div>
                         </div>
                       )}
                     </For>
@@ -212,20 +185,10 @@ export const Calendar = (props: CalendarProps) => {
           <Match when={props.view() === "month"}>
             <div
               class={cn("grid grid-cols-7 grid-rows-5 w-full h-full", {
-                "grid-rows-6":
-                  props.calendar.fillFirstWeekOfTheMonth().length +
-                    props.calendar.daysInMonth().length +
-                    props.calendar.fillLastWeekOfTheMonth().length ===
-                  42,
+                "grid-rows-6": props.calendar.days().length === 42,
               })}
             >
-              <For each={props.calendar.fillFirstWeekOfTheMonth()}>
-                {(days, index) => <div class="w-full h-full bg-neutral-100 dark:bg-neutral-950"></div>}
-              </For>
-              <For each={props.calendar.daysInMonth()}>
-                {(days, index) => <div class="w-full h-full bg-neutral-200 dark:bg-neutral-900"></div>}
-              </For>
-              <For each={props.calendar.fillLastWeekOfTheMonth()}>
+              <For each={props.calendar.days()}>
                 {(days, index) => <div class="w-full h-full bg-neutral-100 dark:bg-neutral-950"></div>}
               </For>
             </div>

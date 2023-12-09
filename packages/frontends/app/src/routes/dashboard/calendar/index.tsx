@@ -16,14 +16,20 @@ dayjs.extend(weekOfYear);
 export default function Calendar() {
   const [auth] = useAuth();
   const [rangeDate, setRangeDate] = createSignal({
-    from: dayjs().startOf("month").toDate(),
-    to: dayjs().endOf("month").toDate(),
+    from: dayjs().startOf("month").startOf("week").toDate(),
+    to: dayjs().endOf("month").endOf("week").toDate(),
   });
   const [search, setSearch] = createSignal("");
   const setSearchDebounced = debounce(setSearch, 500);
 
   const [view, setView] = createSignal<"week" | "month" | "year">("month");
 
+  createEffect(() => {
+    // set the url params for the view
+    const url = new URL(window.location.href);
+    url.searchParams.set("view", view());
+    window.history.pushState({}, "", url.toString());
+  });
   createEffect(() => {
     document.title = `Calendar: ${dayjs(rangeDate().from).format("Do MMM")} - ${dayjs(rangeDate().to).format(
       "Do MMM YYYY"
@@ -50,11 +56,23 @@ export default function Calendar() {
     const url = new URL(window.location.href);
     const from = url.searchParams.get("from");
     const to = url.searchParams.get("to");
+    const theView = url.searchParams.get("view");
     if (from && to) {
-      setRangeDate({
-        from: dayjs(from).toDate(),
-        to: dayjs(to).toDate(),
-      });
+      if (theView) {
+        if (["week", "month", "year"].includes(theView)) {
+          setView(theView as "week" | "month" | "year");
+          setRangeDate({
+            from: dayjs(from).toDate(),
+            to: dayjs(to).toDate(),
+          });
+        }
+      } else {
+        setView("month");
+        setRangeDate({
+          from: dayjs(from).toDate(),
+          to: dayjs(to).toDate(),
+        });
+      }
     }
   });
   createEffect(() => {
@@ -71,9 +89,17 @@ export default function Calendar() {
 
   const weeks = () => CalendarUtils.monthWeeks(dayjs(rangeDate().from).startOf("month"));
   const monthsInYear = () => CalendarUtils.getMonthsInYear(dayjs(rangeDate().from).startOf("year"));
-  const daysInMonth = () => CalendarUtils.getDaysInMonth(dayjs(rangeDate().from).startOf("month"));
-  const fillFirstWeekOfTheMonth = () => CalendarUtils.getFillDaysForFirstWeek(dayjs(rangeDate().from).startOf("month"));
-  const fillLastWeekOfTheMonth = () => CalendarUtils.getFillDaysForLastWeek(dayjs(rangeDate().from).endOf("month"));
+  const days = () =>
+    CalendarUtils.createCalendarMonth({
+      from: dayjs(rangeDate().from),
+      to: dayjs(rangeDate().to),
+    });
+
+  const monthFromRange = () =>
+    CalendarUtils.getMonthFromRange({
+      from: dayjs(rangeDate().from),
+      to: dayjs(rangeDate().to),
+    });
 
   const [hoveredView, setHoveredView] = createSignal<"week" | "month" | "year" | null>(null);
 
@@ -253,6 +279,11 @@ export default function Calendar() {
                   }}
                   onClick={() => {
                     setView("year");
+                    // set the url params for the view
+                    const url = new URL(window.location.href);
+                    url.searchParams.set("from", dayjs(rangeDate().from).startOf("year").format("YYYY-MM-DD"));
+                    url.searchParams.set("to", dayjs(rangeDate().to).endOf("year").format("YYYY-MM-DD"));
+                    window.history.pushState({}, "", url.toString());
                   }}
                 >
                   <svg
@@ -300,8 +331,8 @@ export default function Calendar() {
                     class="text-neutral-500 hover:text-black dark:hover:text-white"
                     onClick={() => {
                       setRangeDate({
-                        from: dayjs(rangeDate().from).subtract(1, "year").toDate(),
-                        to: dayjs(rangeDate().to).subtract(1, "year").toDate(),
+                        from: dayjs(rangeDate().from).startOf("year").subtract(1, "year").toDate(),
+                        to: dayjs(rangeDate().to).endOf("year").subtract(1, "year").toDate(),
                       });
                     }}
                   >
@@ -324,8 +355,8 @@ export default function Calendar() {
                     class="text-neutral-500 hover:text-black dark:hover:text-white"
                     onClick={() => {
                       setRangeDate({
-                        from: dayjs(rangeDate().from).add(1, "year").toDate(),
-                        to: dayjs(rangeDate().to).add(1, "year").toDate(),
+                        from: dayjs(rangeDate().from).startOf("year").add(1, "year").toDate(),
+                        to: dayjs(rangeDate().to).endOf("year").add(1, "year").toDate(),
                       });
                     }}
                   >
@@ -356,7 +387,12 @@ export default function Calendar() {
                 >
                   <div class="text-center text-xs font-medium group-hover:text-black dark:group-hover:text-white ">
                     <Switch>
-                      <Match when={view() === "month"}>{dayjs(rangeDate().from).format("MMMM YYYY")}</Match>
+                      <Match when={view() === "month"}>
+                        {CalendarUtils.getMonthFromRange({
+                          from: dayjs(rangeDate().from),
+                          to: dayjs(rangeDate().to),
+                        }).format("MMMM YYYY")}
+                      </Match>
                       <Match when={view() === "week"}>Week {dayjs(rangeDate().from).format("w")}</Match>
                       <Match when={view() === "year"}>Year {dayjs(rangeDate().from).format("YYYY")}</Match>
                     </Switch>
@@ -394,8 +430,8 @@ export default function Calendar() {
                                 class="p-0.5 text-neutral-500 hover:text-black dark:hover:text-white"
                                 onClick={() => {
                                   setRangeDate({
-                                    from: dayjs(rangeDate().from).subtract(1, "year").toDate(),
-                                    to: dayjs(rangeDate().to).subtract(1, "year").toDate(),
+                                    from: dayjs(rangeDate().from).startOf("year").subtract(1, "year").toDate(),
+                                    to: dayjs(rangeDate().to).endOf("year").subtract(1, "year").toDate(),
                                   });
                                 }}
                               >
@@ -420,8 +456,8 @@ export default function Calendar() {
                                 class="p-0.5 text-neutral-500 hover:text-black dark:hover:text-white"
                                 onClick={() => {
                                   setRangeDate({
-                                    from: dayjs(rangeDate().from).add(1, "year").toDate(),
-                                    to: dayjs(rangeDate().to).add(1, "year").toDate(),
+                                    from: dayjs(rangeDate().from).startOf("year").add(1, "year").toDate(),
+                                    to: dayjs(rangeDate().to).endOf("year").add(1, "year").toDate(),
                                   });
                                 }}
                               >
@@ -448,21 +484,16 @@ export default function Calendar() {
                                   class={cn(
                                     "flex flex-col items-center justify-center text-xs font-medium w-full cursor-pointer select-none p-2",
                                     {
-                                      "bg-emerald-500 text-white dark:bg-emerald-700 border-b-0": month.isSame(
-                                        dayjs(rangeDate().from),
-                                        "month"
-                                      ),
-                                      "hover:bg-neutral-100 dark:hover:bg-neutral-950": !month.isSame(
-                                        dayjs(rangeDate().from),
+                                      "bg-emerald-500 text-white dark:bg-emerald-700 border-b-0":
+                                        monthFromRange().isSame(month, "month"),
+                                      "hover:bg-neutral-100 dark:hover:bg-neutral-950": !monthFromRange().isSame(
+                                        month,
                                         "month"
                                       ),
                                     }
                                   )}
                                   onClick={() => {
-                                    setRangeDate({
-                                      from: month.startOf("month").toDate(),
-                                      to: month.endOf("month").toDate(),
-                                    });
+                                    setRangeDate(CalendarUtils.createRangeFromMonth(month).range);
                                   }}
                                 >
                                   <div class="text-xs font-medium">{month.format("MMM")}</div>
@@ -478,8 +509,8 @@ export default function Calendar() {
                                 class="p-0.5 text-neutral-500 hover:text-black dark:hover:text-white"
                                 onClick={() => {
                                   setRangeDate({
-                                    from: dayjs(rangeDate().from).subtract(1, "month").toDate(),
-                                    to: dayjs(rangeDate().to).subtract(1, "month").toDate(),
+                                    from: dayjs(rangeDate().from).startOf("week").subtract(1, "week").toDate(),
+                                    to: dayjs(rangeDate().to).endOf("week").subtract(1, "week").toDate(),
                                   });
                                 }}
                               >
@@ -504,8 +535,8 @@ export default function Calendar() {
                                 class="p-0.5 text-neutral-500 hover:text-black dark:hover:text-white"
                                 onClick={() => {
                                   setRangeDate({
-                                    from: dayjs(rangeDate().from).add(1, "month").toDate(),
-                                    to: dayjs(rangeDate().to).add(1, "month").toDate(),
+                                    from: dayjs(rangeDate().from).startOf("week").add(1, "week").toDate(),
+                                    to: dayjs(rangeDate().to).endOf("week").add(1, "week").toDate(),
                                   });
                                 }}
                               >
@@ -616,17 +647,10 @@ export default function Calendar() {
               <Match when={view() === "month"}>
                 <div
                   class={cn("grid grid-cols-7 grid-rows-5 w-full h-full", {
-                    "grid-rows-6":
-                      fillFirstWeekOfTheMonth().length + daysInMonth().length + fillLastWeekOfTheMonth().length === 42,
+                    "grid-rows-6": days().length === 42,
                   })}
                 >
-                  <For each={fillFirstWeekOfTheMonth()}>
-                    {(days, index) => <div class="w-full h-full bg-neutral-100 dark:bg-neutral-950"></div>}
-                  </For>
-                  <For each={daysInMonth()}>
-                    {(days, index) => <div class="w-full h-full bg-neutral-200 dark:bg-neutral-900"></div>}
-                  </For>
-                  <For each={fillLastWeekOfTheMonth()}>
+                  <For each={CalendarUtils.createRangeFromMonth(dayjs(rangeDate().from).startOf("month")).days}>
                     {(days, index) => <div class="w-full h-full bg-neutral-100 dark:bg-neutral-950"></div>}
                   </For>
                 </div>
@@ -637,11 +661,10 @@ export default function Calendar() {
       >
         <CalendarComp
           calendar={{
-            daysInMonth,
-            fillFirstWeekOfTheMonth,
-            fillLastWeekOfTheMonth,
+            days,
             monthsInYear,
             weeks,
+            monthFromRange,
           }}
           filter={{
             search,
