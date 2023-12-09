@@ -241,6 +241,11 @@ export default function Calendar() {
                   }}
                   onClick={() => {
                     setView("month");
+                    // check if the url params are set
+                    const url = new URL(window.location.href);
+                    url.searchParams.set("from", dayjs(rangeDate().from).startOf("month").format("YYYY-MM-DD"));
+                    url.searchParams.set("to", dayjs(rangeDate().from).endOf("month").format("YYYY-MM-DD"));
+                    window.history.pushState({}, "", url.toString());
                   }}
                 >
                   <svg
