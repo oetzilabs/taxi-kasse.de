@@ -56,7 +56,7 @@ export default function CalendarPage() {
       case "week":
         url.searchParams.set("view", "week");
         url.searchParams.set("week", String(options.week));
-        url.searchParams.set("month", String(options.month));
+        url.searchParams.delete("month");
         url.searchParams.set("year", String(options.year));
         break;
       case "month":
@@ -119,26 +119,19 @@ export default function CalendarPage() {
       switch (theView) {
         case "week":
           const week = url.searchParams.get("week");
-          const month = url.searchParams.get("month");
           const year = url.searchParams.get("year");
-          if (!week || !month || !year) return;
+          if (!week || !year) return;
+          console.log("parsing week view", week, year);
           setCalendarOptions(
             produce((draft) => {
               draft.view = theView;
               draft.range = {
-                from: dayjs()
-                  .week(Number(week))
-                  .month(Number(month) - 1)
-                  .year(Number(year))
-                  .startOf("week")
-                  .toDate(),
-                to: dayjs()
-                  .week(Number(week))
-                  .month(Number(month) - 1)
-                  .year(Number(year))
-                  .endOf("week")
-                  .toDate(),
+                from: dayjs().week(Number(week)).year(Number(year)).startOf("week").toDate(),
+                to: dayjs().week(Number(week)).year(Number(year)).endOf("week").toDate(),
               };
+              draft.week = Number(week);
+              draft.month = dayjs().week(Number(week)).year(Number(year)).month();
+              draft.year = Number(year);
             })
           );
           break;
@@ -161,6 +154,14 @@ export default function CalendarPage() {
                   .endOf("month")
                   .toDate(),
               };
+              draft.month = Number(month2) - 1;
+              draft.week = dayjs()
+                .month(Number(month2) - 1)
+                .year(Number(year2))
+                .startOf("month")
+                .startOf("week")
+                .week();
+              draft.year = Number(year2);
             })
           );
           break;
@@ -174,6 +175,9 @@ export default function CalendarPage() {
                 from: dayjs().year(Number(year3)).startOf("year").toDate(),
                 to: dayjs().year(Number(year3)).endOf("year").toDate(),
               };
+              draft.month = dayjs().year(Number(year3)).month();
+              draft.week = dayjs().year(Number(year3)).startOf("year").startOf("week").week();
+              draft.year = Number(year3);
             })
           );
           break;
@@ -312,7 +316,7 @@ export default function CalendarPage() {
                           v.year = dayjs(v.range.from).year();
                           v.range = {
                             from: dayjs(v.range.from).startOf("week").toDate(),
-                            to: dayjs(v.range.to).endOf("week").toDate(),
+                            to: dayjs(v.range.from).endOf("week").toDate(),
                           };
                         })
                       );
@@ -687,10 +691,13 @@ export default function CalendarPage() {
                                       produce((v) => {
                                         v.range = {
                                           from: dayjs(v.range.from).startOf("week").subtract(1, "week").toDate(),
-                                          to: dayjs(v.range.to).endOf("week").subtract(1, "week").toDate(),
+                                          to: dayjs(v.range.from).endOf("week").subtract(1, "week").toDate(),
                                         };
                                         v.week = dayjs(v.range.from).week();
-                                        v.month = dayjs(v.range.from).month();
+                                        v.month = CalendarUtils.getMonthFromRange({
+                                          from: dayjs(v.range.from),
+                                          to: dayjs(v.range.to),
+                                        }).month();
                                         v.year = dayjs(v.range.from).year();
                                       })
                                     );
@@ -720,10 +727,13 @@ export default function CalendarPage() {
                                       produce((v) => {
                                         v.range = {
                                           from: dayjs(v.range.from).startOf("week").add(1, "week").toDate(),
-                                          to: dayjs(v.range.to).endOf("week").add(1, "week").toDate(),
+                                          to: dayjs(v.range.from).endOf("week").add(1, "week").toDate(),
                                         };
                                         v.week = dayjs(v.range.from).week();
-                                        v.month = dayjs(v.range.from).month();
+                                        v.month = CalendarUtils.getMonthFromRange({
+                                          from: dayjs(v.range.from),
+                                          to: dayjs(v.range.to),
+                                        }).month();
                                         v.year = dayjs(v.range.from).year();
                                       })
                                     );
@@ -762,7 +772,7 @@ export default function CalendarPage() {
                                   </div>
                                   <For
                                     each={CalendarUtils.monthWeeks(
-                                      dayjs().month(calendarOptions.month).startOf("week")
+                                      dayjs().month(calendarOptions.month).year(calendarOptions.year)
                                     )}
                                   >
                                     {(week, index) => (
@@ -793,6 +803,9 @@ export default function CalendarPage() {
                                                 from: week.startOf("week").toDate(),
                                                 to: week.endOf("week").toDate(),
                                               };
+                                              v.week = week.week();
+                                              v.month = week.month();
+                                              v.year = week.year();
                                             })
                                           );
                                         }}
@@ -837,71 +850,73 @@ export default function CalendarPage() {
             </div>
           </div>
         </div>
-        <Suspense
-          fallback={
-            <div class="flex flex-col w-full h-full">
-              <Switch>
-                <Match when={calendarOptions.view === "week"}>
-                  <div class="grid grid-cols-7 grid-rows-6 w-full h-full">
-                    <div class="flex flex-col gap-4"></div>
-                  </div>
-                </Match>
-                <Match when={calendarOptions.view === "month"}>
-                  <div
-                    class={cn("grid grid-cols-7 grid-rows-5 w-full h-full", {
-                      "grid-rows-6":
-                        CalendarUtils.createCalendarMonth({
-                          month: calendarOptions.month,
-                          year: calendarOptions.year,
-                        }).length === 42,
-                    })}
-                  >
-                    <For
-                      each={CalendarUtils.createCalendarMonth({
-                        month: calendarOptions.month,
-                        year: calendarOptions.year,
+        <div class="flex flex-col w-full h-full overflow-clip">
+          <Suspense
+            fallback={
+              <div class="flex flex-col w-full h-full">
+                <Switch>
+                  <Match when={calendarOptions.view === "week"}>
+                    <div class="grid grid-cols-7 grid-rows-6 w-full h-full">
+                      <div class="flex flex-col gap-4"></div>
+                    </div>
+                  </Match>
+                  <Match when={calendarOptions.view === "month"}>
+                    <div
+                      class={cn("grid grid-cols-7 grid-rows-5 w-full h-full", {
+                        "grid-rows-6":
+                          CalendarUtils.createCalendarMonth({
+                            month: calendarOptions.month,
+                            year: calendarOptions.year,
+                          }).length === 42,
                       })}
                     >
-                      {(days, index) => <div class="w-full h-full bg-neutral-100 dark:bg-neutral-950"></div>}
-                    </For>
-                  </div>
-                </Match>
-              </Switch>
-            </div>
-          }
-        >
-          <Switch>
-            <Match when={calendarOptions.view === "month"}>
-              <CalendarMonth
-                month={() => calendarOptions.month}
-                year={() => calendarOptions.year}
-                range={() => ({
-                  from: calendarOptions.range.from,
-                  to: calendarOptions.range.to,
-                })}
-              />
-            </Match>
-            <Match when={calendarOptions.view === "week"}>
-              <CalendarWeek
-                week={() => calendarOptions.week}
-                year={() => calendarOptions.year}
-                range={() => ({
-                  from: calendarOptions.range.from,
-                  to: calendarOptions.range.to,
-                })}
-              />
-            </Match>
-            <Match when={calendarOptions.view === "year"}>
-              <CalendarYear
-                year={() => calendarOptions.year}
-                range={() => ({
-                  from: calendarOptions.range.from,
-                  to: calendarOptions.range.to,
-                })}
-              />
-            </Match>
-          </Switch>
-        </Suspense>
+                      <For
+                        each={CalendarUtils.createCalendarMonth({
+                          month: calendarOptions.month,
+                          year: calendarOptions.year,
+                        })}
+                      >
+                        {(days, index) => <div class="w-full h-full bg-neutral-100 dark:bg-neutral-950"></div>}
+                      </For>
+                    </div>
+                  </Match>
+                </Switch>
+              </div>
+            }
+          >
+            <Switch>
+              <Match when={calendarOptions.view === "month"}>
+                <CalendarMonth
+                  month={() => calendarOptions.month}
+                  year={() => calendarOptions.year}
+                  range={() => ({
+                    from: calendarOptions.range.from,
+                    to: calendarOptions.range.to,
+                  })}
+                />
+              </Match>
+              <Match when={calendarOptions.view === "week"}>
+                <CalendarWeek
+                  week={() => calendarOptions.week}
+                  year={() => calendarOptions.year}
+                  range={() => ({
+                    from: calendarOptions.range.from,
+                    to: calendarOptions.range.to,
+                  })}
+                />
+              </Match>
+              <Match when={calendarOptions.view === "year"}>
+                <CalendarYear
+                  year={() => calendarOptions.year}
+                  range={() => ({
+                    from: calendarOptions.range.from,
+                    to: calendarOptions.range.to,
+                  })}
+                />
+              </Match>
+            </Switch>
+          </Suspense>
+        </div>
       </div>
     </SearchContext.Provider>
   );

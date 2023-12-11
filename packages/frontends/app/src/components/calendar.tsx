@@ -186,12 +186,17 @@ export const CalendarWeek = (props: {
     to: Date;
   };
 }) => {
-  const days = () =>
-    CalendarUtils.createCalendarWeek({
-      year: props.year(),
-      week: props.week(),
-    });
-
+  const days = () => {
+    let d = [];
+    let startDay = dayjs(props.range().from);
+    let endDay = dayjs(props.range().to);
+    let diff = endDay.diff(startDay, "day");
+    for (let i = 0; i < diff; i++) {
+      d.push(startDay.add(i, "day"));
+    }
+    d.push(endDay);
+    return d;
+  };
   const [auth] = useAuth();
   const calendar = createQuery(() => ({
     queryKey: ["calendar", props.range()],
@@ -214,7 +219,7 @@ export const CalendarWeek = (props: {
         <Show
           when={!calendar.isPending && calendar.isSuccess && calendar.data}
           fallback={
-            <div class="relative flex flex-col">
+            <div class="relative flex flex-col w-full h-full">
               <Switch
                 fallback={
                   <div class="flex flex-col gap-4">
@@ -231,21 +236,12 @@ export const CalendarWeek = (props: {
                 }
               >
                 <Match when={calendar.isPending}>
-                  <div class="flex flex-col gap-4 w-full h-full items-center justify-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      class="animate-spin"
-                    >
-                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                    </svg>
+                  <div class="grid grid-cols-7 grid-rows-1 w-full h-full">
+                    <For each={days()}>
+                      {(days, index) => (
+                        <div class="w-full h-full bg-neutral-100 dark:bg-neutral-950 border-r border-neutral-300 dark:border-neutral-800"></div>
+                      )}
+                    </For>
                   </div>
                 </Match>
               </Switch>
@@ -258,11 +254,10 @@ export const CalendarWeek = (props: {
                 <For each={days()}>
                   {(entry) => (
                     <div
-                      class={cn("w-full h-full border-r border-b border-transparent", {
+                      class={cn("w-full h-full border-r border-b border-neutral-300 dark:border-neutral-800", {
                         "bg-black dark:bg-white text-white dark:text-black dark:border-neutral-300": c().some((e) =>
                           dayjs(e.date).isSame(entry, "day")
                         ),
-                        "opacity-50": entry.week() !== props.week(),
                         "hover:bg-neutral-100 dark:hover:bg-neutral-950": !c().some((e) =>
                           dayjs(e.date).isSame(entry, "day")
                         ),
@@ -292,7 +287,9 @@ export const CalendarWeek = (props: {
       <Match when={auth.isLoading}>
         <div class="grid grid-cols-7 grid-rows-1 w-full h-full">
           <For each={days()}>
-            {(days, index) => <div class="w-full h-full bg-neutral-100 dark:bg-neutral-950"></div>}
+            {(days, index) => (
+              <div class="w-full h-full bg-neutral-100 dark:bg-neutral-950 border-r border-neutral-300 dark:border-neutral-800"></div>
+            )}
           </For>
         </div>
       </Match>
