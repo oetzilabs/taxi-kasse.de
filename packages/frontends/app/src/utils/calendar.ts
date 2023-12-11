@@ -88,12 +88,14 @@ export const getMonthFromRange = (range: { from: dayjs.Dayjs; to: dayjs.Dayjs })
     monthDays[month] += 1;
   }
   let biggestMonth;
-  for (const month in monthDays) {
-    if (!biggestMonth) {
-      biggestMonth = Number(month);
+  let kv = Object.entries(monthDays);
+  for (const [month, days] of kv) {
+    const m = Number(month);
+    if (biggestMonth === undefined) {
+      biggestMonth = m;
     }
-    if (monthDays[month] > monthDays[biggestMonth]) {
-      biggestMonth = Number(month);
+    if (days > monthDays[biggestMonth]) {
+      biggestMonth = m;
     }
   }
   return range.from.startOf("month").set("month", biggestMonth!);
@@ -111,13 +113,35 @@ export const createRangeFromMonth = (date: dayjs.Dayjs) => {
   return { range, days };
 };
 
-export const createCalendarMonth = ({ from, to }: { from: dayjs.Dayjs; to: dayjs.Dayjs }) => {
-  // date here is the first day of the last months, last week.
+export const createCalendarMonth = ({ month, year }: { month: number; year: number }) => {
+  const date = dayjs().set("month", month).set("year", year);
   const days = [];
-  const diff = to.diff(from, "days");
+  const startDay = date.startOf("month").startOf("week");
+  const endDay = date.endOf("month").endOf("week");
+  const diff = endDay.diff(startDay, "days");
   for (let i = 0; i < diff; i++) {
-    days.push(from.add(i, "day"));
+    days.push(startDay.add(i, "day"));
   }
-  days.push(to);
+  days.push(endDay);
   return days;
+};
+
+export const createCalendarWeek = ({ week, year }: { week: number; year: number }) => {
+  const date = dayjs().set("year", year).startOf("year").add(week, "week");
+  const days = [];
+  const startDay = date.startOf("week");
+  for (let i = 0; i < 7; i++) {
+    days.push(startDay.add(i, "day"));
+  }
+  return days;
+};
+
+export const createCalendarYear = ({ year }: { year: number }) => {
+  const date = dayjs().set("year", year);
+  const months = [];
+  const startMonth = date.startOf("year");
+  for (let i = 0; i < 12; i++) {
+    months.push(startMonth.add(i, "month"));
+  }
+  return months;
 };
