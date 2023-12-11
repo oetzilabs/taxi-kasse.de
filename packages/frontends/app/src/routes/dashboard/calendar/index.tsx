@@ -51,6 +51,7 @@ export default function CalendarPage() {
 
   const setUrlParams = (options: CalendarOptions) => {
     const url = new URL(window.location.href);
+    // remove other params too
     switch (options.view) {
       case "week":
         url.searchParams.set("view", "week");
@@ -60,11 +61,14 @@ export default function CalendarPage() {
         break;
       case "month":
         url.searchParams.set("view", "month");
-        url.searchParams.set("month", String(options.month));
+        url.searchParams.delete("week");
+        url.searchParams.set("month", String(options.month + 1));
         url.searchParams.set("year", String(options.year));
         break;
       case "year":
         url.searchParams.set("view", "year");
+        url.searchParams.delete("week");
+        url.searchParams.delete("month");
         url.searchParams.set("year", String(options.year));
         break;
     }
@@ -122,8 +126,18 @@ export default function CalendarPage() {
             produce((draft) => {
               draft.view = theView;
               draft.range = {
-                from: dayjs().week(Number(week)).month(Number(month)).year(Number(year)).startOf("week").toDate(),
-                to: dayjs().week(Number(week)).month(Number(month)).year(Number(year)).endOf("week").toDate(),
+                from: dayjs()
+                  .week(Number(week))
+                  .month(Number(month) - 1)
+                  .year(Number(year))
+                  .startOf("week")
+                  .toDate(),
+                to: dayjs()
+                  .week(Number(week))
+                  .month(Number(month) - 1)
+                  .year(Number(year))
+                  .endOf("week")
+                  .toDate(),
               };
             })
           );
@@ -136,8 +150,16 @@ export default function CalendarPage() {
             produce((draft) => {
               draft.view = theView;
               draft.range = {
-                from: dayjs().month(Number(month2)).year(Number(year2)).startOf("month").toDate(),
-                to: dayjs().month(Number(month2)).year(Number(year2)).endOf("month").toDate(),
+                from: dayjs()
+                  .month(Number(month2) - 1)
+                  .year(Number(year2))
+                  .startOf("month")
+                  .toDate(),
+                to: dayjs()
+                  .month(Number(month2) - 1)
+                  .year(Number(year2))
+                  .endOf("month")
+                  .toDate(),
               };
             })
           );
@@ -689,7 +711,7 @@ export default function CalendarPage() {
                                   </svg>
                                 </button>
                                 <div class="text-center text-xs font-medium">
-                                  {dayjs().week(calendarOptions.week).format("MMMM YYYY")}
+                                  Week {dayjs().week(calendarOptions.week).format("W - YYYY")}
                                 </div>
                                 <button
                                   class="p-0.5 text-neutral-500 hover:text-black dark:hover:text-white"
