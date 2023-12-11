@@ -228,7 +228,7 @@ export default function CalendarPage() {
                 </svg>
                 <TextField.Input
                   ref={input!}
-                  class="text-xs font-medium text-neutral-500 dark:text-neutral-400 bg-transparent outline-none ring-0 focus:ring-0 focus:out w-[500px]"
+                  class="text-xs font-medium text-neutral-500 dark:text-neutral-400 bg-transparent outline-none ring-0 focus:ring-0 focus:out max-w-[500px] w-full "
                   placeholder="Search"
                   onInput={(e) => setSearchDebounced(e.currentTarget.value)}
                 />

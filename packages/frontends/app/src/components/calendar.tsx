@@ -123,21 +123,21 @@ export const CalendarMonth = (props: {
           {(c) => (
             <div class="flex flex-col w-full h-full">
               <div
-                class={cn("grid grid-cols-7 grid-rows-5 w-full h-full", {
-                  "grid-rows-6": days().length === 42,
+                class={cn("flex flex-col 2xl:grid 2xl:grid-cols-7 2xl:grid-rows-5 w-full h-full", {
+                  "2xl:grid-rows-6": days().length === 42,
                 })}
               >
                 <For each={days()}>
-                  {(entry) => (
+                  {(entry, index) => (
                     <div
                       class={cn("w-full h-full border-r border-b border-transparent", {
-                        "bg-black dark:bg-white text-white dark:text-black dark:border-neutral-300": c().some((e) =>
-                          dayjs(e.date).isSame(entry, "day")
-                        ),
+                        "bg-black dark:bg-white text-white dark:text-black dark:border-neutral-300 border-neutral-800":
+                          c().some((e) => dayjs(e.date).isSame(entry, "day")),
                         "opacity-50": entry.month() !== props.month(),
-                        "hover:bg-neutral-100 dark:hover:bg-neutral-950": !c().some((e) =>
-                          dayjs(e.date).isSame(entry, "day")
-                        ),
+                        "hover:bg-neutral-100 dark:hover:bg-neutral-950 dark:border-neutral-800 border-neutral-300":
+                          !c().some((e) => dayjs(e.date).isSame(entry, "day")),
+                        "border-r-0": index() % 7 === 6,
+                        "border-b-0": index() > days().length - 8,
                       })}
                       onMouseEnter={() => {
                         setCurrentHovered(entry);
@@ -250,17 +250,17 @@ export const CalendarWeek = (props: {
         >
           {(c) => (
             <div class="flex flex-col w-full h-full">
-              <div class="grid grid-cols-7 grid-rows-1 w-full h-full">
+              <div class="flex flex-col 2xl:grid 2xl:grid-cols-7 2xl:grid-rows-1 w-full h-full">
                 <For each={days()}>
                   {(entry) => (
                     <div
-                      class={cn("w-full h-full border-r border-b border-neutral-300 dark:border-neutral-800", {
+                      class={cn("w-full h-full border-r border-neutral-300 dark:border-neutral-800", {
                         "bg-black dark:bg-white text-white dark:text-black dark:border-neutral-300": c().some((e) =>
                           dayjs(e.date).isSame(entry, "day")
                         ),
-                        "hover:bg-neutral-100 dark:hover:bg-neutral-950": !c().some((e) =>
-                          dayjs(e.date).isSame(entry, "day")
-                        ),
+                        "hover:bg-neutral-100 dark:hover:bg-neutral-950 dark:border-neutral-800 border-neutral-300":
+                          !c().some((e) => dayjs(e.date).isSame(entry, "day")),
+                        "border-r-0": entry.day() === 6,
                       })}
                       onMouseEnter={() => {
                         setCurrentHovered(entry);
@@ -285,7 +285,7 @@ export const CalendarWeek = (props: {
         </Show>
       </Match>
       <Match when={auth.isLoading}>
-        <div class="grid grid-cols-7 grid-rows-1 w-full h-full">
+        <div class="flex flex-col 2xl:grid 2xl:grid-cols-7 2xl:grid-rows-1 w-full h-full">
           <For each={days()}>
             {(days, index) => (
               <div class="w-full h-full bg-neutral-100 dark:bg-neutral-950 border-r border-neutral-300 dark:border-neutral-800"></div>
@@ -371,7 +371,7 @@ export const CalendarYear = (props: {
         >
           {(c) => (
             <div class="flex flex-col w-full h-full">
-              <div class="grid grid-cols-4 grid-rows-3 w-full h-full">
+              <div class="flex flex-col xl:grid xl:grid-cols-4 xl:grid-rows-3 w-full h-full">
                 <For each={months()}>
                   {(entry) => (
                     <div

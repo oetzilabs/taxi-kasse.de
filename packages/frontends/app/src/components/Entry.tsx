@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import { Users } from "../utils/api/queries";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { Accessor, Match, Switch, createSignal } from "solid-js";
+import { Accessor, Match, Show, Switch, createSignal } from "solid-js";
 import { Popover, TextField } from "@kobalte/core";
 import { cn } from "../utils/cn";
 import { Modal } from "./Modal";
@@ -26,7 +26,31 @@ export const CalendarEntry = (props: {
 }) => {
   return (
     <div class={cn("flex flex-col gap-2 group w-full h-full items-stretch")}>
-      <div class="p-4">{props.date.format("dddd Do MMM")}</div>
+      <div class="p-4 w-full flex flex-row justify-between items-center">
+        <div class="w-full">{props.date.format("dddd Do MMM")}</div>
+        <div class="gap-2 flex flex-row w-max">
+          <Show when={props.entry}>
+            <button class="cursor-pointer px-2 py-1 bg-neutral-200 dark:bg-neutral-700 text-black dark:text-white rounded-md flex flex-row gap-2 items-center justify-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-pencil"
+              >
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                <path d="m15 5 4 4" />
+              </svg>
+              <span class="text-xs">Edit</span>
+            </button>
+          </Show>
+        </div>
+      </div>
       <Switch>
         <Match when={props.entry}>
           <div class="flex flex-col gap-2 h-full">
@@ -151,7 +175,30 @@ export const CalendarMonthEntry = (props: {
 }) => {
   return (
     <div class={cn("flex flex-col gap-2 group w-full h-full items-stretch")}>
-      <div class="p-4">{props.date.format("MMMM YYYY")}</div>
+      <div class="flex flex-row justify-between items-center">
+        <div class="p-4">{props.date.format("MMMM YYYY")}</div>
+        <div class="gap-2 flex flex-row">
+          <Match when={props.entry}>
+            <button class="p-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-pencil"
+              >
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                <path d="m15 5 4 4" />
+              </svg>
+            </button>
+          </Match>
+        </div>
+      </div>
       <Switch>
         <Match when={props.entry}>
           <div class="flex flex-col gap-2 h-full">
