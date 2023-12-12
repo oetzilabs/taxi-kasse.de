@@ -18,8 +18,8 @@ importers:
         specifier: 10.3.0
         version: 10.3.0
       sst:
-        specifier: 2.38.6
-        version: 2.38.6
+        specifier: 2.38.7
+        version: 2.38.7
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -58,8 +58,8 @@ importers:
         specifier: ^0.19.13
         version: 0.19.13
       sst:
-        specifier: 2.38.6
-        version: 2.38.6
+        specifier: 2.38.7
+        version: 2.38.7
       vitest:
         specifier: ^0.34.6
         version: 0.34.6
@@ -143,8 +143,8 @@ importers:
         specifier: ^0.3.6
         version: 0.3.6(solid-start@0.3.10)(vite@4.4.11)
       solid-start-sst:
-        specifier: 2.38.6
-        version: 2.38.6(solid-start@0.3.10)(vite@4.4.11)
+        specifier: 2.38.7
+        version: 2.38.7(solid-start@0.3.10)(vite@4.4.11)
       tailwindcss:
         specifier: ^3.3.3
         version: 3.3.3
@@ -207,8 +207,8 @@ importers:
         specifier: ^20.8.4
         version: 20.8.4
       sst:
-        specifier: 2.38.6
-        version: 2.38.6
+        specifier: 2.38.7
+        version: 2.38.7
       vitest:
         specifier: ^0.34.6
         version: 0.34.6
@@ -9882,8 +9882,8 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /solid-start-sst@2.38.6(solid-start@0.3.10)(vite@4.4.11):
-    resolution: {integrity: sha512-dKWJAe90xBWrFvR54ynb/GilU6zOY5czx4G2rDcp3kv0lRT0XnBlKxSFhJm7GRElDCUO9mPfhkwV6D56urjlHg==}
+  /solid-start-sst@2.38.7(solid-start@0.3.10)(vite@4.4.11):
+    resolution: {integrity: sha512-jRAR8VFCnQJBp4CP2/+fw/Bf8qAJUlH5EqdhNB/ci7MEMti4jHiUwP4MMvr1NT82bqN69cuDsybQSfYLp837lQ==}
     peerDependencies:
       solid-start: '*'
       vite: '*'
@@ -10019,8 +10019,8 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /sst@2.38.6:
-    resolution: {integrity: sha512-nojWCOEwTHHyb/iFCn+HKLuwhLNp/wbQH3wFyWzJfFMAdjUDXscTc5o1r3IS91Q04V6G6S/JF8Zt7WbRw2LX9Q==}
+  /sst@2.38.7:
+    resolution: {integrity: sha512-1bwPv/8suQQ5qXybAN1C7oHB7gjA/daRCI0TY/jTjgQn7ebJRvCvsoYtoJsf7q3ToPf1xc5X+yo7p0vyeLvmSA==}
     hasBin: true
     peerDependencies:
       '@sls-next/lambda-at-edge': ^3.7.0
