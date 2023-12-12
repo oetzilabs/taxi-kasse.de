@@ -1,11 +1,13 @@
 import L, { LatLng, LatLngTuple } from "leaflet";
 import "leaflet-routing-machine";
 import "leaflet/dist/leaflet.css";
-import { Match, Show, Switch, createEffect, createSignal, on, onCleanup, onMount } from "solid-js";
+import { For, Match, Show, Switch, createEffect, createSignal, on, onCleanup, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
 import { ThemeColors, useTheme } from "./theme";
 import { Modal } from "./Modal";
 import { TextField } from "@kobalte/core";
+import { text } from "../../../../functions/src/utils";
+import { createMutation } from "@tanstack/solid-query";
 
 type Geo =
   | {
@@ -35,6 +37,7 @@ const [darkTile] = createSignal<L.TileLayer>(
   L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
     subdomains: "abcd",
     maxZoom: 20,
+    attribution: `Uses OpenStreetMap data © CartoDB | Tiles © CARTO & OSM Routing via <a href="https://www.openstreetmap.org/fixthemap">OSRM</a>`,
   })
 );
 
@@ -42,6 +45,7 @@ const [lightTile] = createSignal<L.TileLayer>(
   L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
     subdomains: "abcd",
     maxZoom: 20,
+    attribution: `Uses OpenStreetMap data © CartoDB | Tiles © CARTO & OSM Routing via <a href="https://www.openstreetmap.org/fixthemap">OSRM</a>`,
   })
 );
 
@@ -49,7 +53,10 @@ const routeTo = (coordinates: [LatLng, LatLng, ...LatLng[]]) => {
   const m = map();
   if (!m) return;
   const steps: L.Routing.IInstruction[] = [];
-  const osmrv1 = L.Routing.osrmv1();
+  const osmrv1 = L.Routing.osrmv1({
+    serviceUrl: "http://localhost:5000/route/v1",
+    suppressDemoServerWarning: true,
+  });
   osmrv1.route(
     coordinates.map((x) => L.Routing.waypoint(x)),
     // @ts-ignore
@@ -64,13 +71,15 @@ const routeTo = (coordinates: [LatLng, LatLng, ...LatLng[]]) => {
         coordinates: LatLng[];
         instructions: L.Routing.IInstruction[];
         waypoints: L.Routing.Waypoint[];
-      }
+      }[]
     ) {
       if (err) {
         console.log(err);
         return;
       }
-      steps.push(...routes.instructions);
+      const rr = routes[0];
+      if (!rr) return;
+      steps.push(...rr.instructions);
     }
   );
 
@@ -89,7 +98,12 @@ const routeTo = (coordinates: [LatLng, LatLng, ...LatLng[]]) => {
     autoRoute: true,
     waypoints: coordinates,
     containerClassName: "hidden",
+    router: L.Routing.osrmv1({
+      serviceUrl: "http://localhost:5000/route/v1",
+      suppressDemoServerWarning: true,
+    }),
   });
+
   routing.addTo(m);
   return {
     routing,
@@ -156,8 +170,6 @@ function loadMap(
   document.title = `Map: ${coordinates[0]}, ${coordinates[1]}${accuracy ? ` - ${accuracy}m` : ""}`;
   // L.marker([51.5, -0.09]).addTo(map).bindPopup("A pretty CSS3 popup.<br> Easily customizable.").openPopup();
 }
-const [steps, setSteps] = createSignal<L.Routing.IInstruction[]>([]);
-const [currentStep, setCurrentStep] = createSignal<L.Routing.IInstruction | null>(null);
 const [r, setR] = createSignal<any>(null);
 
 export const MapComponent = () => {
@@ -231,6 +243,8 @@ export const MapComponent = () => {
     localStorage.setItem("map", JSON.stringify(mapStore));
   });
 
+  const [currentStep, setCurrentStep] = createSignal<L.Routing.IInstruction | null>(null);
+  const [steps, setSteps] = createSignal<L.Routing.IInstruction[]>([]);
   const [startLocation, setStartLocation] = createSignal<string>("");
   const [endLocation, setEndLocation] = createSignal<string>("");
   const [modalOpen, setModalOpen] = createSignal<boolean>(false);
@@ -313,14 +327,14 @@ export const MapComponent = () => {
         </button>
       </div>
       <div class="absolute z-[40] bottom-2 left-[50%] -translate-x-[50%] ">
-        <Show
-          fallback={
+        <Switch>
+          <Match when={steps().length === 0}>
             <Modal
               open={modalOpen()}
               onOpenChange={setModalOpen}
               title="Start a new Route"
               trigger={
-                <button class="flex flex-col gap-2 w-max bg-white dark:bg-black px-4 py-2 rounded-md shadow-md border border-neutral-200 dark:border-neutral-800">
+                <div class="flex flex-col gap-2 w-max bg-white dark:bg-black px-4 py-2 rounded-md shadow-md border border-neutral-200 dark:border-neutral-800">
                   <div class="flex flex-row gap-2 items-center justify-center">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -337,9 +351,9 @@ export const MapComponent = () => {
                       <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
                       <circle cx="18" cy="5" r="3" />
                     </svg>
-                    <span class="text-md">Start a new Route</span>
+                    <span class="text-md">Start a new Route {steps().length}</span>
                   </div>
-                </button>
+                </div>
               }
             >
               <form
@@ -356,7 +370,6 @@ export const MapComponent = () => {
                   if (!s) return;
                   setR(s.routing);
                   setSteps(s.steps);
-                  setCurrentStep(s.steps[0]);
                   setModalOpen(false);
                 }}
                 class="flex flex-col gap-4 h-min w-full"
@@ -406,15 +419,19 @@ export const MapComponent = () => {
                 </div>
               </form>
             </Modal>
-          }
-          when={currentStep() && currentStep()}
-        >
-          {(cs) => (
-            <div class="flex flex-col gap-2 w-max bg-white dark:bg-black px-4 py-2 rounded-md shadow-md border border-neutral-200 dark:border-neutral-800">
-              {cs().text}
-            </div>
-          )}
-        </Show>
+          </Match>
+          <Match when={steps().length > 0 && steps()}>
+            {(s) => (
+              <For each={s()}>
+                {(step) => (
+                  <div class="flex flex-col gap-2 w-max bg-white dark:bg-black px-4 py-2 rounded-md shadow-md border border-neutral-200 dark:border-neutral-800">
+                    {step.text}
+                  </div>
+                )}
+              </For>
+            )}
+          </Match>
+        </Switch>
       </div>
       <Switch>
         <Match when={mapStore.type === "loading"}>
