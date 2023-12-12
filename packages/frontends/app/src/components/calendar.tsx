@@ -375,7 +375,7 @@ export const CalendarYear = (props: {
                 <For each={months()}>
                   {(entry) => (
                     <div
-                      class={cn("w-full h-full border-r border-b border-transparent", {
+                      class={cn("w-full h-full border-r border-b border-neutral-200 dark:border-neutral-800", {
                         "bg-black dark:bg-white text-white dark:text-black dark:border-neutral-300": c().some((e) =>
                           dayjs(e.date).isSame(entry, "month")
                         ),
@@ -407,9 +407,11 @@ export const CalendarYear = (props: {
         </Show>
       </Match>
       <Match when={auth.isLoading}>
-        <div class="grid grid-cols-4 grid-rows-3 w-full h-full">
+        <div class="flex flex-col xl:grid xl:grid-cols-4 xl:grid-rows-3 w-full h-full">
           <For each={months()}>
-            {(days, index) => <div class="w-full h-full bg-neutral-100 dark:bg-neutral-950"></div>}
+            {(days, index) => (
+              <div class="w-full h-full bg-neutral-100 dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800"></div>
+            )}
           </For>
         </div>
       </Match>
