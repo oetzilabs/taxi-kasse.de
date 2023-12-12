@@ -1,5 +1,5 @@
 import L, { LatLngTuple } from "leaflet";
-import { Geocoder } from "leaflet-control-geocoder";
+import "leaflet-routing-machine";
 import "leaflet/dist/leaflet.css";
 import { Match, Switch, createEffect, createSignal, on, onCleanup, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
@@ -88,6 +88,13 @@ function loadMap(
     const circle = L.circle(coordinates, { radius: accuracy ? (accuracy < 10 ? 25 : accuracy) : 25 });
     const featureGroup = L.featureGroup([marker, circle]).addTo(m);
     m.fitBounds(featureGroup.getBounds());
+
+    // const routing = L.Routing.control({
+    //   addWaypoints: false,
+    //   autoRoute: true,
+    //   waypoints: [L.latLng(51.5, -0.09), L.latLng(48.83, 2.37), L.latLng(43.3, 5.4)],
+    // });
+    // routing.addTo(m);
   }
 
   setMap(m);

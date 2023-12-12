@@ -10,6 +10,7 @@
   "type": "module",
   "devDependencies": {
     "@types/leaflet": "^1.9.8",
+    "@types/leaflet-routing-machine": "^3.2.8",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.31",
     "solid-start-node": "^0.3.6",
@@ -33,7 +34,7 @@
     "clsx": "^2.0.0",
     "dayjs": "^1.11.10",
     "leaflet": "^1.9.4",
-    "leaflet-control-geocoder": "^2.4.0",
+    "leaflet-routing-machine": "^3.2.12",
     "solid-js": "^1.8.7",
     "solid-start": "^0.3.10",
     "solid-toast": "^0.5.0",
