@@ -1,9 +1,11 @@
-import L, { LatLngTuple } from "leaflet";
+import L, { LatLng, LatLngTuple } from "leaflet";
 import "leaflet-routing-machine";
 import "leaflet/dist/leaflet.css";
-import { Match, Switch, createEffect, createSignal, on, onCleanup, onMount } from "solid-js";
+import { Match, Show, Switch, createEffect, createSignal, on, onCleanup, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
 import { ThemeColors, useTheme } from "./theme";
+import { Modal } from "./Modal";
+import { TextField } from "@kobalte/core";
 
 type Geo =
   | {
@@ -42,6 +44,65 @@ const [lightTile] = createSignal<L.TileLayer>(
     maxZoom: 20,
   })
 );
+
+const routeTo = (coordinates: [LatLng, LatLng, ...LatLng[]]) => {
+  const m = map();
+  if (!m) return;
+  const steps: L.Routing.IInstruction[] = [];
+  const osmrv1 = L.Routing.osrmv1();
+  osmrv1.route(
+    coordinates.map((x) => L.Routing.waypoint(x)),
+    // @ts-ignore
+    function (
+      err: any,
+      routes: {
+        name: string;
+        summary: {
+          totalDistance: number;
+          totalTime: number;
+        };
+        coordinates: LatLng[];
+        instructions: L.Routing.IInstruction[];
+        waypoints: L.Routing.Waypoint[];
+      }
+    ) {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      steps.push(...routes.instructions);
+    }
+  );
+
+  const routing = L.Routing.control({
+    lineOptions: {
+      styles: [
+        {
+          className: "stroke-[#007AFF] dark:stroke-[#00DAFF]",
+        },
+      ],
+      extendToWaypoints: true,
+      missingRouteTolerance: 200,
+    },
+    addWaypoints: false,
+    fitSelectedRoutes: true,
+    autoRoute: true,
+    waypoints: coordinates,
+    containerClassName: "hidden",
+  });
+  routing.addTo(m);
+  return {
+    routing,
+    steps,
+  };
+};
+
+const findLatLngForAddress = async (address: string) => {
+  const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${address}&format=json&addressdetails=1`);
+  const json = await response.json();
+  const { lat, lon } = json[0];
+  return [lat, lon];
+};
 
 function loadMap(
   div: HTMLDivElement,
@@ -88,13 +149,6 @@ function loadMap(
     const circle = L.circle(coordinates, { radius: accuracy ? (accuracy < 10 ? 25 : accuracy) : 25 });
     const featureGroup = L.featureGroup([marker, circle]).addTo(m);
     m.fitBounds(featureGroup.getBounds());
-
-    // const routing = L.Routing.control({
-    //   addWaypoints: false,
-    //   autoRoute: true,
-    //   waypoints: [L.latLng(51.5, -0.09), L.latLng(48.83, 2.37), L.latLng(43.3, 5.4)],
-    // });
-    // routing.addTo(m);
   }
 
   setMap(m);
@@ -102,6 +156,9 @@ function loadMap(
   document.title = `Map: ${coordinates[0]}, ${coordinates[1]}${accuracy ? ` - ${accuracy}m` : ""}`;
   // L.marker([51.5, -0.09]).addTo(map).bindPopup("A pretty CSS3 popup.<br> Easily customizable.").openPopup();
 }
+const [steps, setSteps] = createSignal<L.Routing.IInstruction[]>([]);
+const [currentStep, setCurrentStep] = createSignal<L.Routing.IInstruction | null>(null);
+const [r, setR] = createSignal<any>(null);
 
 export const MapComponent = () => {
   let mapDiv: any;
@@ -173,9 +230,14 @@ export const MapComponent = () => {
     // store the map in local storage
     localStorage.setItem("map", JSON.stringify(mapStore));
   });
+
+  const [startLocation, setStartLocation] = createSignal<string>("");
+  const [endLocation, setEndLocation] = createSignal<string>("");
+  const [modalOpen, setModalOpen] = createSignal<boolean>(false);
+
   return (
     <div class="w-full h-full relative flex flex-col">
-      <div class="absolute z-[99999] top-2 right-2 flex flex-row gap-2 bg-white dark:bg-black px-2 py-1 rounded-md shadow-md border border-neutral-200 dark:border-neutral-800">
+      <div class="absolute z-40 top-2 right-2 flex flex-row gap-2 bg-white dark:bg-black px-2 py-1 rounded-md shadow-md border border-neutral-200 dark:border-neutral-800">
         <button
           class="flex flex-row gap-2 items-center justify-center bg-white dark:bg-black "
           onClick={() => {
@@ -250,6 +312,110 @@ export const MapComponent = () => {
           <span class="text-xs">Reset</span>
         </button>
       </div>
+      <div class="absolute z-[40] bottom-2 left-[50%] -translate-x-[50%] ">
+        <Show
+          fallback={
+            <Modal
+              open={modalOpen()}
+              onOpenChange={setModalOpen}
+              title="Start a new Route"
+              trigger={
+                <button class="flex flex-col gap-2 w-max bg-white dark:bg-black px-4 py-2 rounded-md shadow-md border border-neutral-200 dark:border-neutral-800">
+                  <div class="flex flex-row gap-2 items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <circle cx="6" cy="19" r="3" />
+                      <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
+                      <circle cx="18" cy="5" r="3" />
+                    </svg>
+                    <span class="text-md">Start a new Route</span>
+                  </div>
+                </button>
+              }
+            >
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const _r = r();
+                  if (_r) _r.remove();
+                  const _startLocation = await findLatLngForAddress(startLocation());
+                  const _endLocation = await findLatLngForAddress(endLocation());
+                  const s = routeTo([
+                    L.latLng(_startLocation[0], _startLocation[1]),
+                    L.latLng(_endLocation[0], _endLocation[1]),
+                  ]);
+                  if (!s) return;
+                  setR(s.routing);
+                  setSteps(s.steps);
+                  setCurrentStep(s.steps[0]);
+                  setModalOpen(false);
+                }}
+                class="flex flex-col gap-4 h-min w-full"
+              >
+                <TextField.Root class="flex flex-col gap-2">
+                  <TextField.Label>Start</TextField.Label>
+                  <TextField.Input
+                    class="w-full bg-transparent border border-neutral-300 dark:border-neutral-800 px-3 py-2 rounded-md"
+                    placeholder="Start"
+                    onInput={(e) => {
+                      setStartLocation(e.currentTarget.value);
+                    }}
+                    value={startLocation()}
+                  />
+                </TextField.Root>
+                <TextField.Root class="flex flex-col gap-2">
+                  <TextField.Label>End</TextField.Label>
+                  <TextField.Input
+                    class="w-full bg-transparent border border-neutral-300 dark:border-neutral-800 px-3 py-2 rounded-md"
+                    placeholder="End"
+                    onInput={(e) => {
+                      setEndLocation(e.currentTarget.value);
+                    }}
+                    value={endLocation()}
+                  />
+                </TextField.Root>
+                <div class="flex flex-row gap-2 items-center justify-between">
+                  <div></div>
+                  <div>
+                    <button class="px-2 py-1 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-md shadow-md border border-neutral-200 dark:border-neutral-800">
+                      <span>Start</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </Modal>
+          }
+          when={currentStep() && currentStep()}
+        >
+          {(cs) => (
+            <div class="flex flex-col gap-2 w-max bg-white dark:bg-black px-4 py-2 rounded-md shadow-md border border-neutral-200 dark:border-neutral-800">
+              {cs().text}
+            </div>
+          )}
+        </Show>
+      </div>
       <Switch>
         <Match when={mapStore.type === "loading"}>
           <div class="items-center justify-center flex flex-col w-full h-full">
@@ -291,6 +457,7 @@ export const MapComponent = () => {
         id="main-map"
         style={{
           position: "relative",
+          "z-index": 10,
           ...(mapStore.type === "success" && {
             width: "100%",
             height: "100%",
