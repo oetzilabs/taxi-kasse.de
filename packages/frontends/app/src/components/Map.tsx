@@ -54,7 +54,7 @@ const routeTo = (coordinates: [LatLng, LatLng, ...LatLng[]]) => {
   if (!m) return;
   const steps: L.Routing.IInstruction[] = [];
   const osmrv1 = L.Routing.osrmv1({
-    serviceUrl: "http://localhost:5000/route/v1",
+    // serviceUrl: "http://localhost:5000/route/v1",
     suppressDemoServerWarning: true,
   });
   osmrv1.route(
@@ -99,7 +99,7 @@ const routeTo = (coordinates: [LatLng, LatLng, ...LatLng[]]) => {
     waypoints: coordinates,
     containerClassName: "hidden",
     router: L.Routing.osrmv1({
-      serviceUrl: "http://localhost:5000/route/v1",
+      // serviceUrl: "http://localhost:5000/route/v1",
       suppressDemoServerWarning: true,
     }),
   });
