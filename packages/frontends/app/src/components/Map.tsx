@@ -5,9 +5,10 @@ import { For, Match, Show, Switch, createEffect, createSignal, on, onCleanup, on
 import { createStore } from "solid-js/store";
 import { ThemeColors, useTheme } from "./theme";
 import { Modal } from "./Modal";
-import { TextField } from "@kobalte/core";
+import { Tabs, TextField } from "@kobalte/core";
 import { text } from "../../../../functions/src/utils";
 import { createMutation } from "@tanstack/solid-query";
+import { cn } from "../utils/cn";
 
 type Geo =
   | {
@@ -49,10 +50,12 @@ const [lightTile] = createSignal<L.TileLayer>(
   })
 );
 
-const routeTo = (coordinates: [LatLng, LatLng, ...LatLng[]]) => {
+const [routes, setRoutes] = createSignal<L.Routing.IRoute[]>([]);
+const [routeError, setRouteError] = createSignal<Error | null>(null);
+
+const findRoute = (coordinates: [LatLng, LatLng, ...LatLng[]]) => {
   const m = map();
   if (!m) return;
-  const steps: L.Routing.IInstruction[] = [];
   const osmrv1 = L.Routing.osrmv1({
     // serviceUrl: "http://localhost:5000/route/v1",
     suppressDemoServerWarning: true,
@@ -60,29 +63,22 @@ const routeTo = (coordinates: [LatLng, LatLng, ...LatLng[]]) => {
   osmrv1.route(
     coordinates.map((x) => L.Routing.waypoint(x)),
     // @ts-ignore
-    function (
-      err: any,
-      routes: {
-        name: string;
-        summary: {
-          totalDistance: number;
-          totalTime: number;
-        };
-        coordinates: LatLng[];
-        instructions: L.Routing.IInstruction[];
-        waypoints: L.Routing.Waypoint[];
-      }[]
-    ) {
+    function (err: any, routes: L.Routing.IRoute[]) {
       if (err) {
         console.log(err);
+        if (err instanceof Error) {
+          setRouteError(err);
+        }
         return;
       }
-      const rr = routes[0];
-      if (!rr) return;
-      steps.push(...rr.instructions);
+      setRoutes(routes);
     }
   );
+};
 
+const routeTo = (coordinates: [LatLng, LatLng, ...LatLng[]]) => {
+  const m = map();
+  if (!m) return;
   const routing = L.Routing.control({
     lineOptions: {
       styles: [
@@ -103,12 +99,7 @@ const routeTo = (coordinates: [LatLng, LatLng, ...LatLng[]]) => {
       suppressDemoServerWarning: true,
     }),
   });
-
   routing.addTo(m);
-  return {
-    routing,
-    steps,
-  };
 };
 
 const findLatLngForAddress = async (address: string) => {
@@ -170,7 +161,6 @@ function loadMap(
   document.title = `Map: ${coordinates[0]}, ${coordinates[1]}${accuracy ? ` - ${accuracy}m` : ""}`;
   // L.marker([51.5, -0.09]).addTo(map).bindPopup("A pretty CSS3 popup.<br> Easily customizable.").openPopup();
 }
-const [r, setR] = createSignal<any>(null);
 
 export const MapComponent = () => {
   let mapDiv: any;
@@ -248,6 +238,9 @@ export const MapComponent = () => {
   const [startLocation, setStartLocation] = createSignal<string>("");
   const [endLocation, setEndLocation] = createSignal<string>("");
   const [modalOpen, setModalOpen] = createSignal<boolean>(false);
+  const [currentRoute, setCurrentRoute] = createSignal<L.Routing.IRoute | null>(null);
+  const [selectedRoute, setSelectedRoute] = createSignal<L.Routing.IRoute["name"] | null>();
+  const [tabValue, setTabValue] = createSignal<"lookup" | "routes">("lookup");
 
   return (
     <div class="w-full h-full relative flex flex-col">
@@ -351,56 +344,129 @@ export const MapComponent = () => {
                       <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
                       <circle cx="18" cy="5" r="3" />
                     </svg>
-                    <span class="text-md">Start a new Route {steps().length}</span>
+                    <span class="text-md">Start a new Route</span>
                   </div>
                 </div>
               }
             >
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  const _r = r();
-                  if (_r) _r.remove();
-                  const _startLocation = await findLatLngForAddress(startLocation());
-                  const _endLocation = await findLatLngForAddress(endLocation());
-                  const s = routeTo([
-                    L.latLng(_startLocation[0], _startLocation[1]),
-                    L.latLng(_endLocation[0], _endLocation[1]),
-                  ]);
-                  if (!s) return;
-                  setR(s.routing);
-                  setSteps(s.steps);
-                  setModalOpen(false);
-                }}
-                class="flex flex-col gap-4 h-min w-full"
-              >
-                <TextField.Root class="flex flex-col gap-2">
-                  <TextField.Label>Start</TextField.Label>
-                  <TextField.Input
-                    class="w-full bg-transparent border border-neutral-300 dark:border-neutral-800 px-3 py-2 rounded-md"
-                    placeholder="Start"
-                    onInput={(e) => {
-                      setStartLocation(e.currentTarget.value);
-                    }}
-                    value={startLocation()}
-                  />
-                </TextField.Root>
-                <TextField.Root class="flex flex-col gap-2">
-                  <TextField.Label>End</TextField.Label>
-                  <TextField.Input
-                    class="w-full bg-transparent border border-neutral-300 dark:border-neutral-800 px-3 py-2 rounded-md"
-                    placeholder="End"
-                    onInput={(e) => {
-                      setEndLocation(e.currentTarget.value);
-                    }}
-                    value={endLocation()}
-                  />
-                </TextField.Root>
-                <div class="flex flex-row gap-2 items-center justify-between">
-                  <div></div>
-                  <div>
-                    <button class="px-2 py-1 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-md shadow-md border border-neutral-200 dark:border-neutral-800">
-                      <span>Start</span>
+              <form onSubmit={async (e) => {}} class="flex flex-col gap-4 h-min w-full">
+                <Tabs.Root
+                  class="flex flex-col gap-2"
+                  value={tabValue()}
+                  onChange={(v) => {
+                    setTabValue(v as "lookup" | "routes");
+                  }}
+                >
+                  <Tabs.List class="flex flex-row gap-2">
+                    <Tabs.Trigger value="lookup" class={cn("ui-selected:border-b ui-selected:border-teal-500")}>
+                      Lookup
+                    </Tabs.Trigger>
+                    <Tabs.Trigger value="routes" class={cn("ui-selected:border-b ui-selected:border-teal-500")}>
+                      Routes
+                    </Tabs.Trigger>
+                  </Tabs.List>
+                  <Tabs.Content value="lookup" class="w-full flex flex-col gap-2 py-2">
+                    <TextField.Root class="flex flex-col gap-2">
+                      <TextField.Label>Start</TextField.Label>
+                      <TextField.Input
+                        class="w-full bg-transparent border border-neutral-300 dark:border-neutral-800 px-3 py-2 rounded-md"
+                        placeholder="Start"
+                        onInput={(e) => {
+                          setStartLocation(e.currentTarget.value);
+                        }}
+                        value={startLocation()}
+                      />
+                    </TextField.Root>
+                    <TextField.Root class="flex flex-col gap-2">
+                      <TextField.Label>End</TextField.Label>
+                      <TextField.Input
+                        class="w-full bg-transparent border border-neutral-300 dark:border-neutral-800 px-3 py-2 rounded-md"
+                        placeholder="End"
+                        onInput={(e) => {
+                          setEndLocation(e.currentTarget.value);
+                        }}
+                        value={endLocation()}
+                      />
+                    </TextField.Root>
+                    <div class="flex flex-row gap-2 items-center justify-between">
+                      <div></div>
+                      <div>
+                        <button
+                          type="button"
+                          class="px-2 py-1 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-md shadow-md border border-neutral-200 dark:border-neutral-800"
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            const _startLocation = await findLatLngForAddress(startLocation());
+                            const _endLocation = await findLatLngForAddress(endLocation());
+                            findRoute([
+                              L.latLng(_startLocation[0], _startLocation[1]),
+                              L.latLng(_endLocation[0], _endLocation[1]),
+                            ]);
+                            setTabValue("routes");
+                          }}
+                        >
+                          <span>Lookup</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.3-4.3" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </Tabs.Content>
+                  <Tabs.Content value="routes" class="w-full flex flex-col gap-2 py-2">
+                    <For
+                      each={routes()}
+                      fallback={
+                        <div class="flex flex-col gap-2 items-center justify-center rounded-md border border-neutral-100 dark:border-neutral-900 p-8">
+                          <span class="text-lg font-bold">No routes found</span>
+                          <span class="text-md font-medium">Try a different route</span>
+                        </div>
+                      }
+                    >
+                      {(route) => (
+                        <div
+                          class={cn(
+                            "flex flex-col gap-2 items-start justify-start p-2 border border-neutral-300 dark:border-neutral-800 rounded-md cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-900",
+                            {
+                              "bg-neutral-100 dark:bg-neutral-900 border-emerald-500 dark:border-emerald-600":
+                                route.name === selectedRoute(),
+                            }
+                          )}
+                          onClick={() => {
+                            setSelectedRoute(route.name);
+                          }}
+                        >
+                          <span class="text-lg font-bold">{route.name}</span>
+                          <span class="text-md font-medium">
+                            {Math.floor((route.summary?.totalDistance ?? 0) / 1000)}km -{" "}
+                            {Math.floor((route.summary?.totalTime ?? 0) / 60)} min.
+                          </span>
+                          <span>{route.instructions?.length} Instructions</span>
+                        </div>
+                      )}
+                    </For>
+                    <button
+                      type="button"
+                      class="px-2 py-1 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-md shadow-md border border-neutral-200 dark:border-neutral-800"
+                      onClick={() => {
+                        const theRoute = routes().find((x) => x.name === selectedRoute());
+                        if (!theRoute) return;
+                        if (!theRoute.coordinates) return;
+                        routeTo([theRoute.coordinates[0], theRoute.coordinates[theRoute.coordinates.length - 1]]);
+                        setModalOpen(false);
+                      }}
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="14"
@@ -412,11 +478,12 @@ export const MapComponent = () => {
                         stroke-linecap="round"
                         stroke-linejoin="round"
                       >
-                        <polygon points="5 3 19 12 5 21 5 3" />
+                        <polygon points="3 11 22 2 13 21 11 13 3 11" />
                       </svg>
+                      <span class="text-sm">Route</span>
                     </button>
-                  </div>
-                </div>
+                  </Tabs.Content>
+                </Tabs.Root>
               </form>
             </Modal>
           </Match>
@@ -425,7 +492,75 @@ export const MapComponent = () => {
               <For each={s()}>
                 {(step) => (
                   <div class="flex flex-col gap-2 w-max bg-white dark:bg-black px-4 py-2 rounded-md shadow-md border border-neutral-200 dark:border-neutral-800">
-                    {step.text}
+                    <Switch>
+                      <Match when={step.type === "Left"}>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <polyline points="9 14 4 9 9 4" />
+                          <path d="M20 20v-7a4 4 0 0 0-4-4H4" />
+                        </svg>
+                      </Match>
+                      <Match when={step.type === "Right"}>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <polyline points="15 14 20 9 15 4" />
+                          <path d="M4 20v-7a4 4 0 0 1 4-4h12" />
+                        </svg>
+                      </Match>
+                      <Match when={step.type === "StartAt"}>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="m5 9 7-7 7 7" />
+                          <path d="M12 16V2" />
+                          <circle cx="12" cy="21" r="1" />
+                        </svg>
+                      </Match>
+                      <Match when={step.type === "DestinationReached"}>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M12 2v14" />
+                          <path d="m19 9-7 7-7-7" />
+                          <circle cx="12" cy="21" r="1" />
+                        </svg>
+                      </Match>
+                    </Switch>
+                    <span>{step.text}</span>
                   </div>
                 )}
               </For>
