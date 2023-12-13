@@ -76,9 +76,54 @@ const findRoute = (coordinates: [LatLng, LatLng, ...LatLng[]]) => {
   );
 };
 
-const routeTo = (coordinates: [LatLng, LatLng, ...LatLng[]]) => {
+const routeTo = (name: string, coordinates: [LatLng, LatLng, ...LatLng[]]) => {
   const m = map();
   if (!m) return;
+  const localStoreRoutes = JSON.parse(
+    localStorage.getItem("localroutes") ??
+      JSON.stringify({
+        routes: [],
+        updated: null,
+      })
+  ) as {
+    routes: L.Routing.IRoute[];
+    updated: Date | null;
+  };
+  if (localStoreRoutes.updated && localStoreRoutes.routes.length > 0) {
+    const route = localStoreRoutes.routes.find((x) => {
+      if (!x.name) return false;
+      return x.name === name;
+    });
+    if (route && route.coordinates) {
+      // load the route from local storage
+      console.log("loading route from local storage", route);
+      // const routing = L.Routing.control({
+      //   lineOptions: {
+      //     styles: [
+      //       {
+      //         className: "stroke-[#007AFF] dark:stroke-[#00DAFF]",
+      //       },
+      //     ],
+      //     extendToWaypoints: false,
+      //     missingRouteTolerance: 200,
+      //   },
+      //   useZoomParameter: false,
+      //   addWaypoints: false,
+      //   fitSelectedRoutes: true,
+      //   autoRoute: true,
+      //   waypoints: coordinates,
+      //   containerClassName: "hidden",
+      //   router: {
+      //     route: (waypoints: L.Routing.Waypoint[], callback: (err: any, routes: L.Routing.IRoute[]) => void) => {
+      //       callback(null, [route]);
+      //     },
+      //   },
+      // });
+      // routing.addTo(m);
+      return;
+    }
+  }
+
   const routing = L.Routing.control({
     lineOptions: {
       styles: [
@@ -86,12 +131,14 @@ const routeTo = (coordinates: [LatLng, LatLng, ...LatLng[]]) => {
           className: "stroke-[#007AFF] dark:stroke-[#00DAFF]",
         },
       ],
-      extendToWaypoints: true,
+      extendToWaypoints: false,
       missingRouteTolerance: 200,
     },
+    useZoomParameter: false,
     addWaypoints: false,
     fitSelectedRoutes: true,
-    autoRoute: true,
+    autoRoute: false,
+
     waypoints: coordinates,
     containerClassName: "hidden",
     router: L.Routing.osrmv1({
@@ -329,6 +376,7 @@ export const MapComponent = () => {
               trigger={
                 <div class="flex flex-col gap-2 w-max bg-white dark:bg-black px-4 py-2 rounded-md shadow-md border border-neutral-200 dark:border-neutral-800">
                   <div class="flex flex-row gap-2 items-center justify-center">
+                    <span class="text-md">New Route</span>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="14"
@@ -340,11 +388,8 @@ export const MapComponent = () => {
                       stroke-linecap="round"
                       stroke-linejoin="round"
                     >
-                      <circle cx="6" cy="19" r="3" />
-                      <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
-                      <circle cx="18" cy="5" r="3" />
+                      <polygon points="3 11 22 2 13 21 11 13 3 11" />
                     </svg>
-                    <span class="text-md">Start a new Route</span>
                   </div>
                 </div>
               }
@@ -396,6 +441,28 @@ export const MapComponent = () => {
                           class="px-2 py-1 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-md shadow-md border border-neutral-200 dark:border-neutral-800"
                           onClick={async (e) => {
                             e.preventDefault();
+                            const localStoreRoutes = JSON.parse(
+                              localStorage.getItem("localroutes") ??
+                                JSON.stringify({
+                                  routes: [],
+                                  updated: null,
+                                })
+                            ) as {
+                              routes: L.Routing.IRoute[];
+                              updated: Date | null;
+                            };
+                            if (localStoreRoutes.updated && localStoreRoutes.routes.length > 0) {
+                              const route = localStoreRoutes.routes.find((x) => {
+                                if (!x.name) return false;
+                                return x.name === `${startLocation()} - ${endLocation()}`;
+                              });
+                              if (route && route.coordinates) {
+                                // load the route from local storage
+                                console.log("loading route from local storage", route);
+
+                                return;
+                              }
+                            }
                             const _startLocation = await findLatLngForAddress(startLocation());
                             const _endLocation = await findLatLngForAddress(endLocation());
                             findRoute([
@@ -463,8 +530,27 @@ export const MapComponent = () => {
                         const theRoute = routes().find((x) => x.name === selectedRoute());
                         if (!theRoute) return;
                         if (!theRoute.coordinates) return;
-                        routeTo([theRoute.coordinates[0], theRoute.coordinates[theRoute.coordinates.length - 1]]);
+                        setCurrentRoute(theRoute);
+                        setSteps(theRoute.instructions ?? []);
+                        routeTo(theRoute.name ?? "", [
+                          theRoute.coordinates[0],
+                          theRoute.coordinates[theRoute.coordinates.length - 1],
+                        ]);
                         setModalOpen(false);
+                        // save the route to local storage
+                        const localStoreRoutes = JSON.parse(
+                          localStorage.getItem("localroutes") ??
+                            JSON.stringify({
+                              routes: [],
+                              updated: null,
+                            })
+                        ) as {
+                          routes: L.Routing.IRoute[];
+                          updated: Date | null;
+                        };
+                        localStoreRoutes.routes.push(theRoute);
+                        localStoreRoutes.updated = new Date();
+                        localStorage.setItem("localroutes", JSON.stringify(localStoreRoutes));
                       }}
                     >
                       <svg
@@ -487,83 +573,103 @@ export const MapComponent = () => {
               </form>
             </Modal>
           </Match>
-          <Match when={steps().length > 0 && steps()}>
+          <Match when={currentRoute() !== null && steps().length > 0 && steps()}>
             {(s) => (
-              <For each={s()}>
-                {(step) => (
-                  <div class="flex flex-col gap-2 w-max bg-white dark:bg-black px-4 py-2 rounded-md shadow-md border border-neutral-200 dark:border-neutral-800">
-                    <Switch>
-                      <Match when={step.type === "Left"}>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <polyline points="9 14 4 9 9 4" />
-                          <path d="M20 20v-7a4 4 0 0 0-4-4H4" />
-                        </svg>
-                      </Match>
-                      <Match when={step.type === "Right"}>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <polyline points="15 14 20 9 15 4" />
-                          <path d="M4 20v-7a4 4 0 0 1 4-4h12" />
-                        </svg>
-                      </Match>
-                      <Match when={step.type === "StartAt"}>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path d="m5 9 7-7 7 7" />
-                          <path d="M12 16V2" />
-                          <circle cx="12" cy="21" r="1" />
-                        </svg>
-                      </Match>
-                      <Match when={step.type === "DestinationReached"}>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path d="M12 2v14" />
-                          <path d="m19 9-7 7-7-7" />
-                          <circle cx="12" cy="21" r="1" />
-                        </svg>
-                      </Match>
-                    </Switch>
-                    <span>{step.text}</span>
-                  </div>
-                )}
-              </For>
+              <div class="flex flex-col gap-2 w-max items-center justify-center">
+                <For each={s()}>
+                  {(step) => (
+                    <div class="flex flex-row gap-2 w-max bg-white dark:bg-black px-4 py-2 rounded-md shadow-md border border-neutral-200 dark:border-neutral-800 items-center justify-center">
+                      <div>{step.type}</div>
+                      <Switch>
+                        <Match when={step.type === "Left"}>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <polyline points="9 14 4 9 9 4" />
+                            <path d="M20 20v-7a4 4 0 0 0-4-4H4" />
+                          </svg>
+                        </Match>
+                        <Match when={step.type === "Right"}>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <polyline points="15 14 20 9 15 4" />
+                            <path d="M4 20v-7a4 4 0 0 1 4-4h12" />
+                          </svg>
+                        </Match>
+                        <Match when={step.type === "StartAt"}>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path d="m5 9 7-7 7 7" />
+                            <path d="M12 16V2" />
+                            <circle cx="12" cy="21" r="1" />
+                          </svg>
+                        </Match>
+                        <Match when={step.type === "WaypointReached"}>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path d="M18 8c0 4.5-6 9-6 9s-6-4.5-6-9a6 6 0 0 1 12 0" />
+                            <circle cx="12" cy="8" r="2" />
+                            <path d="M8.835 14H5a1 1 0 0 0-.9.7l-2 6c-.1.1-.1.2-.1.3 0 .6.4 1 1 1h18c.6 0 1-.4 1-1 0-.1 0-.2-.1-.3l-2-6a1 1 0 0 0-.9-.7h-3.835" />
+                          </svg>
+                        </Match>
+                        <Match when={step.type === "DestinationReached"}>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path d="M12 2v14" />
+                            <path d="m19 9-7 7-7-7" />
+                            <circle cx="12" cy="21" r="1" />
+                          </svg>
+                        </Match>
+                      </Switch>
+                      <span>{step.text}</span>
+                    </div>
+                  )}
+                </For>
+              </div>
             )}
           </Match>
         </Switch>
