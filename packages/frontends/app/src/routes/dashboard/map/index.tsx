@@ -33,7 +33,7 @@ export default function MapPage() {
               </div>
             }
           >
-            <Dynamic component={Map} />
+            <Map />
           </Suspense>
         </Match>
       </Switch>

@@ -34,10 +34,12 @@
     "clsx": "^2.0.0",
     "dayjs": "^1.11.10",
     "leaflet": "^1.9.4",
+    "leaflet-rotate": "^0.2.8",
     "leaflet-routing-machine": "^3.2.12",
     "solid-js": "^1.8.7",
     "solid-start": "^0.3.10",
     "solid-toast": "^0.5.0",
+    "solid-transition-group": "^0.2.3",
     "tailwind-merge": "^2.1.0",
     "zod": "^3.22.4"
   },
