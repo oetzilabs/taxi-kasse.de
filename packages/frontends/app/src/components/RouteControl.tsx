@@ -71,10 +71,10 @@ export const RouteControl = (props: { map: L.Map | null }) => {
   const [startLocation, setStartLocation] = createSignal<string>("");
   const [endLocation, setEndLocation] = createSignal<string>("");
 
-  createEffect(() => {
-    console.log("current route", route());
-    console.log("route history", routeHistory());
-  });
+  // createEffect(() => {
+  //   console.log("current route", route());
+  //   console.log("route history", routeHistory());
+  // });
 
   const resetModal = (route: RouteT) => {
     setModalOpen(false);
