@@ -97,6 +97,18 @@ export const RouteControl = (props: { map: L.Map | null }) => {
     return routeHistory().slice(0, page * 2);
   };
 
+  // TODO: Redesign the left side of the controller so that the route is being displayed. 
+  /* Example:
+   *  ___________________
+   * |   _____________  |
+   * |  |__no route__|  |
+   * |__________________|
+   * |  history        x|
+   * |__________________|
+   * |  more   |  less  |
+   *
+   */
+
   return (
     <Switch>
       <Match when={route() === null || route()?.steps.length === 0}>
