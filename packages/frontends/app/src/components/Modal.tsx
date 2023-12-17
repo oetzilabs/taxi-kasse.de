@@ -14,7 +14,7 @@ export function Modal(props: ModalProps) {
   return (
     <Dialog.Root open={props.open} onOpenChange={props.onOpenChange ? props.onOpenChange : (open) => {}}>
       <Show when={props.trigger && props.trigger}>
-        <Dialog.Trigger class="">{props.trigger}</Dialog.Trigger>
+        <Dialog.Trigger class="w-full">{props.trigger}</Dialog.Trigger>
       </Show>
       <Dialog.Portal>
         <Dialog.Overlay class="fixed inset-0 bg-black/[0.02] backdrop-blur-sm z-50" />

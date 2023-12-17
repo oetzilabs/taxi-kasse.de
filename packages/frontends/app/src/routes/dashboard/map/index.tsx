@@ -1,5 +1,5 @@
 import { Match, Suspense, Switch } from "solid-js";
-import { Dynamic, isServer } from "solid-js/web";
+import { isServer } from "solid-js/web";
 import { unstable_clientOnly as clientOnly } from "solid-start";
 
 const Map = clientOnly(() => import("../../../components/Map").then((m) => ({ default: m.MapComponent })));

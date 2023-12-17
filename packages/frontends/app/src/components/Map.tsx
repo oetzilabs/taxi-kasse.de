@@ -1,19 +1,11 @@
-import L, { LatLng, LatLngTuple } from "leaflet";
+import L, { LatLngTuple } from "leaflet";
 import "leaflet-routing-machine";
-import "./map/plugins/twoFingerZoom";
 import "leaflet/dist/leaflet.css";
-import { For, Match, Show, Switch, createEffect, createSignal, on, onCleanup, onMount } from "solid-js";
+import { Match, Switch, createEffect, createSignal, onCleanup, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
-import { ThemeColors, useTheme } from "./theme";
-import { Modal } from "./Modal";
-import { Tabs, TextField } from "@kobalte/core";
-import { text } from "../../../../functions/src/utils";
-import { createMutation } from "@tanstack/solid-query";
-import { cn } from "../utils/cn";
-import { Transition, TransitionGroup } from "solid-transition-group";
-import { RouteStep } from "./RouteStep";
 import { RouteProvider } from "./Route";
 import { RouteControl } from "./RouteControl";
+import { ThemeColors, useTheme } from "./theme";
 
 type Geo =
   | {
@@ -43,15 +35,15 @@ const [darkTile] = createSignal<L.TileLayer>(
   L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
     subdomains: "abcd",
     maxZoom: 20,
-    attribution: `Uses OpenStreetMap data © CartoDB | Tiles © CARTO & OSM Routing via <a href="https://www.openstreetmap.org/fixthemap">OSRM</a>`,
+    attribution: `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>`,
   })
 );
 
 const [lightTile] = createSignal<L.TileLayer>(
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
     subdomains: "abcd",
     maxZoom: 20,
-    attribution: `Uses OpenStreetMap data © CartoDB | Tiles © CARTO & OSM Routing via <a href="https://www.openstreetmap.org/fixthemap">OSRM</a>`,
+    attribution: `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>`,
   })
 );
 
@@ -71,7 +63,10 @@ function loadMap(
   if (!div) return;
   let m = map();
   if (!m) {
-    m = L.map(div).setView(coordinates, zoom);
+    m = L.map(div, {
+      touchZoom: true,
+      zoomControl: false,
+    }).setView(coordinates, zoom);
     m.on("zoom", (e) => {
       if (!m) return;
       const zoom = m.getZoom();
@@ -257,7 +252,7 @@ export const MapComponent = () => {
             <span class="text-xs">Reset</span>
           </button>
         </div>
-        <div class="absolute z-[40] bottom-2 left-[50%] -translate-x-[50%]">
+        <div class="absolute z-[40] top-2 left-2">
           <RouteControl map={map()} />
         </div>
         <Switch>

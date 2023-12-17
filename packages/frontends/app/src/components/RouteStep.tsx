@@ -7,7 +7,7 @@ const ICON_SIZE = 18;
 
 type RouteStepT = RouteT["steps"][number];
 
-type RouteStepProps = { step: RouteStepT; next: RouteStepT | null };
+type RouteStepProps = { step: RouteStepT; next: RouteStepT | null; onCancel: (route: RouteT) => void };
 
 const StepIcon = (props: { type?: L.Routing.IInstruction["type"] | "Head"; size?: number }) => {
   return (
@@ -119,7 +119,10 @@ export const RouteStep = (props: RouteStepProps) => {
       </div>
       <button
         class="p-1 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-900 focus:dark:bg-neutral-900 focus:bg-neutral-100 focus:outline-none"
-        onClick={() => cancelRoute()}
+        onClick={() => {
+          const route = cancelRoute();
+          props.onCancel(route);
+        }}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
