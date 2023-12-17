@@ -17,7 +17,7 @@ const routeTo = (map: L.Map, name: string, coordinates: [L.LatLng, L.LatLng, ...
   });
 
   routeLine.addTo(map);
-  // start at the beginning of the route.
+
   const firstLatLng = coordinates[0];
   const paddedLatLng = [firstLatLng.lat + 0.00001, firstLatLng.lng + 0.00001];
   const ltln = new L.LatLng(paddedLatLng[0], paddedLatLng[1]);
@@ -25,28 +25,6 @@ const routeTo = (map: L.Map, name: string, coordinates: [L.LatLng, L.LatLng, ...
   map.fitBounds(latlngbounds, {
     animate: true,
   });
-  // const routing = L.Routing.control({
-  //   lineOptions: {
-  //     styles: [
-  //       {
-  //         className: "stroke-[#007AFF] dark:stroke-[#00DAFF]",
-  //       },
-  //     ],
-  //     extendToWaypoints: false,
-  //     missingRouteTolerance: 200,
-  //   },
-  //   useZoomParameter: false,
-  //   addWaypoints: false,
-  //   fitSelectedRoutes: true,
-  //   autoRoute: false,
-  //   waypoints: coordinates,
-  //   containerClassName: "hidden",
-  //   router: L.Routing.osrmv1({
-  //     // serviceUrl: "http://localhost:5000/route/v1",
-  //     suppressDemoServerWarning: true,
-  //   }),
-  // });
-  // routing.addTo(map);
 };
 
 export const RouteControl = (props: { map: L.Map | null }) => {
@@ -263,7 +241,7 @@ export const RouteControl = (props: { map: L.Map | null }) => {
           </form>
         </Modal>
       </Match>
-      <Match when={route() !== null && route()!.steps.length > 0 && route()}>
+      <Match when={route() !== null && route()}>
         {(r) => (
           <div class="flex flex-col gap-2 w-max bg-white dark:bg-black px-4 py-2 rounded-md shadow-md border border-neutral-200 dark:border-neutral-800 items-center justify-center">
             <Transition name="slide-fade">

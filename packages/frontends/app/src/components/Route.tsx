@@ -36,22 +36,27 @@ type RouteCtx = [
   }
 ];
 
+
 type LocalStorageRoutes = {
   routes: Array<RouteT>;
   updated: Date | null;
 };
 
+const LOCAL_STORAGE_ROUTE_KEY = "localroutes" as const;
+
+const DEFAULT_LOCAL_STORAGE_ROUTE = JSON.stringify({ routes: [], updated: null } as LocalStorageRoutes);
+
 export const RouteContext = createContext<RouteCtx>([
   () => null,
   {
     availableRoutes: () => [],
-    cancelRoute: () => {},
-    loadRoute: () => {},
-    saveRoute: () => {},
+    cancelRoute: () => { },
+    loadRoute: () => { },
+    saveRoute: () => { },
     routeHistory: () => [],
-    lookupAndStoreRoutes: async (start: string, end: string) => Promise.resolve(),
+    lookupAndStoreRoutes: async (_start: string, _end: string) => Promise.resolve(),
     selectedAvailableRoute: () => null,
-    setSelectedAvailableRouteFromName: (route: string) => {},
+    setSelectedAvailableRouteFromName: (_route: string) => { },
   },
 ] as RouteCtx);
 
@@ -60,7 +65,6 @@ export const RouteProvider = (props: { children: JSX.Element }) => {
   const [routeHistory, setRouteHistory] = createSignal<RouteT[]>([]);
   const [availableRoutes, setAvailableRoutes] = createSignal<RouteT[]>([]);
   const [selectedAvailableRoute, setSelectedAvailableRoute] = createSignal<RouteT | null>(null);
-  const [map, setMap] = createSignal<L.Map | null>(null);
 
   const setSelectedAvailableRouteFromName = (routeName: string) => {
     const route = availableRoutes().find((route) => route.name === routeName);
@@ -72,11 +76,8 @@ export const RouteProvider = (props: { children: JSX.Element }) => {
   const lookupAndStoreRoutes = async (start: string, end: string) => {
     // first check if route is in localstorage
     const localroutes = JSON.parse(
-      localStorage.getItem("localroutes") ||
-        JSON.stringify({
-          routes: [],
-          updated: null,
-        } as LocalStorageRoutes)
+      localStorage.getItem(LOCAL_STORAGE_ROUTE_KEY)
+      || DEFAULT_LOCAL_STORAGE_ROUTE
     ) as LocalStorageRoutes;
     const route = localroutes.routes.find((route) => route.start === start && route.end === end);
     if (route) {
@@ -84,13 +85,9 @@ export const RouteProvider = (props: { children: JSX.Element }) => {
       setSelectedAvailableRoute(route);
       return;
     }
-    // if not, fetch from routing service
     const response1 = await fetch(
       `https://nominatim.openstreetmap.org/search?q=${encodeURI(start)}&format=json&addressdetails=1`
     );
-    // const json = await response1.json();
-    // const { lat, lon } = json[0];
-    // return [lat, lon];
     const response2 = await fetch(
       `https://nominatim.openstreetmap.org/search?q=${encodeURI(end)}&format=json&addressdetails=1`
     );
@@ -108,8 +105,8 @@ export const RouteProvider = (props: { children: JSX.Element }) => {
     });
     osmrv1.route(
       waypoints,
-      // @ts-ignore
-      function (err: any, routes: L.Routing.IRoute[]) {
+      // @ts-ignore - these types are fine.
+      function(err: any, routes: L.Routing.IRoute[]) {
         if (err) {
           if (err instanceof Error) {
             console.error(err.message);
@@ -117,28 +114,28 @@ export const RouteProvider = (props: { children: JSX.Element }) => {
         }
         let xRoutes = routes.map(
           (route) =>
-            ({
-              coordinates: {
-                start: route.coordinates?.[0],
-                end: route.coordinates?.[route.coordinates.length - 1],
-                path: route.coordinates,
-              },
-              distance: route.summary?.totalDistance,
-              duration: route.summary?.totalTime,
-              end,
-              start,
-              name: `${start} to ${end}`,
-              steps: route.instructions?.map((step) => ({
-                type: step.type,
-                text: step.text,
-              })),
-              summary: {
-                totalDistance: route.summary?.totalDistance,
-                totalTime: route.summary?.totalTime,
-              },
-              currentStep: 0,
-              nextStep: 1,
-            } as RouteT)
+          ({
+            coordinates: {
+              start: route.coordinates?.[0],
+              end: route.coordinates?.[route.coordinates.length - 1],
+              path: route.coordinates,
+            },
+            distance: route.summary?.totalDistance,
+            duration: route.summary?.totalTime,
+            end,
+            start,
+            name: `${start} to ${end}`,
+            steps: route.instructions?.map((step) => ({
+              type: step.type,
+              text: step.text,
+            })),
+            summary: {
+              totalDistance: route.summary?.totalDistance,
+              totalTime: route.summary?.totalTime,
+            },
+            currentStep: 0,
+            nextStep: 1,
+          } as RouteT)
         );
         setAvailableRoutes(xRoutes);
       }
@@ -147,11 +144,8 @@ export const RouteProvider = (props: { children: JSX.Element }) => {
   createEffect(() => {
     // load routes from localstorage and set as route history
     const localroutes = JSON.parse(
-      localStorage.getItem("localroutes") ||
-        JSON.stringify({
-          routes: [],
-          updated: null,
-        } as LocalStorageRoutes)
+      localStorage.getItem(LOCAL_STORAGE_ROUTE_KEY)
+      || DEFAULT_LOCAL_STORAGE_ROUTE
     ) as LocalStorageRoutes;
     setRouteHistory(localroutes.routes);
   });
@@ -159,17 +153,18 @@ export const RouteProvider = (props: { children: JSX.Element }) => {
   const cancelRoute = () => setRoute(null);
 
   const loadRoute = (route: RouteT) => setRoute(route);
+
   const saveRoute = (route: RouteT) => {
     const localroutes = JSON.parse(
-      localStorage.getItem("localroutes") ||
-        JSON.stringify({
-          routes: [],
-          updated: null,
-        } as LocalStorageRoutes)
+      localStorage.getItem(LOCAL_STORAGE_ROUTE_KEY) ||
+      JSON.stringify({
+        routes: [],
+        updated: null,
+      } as LocalStorageRoutes)
     ) as LocalStorageRoutes;
     localroutes.routes.push(route);
     localroutes.updated = new Date();
-    localStorage.setItem("localroutes", JSON.stringify(localroutes));
+    localStorage.setItem(LOCAL_STORAGE_ROUTE_KEY, JSON.stringify(localroutes));
   };
 
   return (

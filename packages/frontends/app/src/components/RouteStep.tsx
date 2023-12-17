@@ -100,15 +100,13 @@ const StepIcon = (props: { type?: L.Routing.IInstruction["type"] | "Head"; size?
 };
 
 export const RouteStep = (props: RouteStepProps) => {
-  const [route, { cancelRoute }] = useRoute();
+  const [_, { cancelRoute }] = useRoute();
   return (
     <div class="flex flex-row gap-4 w-max py-2 px-1 items-center justify-center">
       <div class="flex flex-col gap-2 w-max items-center justify-center">
         <div class="flex flex-row gap-2 w-max items-center justify-center">
-          <div class="flex flex-row gap-2 w-max items-center justify-center">
-            <StepIcon type={props.step.type} />
-            <Show when={props.step.text && props.step.text}>{(text) => <span class="text-sm">{text()}</span>}</Show>
-          </div>
+          <StepIcon type={props.step.type} />
+          <Show when={props.step.text && props.step.text}>{(text) => <span class="text-sm">{text()}</span>}</Show>
         </div>
         <Show when={props.next && props.next}>
           {(next) => (
