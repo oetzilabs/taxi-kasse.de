@@ -177,7 +177,7 @@ export const RouteControl = (props: { map: L.Map | null }) => {
   const [showRouteMenu, setShowRouteMenu] = createSignal<boolean>(false);
 
   return (
-    <div class="flex flex-col gap-2 bg-white dark:bg-black p-2 md:rounded-md shadow-md border-b md:border border-neutral-200 dark:border-neutral-800 min-w-[100svw] max-w-[450px] w-full overflow-clip items-start">
+    <div class="flex flex-col gap-2 bg-white dark:bg-black p-2 md:rounded-md shadow-md border-b md:border border-neutral-200 dark:border-neutral-800 min-w-[100svw] md:min-w-[450px] max-w-[450px] w-full overflow-clip items-start">
       <div class="w-full items-center flex flex-row justify-between gap-2">
         <button
           class="py-2 px-4 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black w-full rounded-md border border-neutral-200 dark:border-neutral-800"
@@ -233,7 +233,7 @@ export const RouteControl = (props: { map: L.Map | null }) => {
           onClick={() => {
             const m = props.map;
             if (!m) return;
-            m.locate({ setView: true, enableHighAccuracy: true, maxZoom: 13 });
+            m.locate({ setView: true, enableHighAccuracy: true });
           }}
         >
           <svg
@@ -387,7 +387,7 @@ export const RouteControl = (props: { map: L.Map | null }) => {
                 title="Start a new Route"
                 trigger={
                   <Transition name="slide-fade">
-                    <div class="flex flex-row gap-4 px-4 py-3 items-center w-full md:bg-transparent border border-neutral-100 dark:border-neutral-900 bg-neutral-50 dark:bg-neutral-950 hover:bg-neutral-100 dark:hover:bg-neutral-900 rounded-md p-2 justify-center">
+                    <div class="flex flex-row gap-4 px-2 py-1 items-center w-full bg-black dark:bg-white hover:bg-neutral-900 dark:hover:bg-neutral-100 rounded-md p-2 justify-center text-white dark:text-black">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="18"
@@ -584,7 +584,7 @@ export const RouteControl = (props: { map: L.Map | null }) => {
                 </form>
               </Modal>
               <button
-                class="flex flex-row gap-4 p-3.5 items-center w-max md:bg-transparent border border-neutral-100 dark:border-neutral-900 bg-neutral-50 dark:bg-neutral-950 hover:bg-neutral-100 dark:hover:bg-neutral-900 rounded-md  justify-center"
+                class="flex flex-row gap-4 p-2 items-center w-max md:bg-transparent border border-neutral-100 dark:border-neutral-900 bg-neutral-50 dark:bg-neutral-950 hover:bg-neutral-100 dark:hover:bg-neutral-900 rounded-md justify-center"
                 onClick={() => {
                   setShowRouteMenu(!showRouteMenu());
                 }}
@@ -593,8 +593,8 @@ export const RouteControl = (props: { map: L.Map | null }) => {
                   <Match when={showRouteMenu()}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
+                      width="18"
+                      height="18"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -609,8 +609,8 @@ export const RouteControl = (props: { map: L.Map | null }) => {
                   <Match when={!showRouteMenu()}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
+                      width="18"
+                      height="18"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
