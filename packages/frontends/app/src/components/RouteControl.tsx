@@ -7,6 +7,8 @@ import { Modal } from "./Modal";
 import { RouteT, useRoute } from "./Route";
 import { RouteStep } from "./RouteStep";
 import { toast } from "solid-toast";
+import { createAccelerometer, createGyroscope } from "@solid-primitives/devices";
+import { useTheme } from "./theme";
 
 const routeTo = (map: L.Map, name: string, coordinates: [L.LatLng, L.LatLng, ...L.LatLng[]]) => {
   if (!map) return;
@@ -44,14 +46,26 @@ const RouteToast = (props: { route: RouteT; status: "deleted" | "started" | "can
     <Transition name="slide-fade">
       <div class="flex flex-row gap-2 items-center justify-center bg-black dark:bg-white w-[300px] rounded-md overflow-clip p-4">
         <span class="text-sm text-white dark:text-black">
-          The Route '{props.route.name}' has been {props.status}
+          The Route '{props.route.name}' has been <b>{props.status}</b>
         </span>
       </div>
     </Transition>
   );
 };
 
+type Direction =
+  | "unknown"
+  | "north"
+  | "northeast"
+  | "east"
+  | "southeast"
+  | "south"
+  | "southwest"
+  | "west"
+  | "northwest";
+
 export const RouteControl = (props: { map: L.Map | null }) => {
+  const [theme, setTheme] = useTheme();
   const [modalOpen, setModalOpen] = createSignal<boolean>(false);
   const [tabValue, setTabValue] = createSignal<"lookup" | "routes">("lookup");
   const [
@@ -70,11 +84,74 @@ export const RouteControl = (props: { map: L.Map | null }) => {
   ] = useRoute();
   const [startLocation, setStartLocation] = createSignal<string>("");
   const [endLocation, setEndLocation] = createSignal<string>("");
+  // const accelerometer = createAccelerometer();
+  const gyroscope = createGyroscope();
 
-  // createEffect(() => {
-  //   console.log("current route", route());
-  //   console.log("route history", routeHistory());
-  // });
+  const direction = (): Direction => {
+    // calculate the direction based on the gyroscope
+    const alpha = gyroscope.alpha;
+    const beta = gyroscope.beta;
+    const gamma = gyroscope.gamma;
+    // Convert degrees to radians
+    const alphaRad = alpha * (Math.PI / 180);
+    const betaRad = beta * (Math.PI / 180);
+    const gammaRad = gamma * (Math.PI / 180);
+
+    // Calculate equation components
+    const cA = Math.cos(alphaRad);
+    const sA = Math.sin(alphaRad);
+    const cB = Math.cos(betaRad);
+    const sB = Math.sin(betaRad);
+    const cG = Math.cos(gammaRad);
+    const sG = Math.sin(gammaRad);
+
+    // Calculate A, B, C rotation components
+    const rA = -cA * sG - sA * sB * cG;
+    const rB = -sA * sG + cA * sB * cG;
+    const rC = -cB * cG;
+
+    // Calculate compass heading
+    let compassHeading = Math.atan(rA / rB);
+
+    // Convert from half unit circle to whole unit circle
+    if (rB < 0) {
+      compassHeading += Math.PI;
+    } else if (rA < 0) {
+      compassHeading += 2 * Math.PI;
+    }
+
+    // Convert radians to degrees
+    compassHeading *= 180 / Math.PI;
+    if (compassHeading >= 0 && compassHeading < 22.5) {
+      return "north";
+    }
+    if (compassHeading >= 22.5 && compassHeading < 67.5) {
+      return "northeast";
+    }
+    if (compassHeading >= 67.5 && compassHeading < 112.5) {
+      return "east";
+    }
+    if (compassHeading >= 112.5 && compassHeading < 157.5) {
+      return "southeast";
+    }
+    if (compassHeading >= 157.5 && compassHeading < 202.5) {
+      return "south";
+    }
+    if (compassHeading >= 202.5 && compassHeading < 247.5) {
+      return "southwest";
+    }
+    if (compassHeading >= 247.5 && compassHeading < 292.5) {
+      return "west";
+    }
+    if (compassHeading >= 292.5 && compassHeading < 337.5) {
+      return "northwest";
+    }
+    if (compassHeading >= 337.5 && compassHeading < 360.0) {
+      return "north";
+    }
+
+    return "unknown";
+  };
 
   const resetModal = (route: RouteT) => {
     setModalOpen(false);
@@ -97,23 +174,86 @@ export const RouteControl = (props: { map: L.Map | null }) => {
     return routeHistory().slice(0, page * 2);
   };
 
-  // TODO: Redesign the left side of the controller so that the route is being displayed. 
-  /* Example:
-   *  ___________________
-   * |   _____________  |
-   * |  |__no route__|  |
-   * |__________________|
-   * |  history        x|
-   * |__________________|
-   * |  more   |  less  |
-   *
-   */
-
   return (
-    <Switch>
-      <Match when={route() === null || route()?.steps.length === 0}>
-        <div class="flex flex-col gap-2 bg-white dark:bg-black p-2 rounded-md shadow-md border border-neutral-200 dark:border-neutral-800 w-[450px] overflow-clip items-start">
-          <Show when={routeHistoryCut().length > 0}>
+    <div class="flex flex-col gap-2 bg-white dark:bg-black p-2 md:rounded-md shadow-md border-b md:border border-neutral-200 dark:border-neutral-800 max-w-[450px] w-full overflow-clip items-start">
+      <div class="w-full items-center flex flex-row justify-between gap-2">
+        <button
+          class="py-2 px-4 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black w-full rounded-md border border-neutral-200 dark:border-neutral-800"
+          onClick={() => {
+            setTheme(theme() === "dark" ? "light" : "dark");
+          }}
+        >
+          <Switch
+            fallback={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+              </svg>
+            }
+          >
+            <Match when={theme() === "dark"}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2" />
+                <path d="M12 20v2" />
+                <path d="m4.93 4.93 1.41 1.41" />
+                <path d="m17.66 17.66 1.41 1.41" />
+                <path d="M2 12h2" />
+                <path d="M20 12h2" />
+                <path d="m6.34 17.66-1.41 1.41" />
+                <path d="m19.07 4.93-1.41 1.41" />
+              </svg>
+            </Match>
+          </Switch>
+          <span class="text-xs">{theme() === "dark" ? "Dark" : "Light"}</span>
+        </button>
+        <button
+          class="py-2 px-4 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black w-full rounded-md border border-neutral-200 dark:border-neutral-800"
+          onClick={() => {
+            const m = props.map;
+            if (!m) return;
+            m.locate({ setView: true, enableHighAccuracy: true, maxZoom: 13 });
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+          <span class="text-xs">Reset GPS</span>
+        </button>
+      </div>
+      <Switch>
+        <Match when={route() === null || route()?.steps.length === 0}>
+          <Transition name="slide-fade" appear={routeHistoryCut().length > 0}>
             <div class="flex flex-col h-auto max-h-[400px] overflow-y-auto w-full">
               <span class="text-lg font-bold p-2">Recent Routes</span>
               <TransitionGroup name="slide-fade">
@@ -159,7 +299,7 @@ export const RouteControl = (props: { map: L.Map | null }) => {
                             <div class="flex flex-row gap-2 items-center justify-center">
                               <button
                                 type="button"
-                                class="px-2 py-1 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-md shadow-md border border-neutral-200 dark:border-neutral-800"
+                                class="px-2 py-1 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800"
                                 onClick={() => {
                                   const m = props.map;
                                   if (!m) return;
@@ -196,8 +336,8 @@ export const RouteControl = (props: { map: L.Map | null }) => {
                 </For>
               </TransitionGroup>
             </div>
-          </Show>
-          <Show when={routeHistory().length > routeHistoryCut().length}>
+          </Transition>
+          <Transition name="slide-fade" appear={routeHistory().length > routeHistoryCut().length}>
             <div class="flex flex-row gap-2 w-full items-center justify-between">
               <button
                 class="flex flex-row px-2 py-1 gap-2 items-center justify-center bg-red-100 dark:bg-red-800 rounded-md w-max"
@@ -209,7 +349,7 @@ export const RouteControl = (props: { map: L.Map | null }) => {
               </button>
               <button
                 disabled={routeHistoryPage() === 1}
-                class="flex flex-row px-2 py-1 gap-2 items-center justify-center bg-white dark:bg-black rounded-md shadow-md border border-neutral-200 dark:border-neutral-800 w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                class="flex flex-row px-2 py-1 gap-2 items-center justify-center bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800 w-full disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => {
                   const x = routeHistoryPage();
                   if (x === 1) return;
@@ -220,7 +360,7 @@ export const RouteControl = (props: { map: L.Map | null }) => {
               </button>
               <button
                 disabled={routeHistoryPage() * 2 >= routeHistory().length}
-                class="flex flex-row px-2 py-1 gap-2 items-center justify-center bg-white dark:bg-black rounded-md shadow-md border border-neutral-200 dark:border-neutral-800 w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                class="flex flex-row px-2 py-1 gap-2 items-center justify-center bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800 w-full disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => {
                   const x = routeHistoryPage();
                   if (x * 2 >= routeHistory().length) return;
@@ -230,31 +370,38 @@ export const RouteControl = (props: { map: L.Map | null }) => {
                 <span class="text-sm">More</span>
               </button>
             </div>
-          </Show>
+          </Transition>
           <Modal
             open={modalOpen()}
             onOpenChange={setModalOpen}
             title="Start a new Route"
             trigger={
-              <div class="flex flex-row gap-4 px-4 py-3 items-center w-full hover:bg-neutral-100 dark:hover:bg-neutral-900 rounded-md p-2 justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <polygon points="3 11 22 2 13 21 11 13 3 11" />
-                </svg>
-                <span class="text-md font-bold">New Route</span>
-              </div>
+              <Transition name="slide-fade">
+                <div class="flex flex-row gap-4 px-4 py-3 items-center w-full md:bg-transparent border border-neutral-100 dark:border-neutral-900 bg-neutral-50 dark:bg-neutral-950 hover:bg-neutral-100 dark:hover:bg-neutral-900 rounded-md p-2 justify-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polygon points="3 11 22 2 13 21 11 13 3 11" />
+                  </svg>
+                  <span class="text-md font-bold">New Route</span>
+                </div>
+              </Transition>
             }
           >
-            <form onSubmit={async (e) => {}} class="flex flex-col gap-4 h-min w-full">
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+              }}
+              class="flex flex-col gap-4 h-min w-full"
+            >
               <Tabs.Root
                 class="flex flex-col gap-2"
                 value={tabValue()}
@@ -388,7 +535,7 @@ export const RouteControl = (props: { map: L.Map | null }) => {
                   </div>
                   <button
                     type="button"
-                    class="px-2 py-1 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-md shadow-md border border-neutral-200 dark:border-neutral-800"
+                    class="px-2 py-1 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800"
                     onClick={() => {
                       const theRoute = selectedAvailableRoute();
                       if (!theRoute) {
@@ -426,13 +573,12 @@ export const RouteControl = (props: { map: L.Map | null }) => {
               </Tabs.Root>
             </form>
           </Modal>
-        </div>
-      </Match>
-      <Match when={route() && route()}>
-        {(r) => (
-          <div class="flex flex-col gap-2 w-max bg-white dark:bg-black px-4 py-2 rounded-md shadow-md border border-neutral-200 dark:border-neutral-800 items-center justify-center">
-            <Transition name="slide-fade">
-              <Show when={r().currentStep !== null}>
+        </Match>
+        <Match when={route() && route()}>
+          {(r) => (
+            <Transition name="slide-fade" appear={r().currentStep !== null}>
+              <div class="w-full flex flex-col items-center justify-center">
+                <div class="flex flex-row items-center justify-center">{direction()}</div>
                 <RouteStep
                   step={r().steps[r().currentStep!]}
                   next={r().nextStep ? r().steps[r().nextStep!] : null}
@@ -448,11 +594,11 @@ export const RouteControl = (props: { map: L.Map | null }) => {
                     });
                   }}
                 />
-              </Show>
+              </div>
             </Transition>
-          </div>
-        )}
-      </Match>
-    </Switch>
+          )}
+        </Match>
+      </Switch>
+    </div>
   );
 };

@@ -14,3 +14,17 @@
 .slide-fade-enter {
   transform: translateY(-10px);
 }
+
+/* scrollbars */
+::-webkit-scrollbar {
+  @apply rounded-full w-1.5 h-1.5 overflow-clip
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent overflow-clip rounded-full;
+}
+::-webkit-scrollbar-thumb {
+  @apply dark:bg-neutral-700 bg-neutral-300 overflow-clip rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply dark:bg-neutral-600 bg-neutral-400 overflow-clip rounded-full;
+}

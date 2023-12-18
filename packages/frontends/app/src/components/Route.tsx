@@ -171,13 +171,13 @@ export const RouteProvider = (props: { children: JSX.Element }) => {
     setRouteHistory(historyRoutes.routes);
   });
 
-  createEffect(() => {
-    // load routes from localstorage and set as available routes
-    const localroutes = JSON.parse(
-      localStorage.getItem(LOCAL_STORAGE_ROUTE_KEY) || DEFAULT_LOCAL_STORAGE_ROUTE
-    ) as LocalStorageRoutes;
-    setAvailableRoutes(localroutes.routes);
-  });
+  // createEffect(() => {
+  //   // load routes from localstorage and set as available routes
+  //   const localroutes = JSON.parse(
+  //     localStorage.getItem(LOCAL_STORAGE_ROUTE_KEY) || DEFAULT_LOCAL_STORAGE_ROUTE
+  //   ) as LocalStorageRoutes;
+  //   setAvailableRoutes(localroutes.routes);
+  // });
 
   const cancelRoute = () => {
     const r = route();
