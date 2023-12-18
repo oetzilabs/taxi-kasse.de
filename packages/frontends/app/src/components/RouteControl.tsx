@@ -159,8 +159,8 @@ export const RouteControl = (props: { map: L.Map | null }) => {
     setEndLocation("");
     clearAvailableRoutes();
     setTabValue("lookup");
+    toast.dismiss();
     toast.custom(<RouteToast route={route} status="cancelled" />, {
-      duration: 5000,
       ariaProps: {
         role: "status",
         "aria-live": "polite",
@@ -174,8 +174,10 @@ export const RouteControl = (props: { map: L.Map | null }) => {
     return routeHistory().slice(0, page * 2);
   };
 
+  const [showRouteMenu, setShowRouteMenu] = createSignal<boolean>(false);
+
   return (
-    <div class="flex flex-col gap-2 bg-white dark:bg-black p-2 md:rounded-md shadow-md border-b md:border border-neutral-200 dark:border-neutral-800 max-w-[450px] w-full overflow-clip items-start">
+    <div class="flex flex-col gap-2 bg-white dark:bg-black p-2 md:rounded-md shadow-md border-b md:border border-neutral-200 dark:border-neutral-800 min-w-[100svw] max-w-[450px] w-full overflow-clip items-start">
       <div class="w-full items-center flex flex-row justify-between gap-2">
         <button
           class="py-2 px-4 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black w-full rounded-md border border-neutral-200 dark:border-neutral-800"
@@ -253,231 +255,313 @@ export const RouteControl = (props: { map: L.Map | null }) => {
       </div>
       <Switch>
         <Match when={route() === null || route()?.steps.length === 0}>
-          <Transition name="slide-fade" appear={routeHistoryCut().length > 0}>
-            <div class="flex flex-col h-auto max-h-[400px] overflow-y-auto w-full">
-              <span class="text-lg font-bold p-2">Recent Routes</span>
-              <TransitionGroup name="slide-fade">
-                <For
-                  each={routeHistoryCut(routeHistoryPage())}
-                  fallback={
-                    <div class="flex flex-col gap-2 w-full">
-                      <Switch>
-                        <Match when={route() === null}>
-                          <div class="flex flex-col w-full gap-2 items-center justify-center rounded-md p-8 bg-neutral-100 dark:bg-neutral-950">
-                            <span class="text-lg font-bold">No route found</span>
-                          </div>
-                        </Match>
-                        <Match when={route()?.steps.length === 0}>
-                          <div class="flex flex-col gap-2 items-center justify-center rounded-md border border-neutral-100 dark:border-neutral-900 p-8">
-                            <span class="text-lg font-bold">The route you selected is empty</span>
-                            <span class="text-md font-medium">
-                              Try a{" "}
-                              <button
-                                class="text-blue-500"
-                                onClick={() => {
-                                  const r = route();
-                                  if (!r) return;
-                                  resetModal(r);
-                                  setModalOpen(true);
-                                }}
-                              >
-                                different route
-                              </button>
-                            </span>
-                          </div>
-                        </Match>
-                      </Switch>
-                    </div>
-                  }
-                >
-                  {(r) => (
-                    <Transition name="slide-fade">
-                      <div class="w-full p-2 flex flex-row items-center justify-center">
-                        <div class="flex flex-col gap-2 items-start justify-start">
-                          <div class="flex flex-row gap-2 items-start justify-start">
-                            <span class="text-md font-medium">{r.name}</span>
-                            <div class="flex flex-row gap-2 items-center justify-center">
-                              <button
-                                type="button"
-                                class="px-2 py-1 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800"
-                                onClick={() => {
-                                  const m = props.map;
-                                  if (!m) return;
-                                  loadRoute(r);
-                                  routeTo(m, r.name, r.coordinates.path);
-                                  toast.custom(<RouteToast route={r} status="started" />, {
-                                    duration: 5000,
-                                    position: "bottom-right",
-                                  });
-                                }}
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="14"
-                                  height="14"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  stroke-width="2"
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                >
-                                  <polygon points="3 11 22 2 13 21 11 13 3 11" />
-                                </svg>
-                                <span class="text-sm">Route</span>
-                              </button>
-                            </div>
-                          </div>
-                          <span class="text-xs text-neutral-500">{r.steps.length} Instructions</span>
-                        </div>
-                      </div>
-                    </Transition>
-                  )}
-                </For>
-              </TransitionGroup>
-            </div>
-          </Transition>
-          <Transition name="slide-fade" appear={routeHistory().length > routeHistoryCut().length}>
-            <div class="flex flex-row gap-2 w-full items-center justify-between">
-              <button
-                class="flex flex-row px-2 py-1 gap-2 items-center justify-center bg-red-100 dark:bg-red-800 rounded-md w-max"
-                onClick={() => {
-                  clearRouteHistory();
-                }}
-              >
-                <span class="text-sm w-max">Clear History</span>
-              </button>
-              <button
-                disabled={routeHistoryPage() === 1}
-                class="flex flex-row px-2 py-1 gap-2 items-center justify-center bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800 w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={() => {
-                  const x = routeHistoryPage();
-                  if (x === 1) return;
-                  setRouteHistoryPage(x - 1);
-                }}
-              >
-                <span class="text-sm">Less</span>
-              </button>
-              <button
-                disabled={routeHistoryPage() * 2 >= routeHistory().length}
-                class="flex flex-row px-2 py-1 gap-2 items-center justify-center bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800 w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={() => {
-                  const x = routeHistoryPage();
-                  if (x * 2 >= routeHistory().length) return;
-                  setRouteHistoryPage(x + 1);
-                }}
-              >
-                <span class="text-sm">More</span>
-              </button>
-            </div>
-          </Transition>
-          <Modal
-            open={modalOpen()}
-            onOpenChange={setModalOpen}
-            title="Start a new Route"
-            trigger={
+          <div class="w-full flex flex-col gap-2 items-center justify-between">
+            <Show when={showRouteMenu()}>
               <Transition name="slide-fade">
-                <div class="flex flex-row gap-4 px-4 py-3 items-center w-full md:bg-transparent border border-neutral-100 dark:border-neutral-900 bg-neutral-50 dark:bg-neutral-950 hover:bg-neutral-100 dark:hover:bg-neutral-900 rounded-md p-2 justify-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <polygon points="3 11 22 2 13 21 11 13 3 11" />
-                  </svg>
-                  <span class="text-md font-bold">New Route</span>
+                <div class="w-full flex flex-col gap-2 items-center justify-between">
+                  <Transition name="slide-fade" appear={routeHistoryCut().length > 0}>
+                    <div class="flex flex-col h-auto max-h-[400px] overflow-y-auto w-full">
+                      <span class="text-lg font-bold p-2">Recent Routes</span>
+                      <TransitionGroup name="slide-fade">
+                        <For
+                          each={routeHistoryCut(routeHistoryPage())}
+                          fallback={
+                            <div class="flex flex-col gap-2 w-full">
+                              <Switch>
+                                <Match when={route() === null}>
+                                  <div class="flex flex-col w-full gap-2 items-center justify-center rounded-md p-8 bg-neutral-100 dark:bg-neutral-950">
+                                    <span class="text-lg font-bold">No route found</span>
+                                  </div>
+                                </Match>
+                                <Match when={route()?.steps.length === 0}>
+                                  <div class="flex flex-col gap-2 items-center justify-center rounded-md border border-neutral-100 dark:border-neutral-900 p-8">
+                                    <span class="text-lg font-bold">The route you selected is empty</span>
+                                    <span class="text-md font-medium">
+                                      Try a{" "}
+                                      <button
+                                        class="text-blue-500"
+                                        onClick={() => {
+                                          const r = route();
+                                          if (!r) return;
+                                          resetModal(r);
+                                          setModalOpen(true);
+                                        }}
+                                      >
+                                        different route
+                                      </button>
+                                    </span>
+                                  </div>
+                                </Match>
+                              </Switch>
+                            </div>
+                          }
+                        >
+                          {(r) => (
+                            <Transition name="slide-fade">
+                              <div class="w-full p-2 flex flex-row items-center justify-center">
+                                <div class="flex flex-col gap-2 items-start justify-start">
+                                  <div class="flex flex-row gap-2 items-start justify-start">
+                                    <span class="text-md font-medium">{r.name}</span>
+                                    <div class="flex flex-row gap-2 items-center justify-center">
+                                      <button
+                                        type="button"
+                                        class="px-2 py-1 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800"
+                                        onClick={() => {
+                                          const m = props.map;
+                                          if (!m) return;
+                                          loadRoute(r);
+                                          routeTo(m, r.name, r.coordinates.path);
+                                          toast.custom(<RouteToast route={r} status="started" />, {
+                                            duration: 5000,
+                                            position: "bottom-right",
+                                          });
+                                        }}
+                                      >
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="14"
+                                          height="14"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          stroke-width="2"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                        >
+                                          <polygon points="3 11 22 2 13 21 11 13 3 11" />
+                                        </svg>
+                                        <span class="text-sm">Route</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <span class="text-xs text-neutral-500">{r.steps.length} Instructions</span>
+                                </div>
+                              </div>
+                            </Transition>
+                          )}
+                        </For>
+                      </TransitionGroup>
+                    </div>
+                  </Transition>
+                  <Transition name="slide-fade" appear={routeHistory().length > routeHistoryCut().length}>
+                    <div class="flex flex-row gap-2 w-full items-center justify-between">
+                      <button
+                        class="flex flex-row px-2 py-1 gap-2 items-center justify-center bg-red-100 dark:bg-red-800 rounded-md w-max"
+                        onClick={() => {
+                          clearRouteHistory();
+                        }}
+                      >
+                        <span class="text-sm w-max">Clear History</span>
+                      </button>
+                      <button
+                        disabled={routeHistoryPage() === 1}
+                        class="flex flex-row px-2 py-1 gap-2 items-center justify-center bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800 w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => {
+                          const x = routeHistoryPage();
+                          if (x === 1) return;
+                          setRouteHistoryPage(x - 1);
+                        }}
+                      >
+                        <span class="text-sm">Less</span>
+                      </button>
+                      <button
+                        disabled={routeHistoryPage() * 2 >= routeHistory().length}
+                        class="flex flex-row px-2 py-1 gap-2 items-center justify-center bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800 w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => {
+                          const x = routeHistoryPage();
+                          if (x * 2 >= routeHistory().length) return;
+                          setRouteHistoryPage(x + 1);
+                        }}
+                      >
+                        <span class="text-sm">More</span>
+                      </button>
+                    </div>
+                  </Transition>
                 </div>
               </Transition>
-            }
-          >
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-              }}
-              class="flex flex-col gap-4 h-min w-full"
-            >
-              <Tabs.Root
-                class="flex flex-col gap-2"
-                value={tabValue()}
-                onChange={(v) => {
-                  setTabValue(v as "lookup" | "routes");
-                }}
+            </Show>
+            <div class="w-full flex flex-row gap-2 items-center justify-between">
+              <Modal
+                open={modalOpen()}
+                onOpenChange={setModalOpen}
+                title="Start a new Route"
+                trigger={
+                  <Transition name="slide-fade">
+                    <div class="flex flex-row gap-4 px-4 py-3 items-center w-full md:bg-transparent border border-neutral-100 dark:border-neutral-900 bg-neutral-50 dark:bg-neutral-950 hover:bg-neutral-100 dark:hover:bg-neutral-900 rounded-md p-2 justify-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <polygon points="3 11 22 2 13 21 11 13 3 11" />
+                      </svg>
+                      <span class="text-md font-bold">New Route</span>
+                    </div>
+                  </Transition>
+                }
               >
-                <Tabs.List class="flex flex-row gap-2">
-                  <Tabs.Trigger value="lookup" class={cn("ui-selected:border-b ui-selected:border-teal-500")}>
-                    Lookup
-                  </Tabs.Trigger>
-                  <Tabs.Trigger
-                    value="routes"
-                    class={cn(
-                      "ui-selected:border-b ui-selected:border-teal-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    )}
-                    disabled={availableRoutes().length === 0}
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                  }}
+                  class="flex flex-col gap-4 h-min w-full"
+                >
+                  <Tabs.Root
+                    class="flex flex-col gap-2"
+                    value={tabValue()}
+                    onChange={(v) => {
+                      setTabValue(v as "lookup" | "routes");
+                    }}
                   >
-                    Routes
-                  </Tabs.Trigger>
-                </Tabs.List>
-                <Tabs.Content value="lookup" class="w-full flex flex-col gap-2 py-2">
-                  <TextField.Root class="flex flex-col gap-2">
-                    <TextField.Label>Start</TextField.Label>
-                    <TextField.Input
-                      class="w-full bg-transparent border border-neutral-300 dark:border-neutral-800 px-3 py-2 rounded-md"
-                      placeholder="Start"
-                      onInput={(e) => {
-                        setStartLocation(e.currentTarget.value);
-                      }}
-                      value={startLocation()}
-                    />
-                  </TextField.Root>
-                  <TextField.Root class="flex flex-col gap-2">
-                    <TextField.Label>End</TextField.Label>
-                    <TextField.Input
-                      class="w-full bg-transparent border border-neutral-300 dark:border-neutral-800 px-3 py-2 rounded-md"
-                      placeholder="End"
-                      onInput={(e) => {
-                        setEndLocation(e.currentTarget.value);
-                      }}
-                      value={endLocation()}
-                    />
-                  </TextField.Root>
-                  <div class="flex flex-row gap-2 items-center justify-between">
-                    <div></div>
-                    <div>
+                    <Tabs.List class="flex flex-row gap-2">
+                      <Tabs.Trigger value="lookup" class={cn("ui-selected:border-b ui-selected:border-teal-500")}>
+                        Lookup
+                      </Tabs.Trigger>
+                      <Tabs.Trigger
+                        value="routes"
+                        class={cn(
+                          "ui-selected:border-b ui-selected:border-teal-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        )}
+                        disabled={availableRoutes().length === 0}
+                      >
+                        Routes
+                      </Tabs.Trigger>
+                    </Tabs.List>
+                    <Tabs.Content value="lookup" class="w-full flex flex-col gap-2 py-2">
+                      <TextField.Root class="flex flex-col gap-2">
+                        <TextField.Label>Start</TextField.Label>
+                        <TextField.Input
+                          class="w-full bg-transparent border border-neutral-300 dark:border-neutral-800 px-3 py-2 rounded-md"
+                          placeholder="Start"
+                          onInput={(e) => {
+                            setStartLocation(e.currentTarget.value);
+                          }}
+                          value={startLocation()}
+                        />
+                      </TextField.Root>
+                      <TextField.Root class="flex flex-col gap-2">
+                        <TextField.Label>End</TextField.Label>
+                        <TextField.Input
+                          class="w-full bg-transparent border border-neutral-300 dark:border-neutral-800 px-3 py-2 rounded-md"
+                          placeholder="End"
+                          onInput={(e) => {
+                            setEndLocation(e.currentTarget.value);
+                          }}
+                          value={endLocation()}
+                        />
+                      </TextField.Root>
+                      <div class="flex flex-row gap-2 items-center justify-between">
+                        <div></div>
+                        <div>
+                          <button
+                            type="button"
+                            class="px-2 py-1 flex flex-row gap-2 items-center justify-center bg-black dark:bg-white text-white dark:text-black rounded-md  border border-neutral-200 dark:border-neutral-800"
+                            onClick={async (e) => {
+                              e.preventDefault();
+                              const localStoreRoutes = JSON.parse(
+                                localStorage.getItem("localroutes") ??
+                                  JSON.stringify({
+                                    routes: [],
+                                    updated: null,
+                                  })
+                              ) as {
+                                routes: L.Routing.IRoute[];
+                                updated: Date | null;
+                              };
+                              if (localStoreRoutes.updated && localStoreRoutes.routes.length > 0) {
+                                const route = localStoreRoutes.routes.find((x) => {
+                                  if (!x.name) return false;
+                                  return x.name === `${startLocation()} - ${endLocation()}`;
+                                });
+                                if (route && route.coordinates) {
+                                  // load the route from local storage
+                                  console.log("loading route from local storage", route);
+
+                                  return;
+                                }
+                              }
+                              await lookupAndStoreRoutes(startLocation(), endLocation());
+                              setTabValue("routes");
+                            }}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <circle cx="11" cy="11" r="8" />
+                              <path d="m21 21-4.3-4.3" />
+                            </svg>
+                            <span class="text-sm">Lookup</span>
+                          </button>
+                        </div>
+                      </div>
+                    </Tabs.Content>
+                    <Tabs.Content value="routes" class="w-full flex flex-col gap-2 py-2">
+                      <div class="grid grid-cols-2 w-full gap-2">
+                        <For
+                          each={availableRoutes()}
+                          fallback={
+                            <div class="flex flex-col gap-2 items-center justify-center rounded-md border border-neutral-100 dark:border-neutral-900 p-8">
+                              <span class="text-lg font-bold">No routes found</span>
+                              <span class="text-md font-medium">Try a different route</span>
+                            </div>
+                          }
+                        >
+                          {(route) => (
+                            <div
+                              class={cn(
+                                "flex flex-col gap-2 items-start justify-start p-2 border border-neutral-300 dark:border-neutral-800 rounded-md cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-900",
+                                {
+                                  "bg-neutral-100 dark:bg-neutral-900 border-emerald-500 dark:border-emerald-600":
+                                    route.name === selectedAvailableRoute()?.name,
+                                }
+                              )}
+                              onClick={() => {
+                                setSelectedAvailableRouteFromName(route.name);
+                              }}
+                            >
+                              <span class="text-lg font-bold">{route.name}</span>
+                              <span class="text-md font-medium">
+                                {Math.floor((route.summary?.totalDistance ?? 0) / 1000)}km -{" "}
+                                {Math.floor((route.summary?.totalTime ?? 0) / 60)} min.
+                              </span>
+                              <span>{route.steps?.length} Instructions</span>
+                            </div>
+                          )}
+                        </For>
+                      </div>
                       <button
                         type="button"
-                        class="px-2 py-1 flex flex-row gap-2 items-center justify-center bg-black dark:bg-white text-white dark:text-black rounded-md  border border-neutral-200 dark:border-neutral-800"
-                        onClick={async (e) => {
-                          e.preventDefault();
-                          const localStoreRoutes = JSON.parse(
-                            localStorage.getItem("localroutes") ??
-                              JSON.stringify({
-                                routes: [],
-                                updated: null,
-                              })
-                          ) as {
-                            routes: L.Routing.IRoute[];
-                            updated: Date | null;
-                          };
-                          if (localStoreRoutes.updated && localStoreRoutes.routes.length > 0) {
-                            const route = localStoreRoutes.routes.find((x) => {
-                              if (!x.name) return false;
-                              return x.name === `${startLocation()} - ${endLocation()}`;
-                            });
-                            if (route && route.coordinates) {
-                              // load the route from local storage
-                              console.log("loading route from local storage", route);
-
-                              return;
-                            }
+                        class="px-2 py-1 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800"
+                        onClick={() => {
+                          const theRoute = selectedAvailableRoute();
+                          if (!theRoute) {
+                            return;
                           }
-                          await lookupAndStoreRoutes(startLocation(), endLocation());
-                          setTabValue("routes");
+                          if (!theRoute.coordinates) return;
+                          loadRoute(theRoute);
+                          const m = props.map;
+                          if (!m) return;
+                          routeTo(m, theRoute.name ?? "", theRoute.coordinates.path);
+                          saveRoute(theRoute);
+                          setModalOpen(false);
+                          toast.custom(<RouteToast route={theRoute} status="started" />, {
+                            duration: 5000,
+                            position: "bottom-right",
+                          });
                         }}
                       >
                         <svg
@@ -491,88 +575,57 @@ export const RouteControl = (props: { map: L.Map | null }) => {
                           stroke-linecap="round"
                           stroke-linejoin="round"
                         >
-                          <circle cx="11" cy="11" r="8" />
-                          <path d="m21 21-4.3-4.3" />
+                          <polygon points="3 11 22 2 13 21 11 13 3 11" />
                         </svg>
-                        <span class="text-sm">Lookup</span>
+                        <span class="text-sm">Route</span>
                       </button>
-                    </div>
-                  </div>
-                </Tabs.Content>
-                <Tabs.Content value="routes" class="w-full flex flex-col gap-2 py-2">
-                  <div class="grid grid-cols-2 w-full gap-2">
-                    <For
-                      each={availableRoutes()}
-                      fallback={
-                        <div class="flex flex-col gap-2 items-center justify-center rounded-md border border-neutral-100 dark:border-neutral-900 p-8">
-                          <span class="text-lg font-bold">No routes found</span>
-                          <span class="text-md font-medium">Try a different route</span>
-                        </div>
-                      }
-                    >
-                      {(route) => (
-                        <div
-                          class={cn(
-                            "flex flex-col gap-2 items-start justify-start p-2 border border-neutral-300 dark:border-neutral-800 rounded-md cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-900",
-                            {
-                              "bg-neutral-100 dark:bg-neutral-900 border-emerald-500 dark:border-emerald-600":
-                                route.name === selectedAvailableRoute()?.name,
-                            }
-                          )}
-                          onClick={() => {
-                            setSelectedAvailableRouteFromName(route.name);
-                          }}
-                        >
-                          <span class="text-lg font-bold">{route.name}</span>
-                          <span class="text-md font-medium">
-                            {Math.floor((route.summary?.totalDistance ?? 0) / 1000)}km -{" "}
-                            {Math.floor((route.summary?.totalTime ?? 0) / 60)} min.
-                          </span>
-                          <span>{route.steps?.length} Instructions</span>
-                        </div>
-                      )}
-                    </For>
-                  </div>
-                  <button
-                    type="button"
-                    class="px-2 py-1 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800"
-                    onClick={() => {
-                      const theRoute = selectedAvailableRoute();
-                      if (!theRoute) {
-                        return;
-                      }
-                      if (!theRoute.coordinates) return;
-                      loadRoute(theRoute);
-                      const m = props.map;
-                      if (!m) return;
-                      routeTo(m, theRoute.name ?? "", theRoute.coordinates.path);
-                      saveRoute(theRoute);
-                      setModalOpen(false);
-                      toast.custom(<RouteToast route={theRoute} status="started" />, {
-                        duration: 5000,
-                        position: "bottom-right",
-                      });
-                    }}
-                  >
+                    </Tabs.Content>
+                  </Tabs.Root>
+                </form>
+              </Modal>
+              <button
+                class="flex flex-row gap-4 p-3.5 items-center w-max md:bg-transparent border border-neutral-100 dark:border-neutral-900 bg-neutral-50 dark:bg-neutral-950 hover:bg-neutral-100 dark:hover:bg-neutral-900 rounded-md  justify-center"
+                onClick={() => {
+                  setShowRouteMenu(!showRouteMenu());
+                }}
+              >
+                <Switch>
+                  <Match when={showRouteMenu()}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
+                      width="20"
+                      height="20"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
                       stroke-width="2"
                       stroke-linecap="round"
                       stroke-linejoin="round"
+                      class="lucide lucide-chevron-up"
                     >
-                      <polygon points="3 11 22 2 13 21 11 13 3 11" />
+                      <path d="m18 15-6-6-6 6" />
                     </svg>
-                    <span class="text-sm">Route</span>
-                  </button>
-                </Tabs.Content>
-              </Tabs.Root>
-            </form>
-          </Modal>
+                  </Match>
+                  <Match when={!showRouteMenu()}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="lucide lucide-chevron-down"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </Match>
+                </Switch>
+              </button>
+            </div>
+          </div>
         </Match>
         <Match when={route() && route()}>
           {(r) => (
