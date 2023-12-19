@@ -5,6 +5,7 @@ import { cn } from "../utils/cn";
 import { useAuth, useAuthUrl } from "./Auth";
 import { useBreadcrumbs } from "./Breadcrumbs";
 import { useTitle } from "./Title";
+import { useNavigate } from "solid-start";
 
 export const UserMenu = () => {
   const [auth, setAuthStore] = useAuth();
@@ -25,6 +26,8 @@ export const UserMenu = () => {
 
   const authUrl = useAuthUrl();
   const bcs = useBreadcrumbs();
+
+  const navigation = useNavigate();
 
   return (
     <div class="w-full h-auto flex-col justify-start items-start gap-2 inline-flex">
@@ -186,8 +189,13 @@ export const UserMenu = () => {
                       <DropdownMenu.Content class="text-sm z-50 self-end mt-3 w-fit bg-white dark:bg-black rounded-md border border-neutral-200 dark:border-neutral-800 shadow-md overflow-clip">
                         <DropdownMenu.Group>
                           <DropdownMenu.GroupLabel class="font-semibold p-2 select-none">User</DropdownMenu.GroupLabel>
-                          <DropdownMenu.Item class={cn(itemClass, "select-none")}>
-                            <A href="/profile" class="flex flex-row items-center justify-start gap-2 w-full h-full">
+                          <DropdownMenu.Item
+                            class={cn(itemClass, "select-none")}
+                            onSelect={() => {
+                              navigation("/profile");
+                            }}
+                          >
+                            <div class="flex flex-row items-center justify-start gap-2 w-full h-full">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="14"
@@ -204,13 +212,15 @@ export const UserMenu = () => {
                                 <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662" />
                               </svg>
                               <span>Profile</span>
-                            </A>
+                            </div>
                           </DropdownMenu.Item>
-                          <DropdownMenu.Item class={cn(itemClass, "select-none")}>
-                            <A
-                              href="/profile/settings"
-                              class="flex flex-row items-center justify-start gap-2 w-full h-full"
-                            >
+                          <DropdownMenu.Item
+                            class={cn(itemClass, "select-none")}
+                            onSelect={() => {
+                              navigation("/profile/settings");
+                            }}
+                          >
+                            <div class="flex flex-row items-center justify-start gap-2 w-full h-full">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="14"
@@ -226,7 +236,7 @@ export const UserMenu = () => {
                                 <circle cx="12" cy="12" r="3" />
                               </svg>
                               <span>Settings</span>
-                            </A>
+                            </div>
                           </DropdownMenu.Item>
                           <DropdownMenu.Separator class="border-neutral-200 dark:border-neutral-800" />
                           <DropdownMenu.Item

@@ -179,9 +179,7 @@ export const listAll = ApiHandler(async (x) => {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      companies,
-    }),
+    body: JSON.stringify(companies),
     statusCode: 200,
   };
 });

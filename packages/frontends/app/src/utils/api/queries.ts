@@ -101,3 +101,13 @@ export const Users = {
     ),
   },
 };
+
+export const Companies = {
+  all: z.function(z.tuple([z.string()])).implement(async (token) =>
+    fetch(`${API_BASE}/company/all`, {
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    }).then((res) => res.json() as ReturnType<typeof Company.all>)
+  ),
+};
