@@ -2,7 +2,7 @@ import { A } from "@solidjs/router";
 import { createQuery } from "@tanstack/solid-query";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { For, Match, Show, Suspense, Switch, createEffect, createSignal } from "solid-js";
+import { For, Match, Show, Suspense, Switch, createEffect, createSignal, onMount } from "solid-js";
 import { useAuth } from "../../components/Auth";
 import { Queries } from "../../utils/api/queries";
 dayjs.extend(relativeTime);
@@ -77,8 +77,9 @@ export default function Dashboard() {
       const token = auth.token;
       return token !== null;
     },
-    refetchInterval: 1000 * 5,
+    // refetchInterval: 1000 * 5,
     keepPreviousData: true,
+    refetchOnWindowFocus: false,
   }));
 
   createEffect(() => {
@@ -97,7 +98,7 @@ export default function Dashboard() {
   });
 
   return (
-    <div class="flex flex-col w-full h-full">
+    <div class="flex flex-col container mx-auto h-full">
       <Suspense
         fallback={
           <div class="flex flex-row gap-2 items-center justify-center text-neutral-500 w-full h-full">
@@ -214,11 +215,30 @@ export default function Dashboard() {
                       </A>
                     </div>
                   </div>
-                  <div class="flex flex-wrap flex-row w-full gap-2">
+                  <div class="grid grid-cols-4 gap-2">
                     <For each={stats}>
                       {(stat) => (
-                        <div class="bg-white dark:bg-black shadow-sm rounded-md flex flex-col gap-1 p-2 border border-neutral-200 dark:border-neutral-900 w-max items-center justify-center select-none">
-                          <div class="text-sm font-bold">{stat.label(stat.value)}</div>
+                        <div class="w-full p-4 bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 flex-row justify-between items-start inline-flex rounded-md gap-2 select-none shadow-sm hover:bg-neutral-50 dark:hover:bg-neutral-900">
+                          <div class="text-xs font-medium">{stat.label(stat.value)}</div>
+                          <div>
+                            <div class="flex flex-col relative w-16 h-16 rounded-full overflow-clip bg-transparent border-4 border-emerald-500 items-center justify-center text-emerald-500 gap-0.5">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              >
+                                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                                <polyline points="16 7 22 7 22 13" />
+                              </svg>
+                              <span class="text-xs">{stat.value}</span>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </For>
@@ -279,7 +299,7 @@ export default function Dashboard() {
                       {(entry) => (
                         <A
                           href={`./calendar/entry/${entry.id}`}
-                          class="w-full p-2 bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 flex-col justify-start items-start inline-flex rounded-md gap-2 select-none shadow-sm hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                          class="w-full p-4 bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 flex-col justify-start items-start inline-flex rounded-md gap-2 select-none shadow-sm hover:bg-neutral-50 dark:hover:bg-neutral-900"
                         >
                           <div class="text-xs font-medium">{dayjs(entry.date).format("dddd")}</div>
                           <div class="self-stretch justify-between items-start inline-flex">

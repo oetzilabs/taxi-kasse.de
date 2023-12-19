@@ -116,7 +116,7 @@ const ProfileSettings = () => {
                   </button>
                 </div>
                 <div
-                  class="flex flex-col gap-2 w-full border border-neutral-300 dark:border-neutral-800 rounded-md p-4 shadow-sm"
+                  class="flex flex-col gap-4 w-full border border-neutral-300 dark:border-neutral-800 rounded-md p-4 shadow-sm"
                   id="company"
                 >
                   <Suspense
@@ -170,9 +170,11 @@ const ProfileSettings = () => {
                               </Combobox.Item>
                             )}
                           >
-                            <Combobox.Label class="text-sm">Company</Combobox.Label>
-                            <Combobox.Control class="flex flex-row items-center bg-transparent gap-2 border border-black/5 dark:border-white/5 rounded-md">
-                              <Combobox.Input class="flex flex-row items-center bg-transparent px-2 text-sm py-1" />
+                            <Combobox.Label class="text-sm">
+                              Company <span class="text-xs">{u().companyId !== null ? "(selected)" : ""}</span>
+                            </Combobox.Label>
+                            <Combobox.Control class="flex flex-row items-center bg-transparent gap-2 border border-black/5 dark:border-white/5 rounded-md disabled:opacity-50">
+                              <Combobox.Input class="flex flex-row items-center bg-transparent px-2 text-sm py-1 disabled:opacity-50" />
                               <Combobox.Trigger class="px-2 py-1">
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
@@ -199,50 +201,65 @@ const ProfileSettings = () => {
                       </Match>
                     </Switch>
                   </Suspense>
-                  <button
-                    type="button"
-                    class="flex flex-row items-center gap-2 justify-center rounded-md px-2 py-1 bg-emerald-500 dark:bg-emerald-700 text-white border border-emerald-600 dark:border-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={u().companyId !== null}
-                  >
-                    <Switch>
-                      <Match when={u().companyId === null}>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path d="M18 6 7 17l-5-5" />
-                          <path d="m22 10-7.5 7.5L13 16" />
-                        </svg>
-                        <span class="text-xs">Request Company Seat</span>
-                      </Match>
-                      <Match when={u().companyId !== null}>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path d="M22 10.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h12.5" />
-                          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                          <path d="M18 15.28c.2-.4.5-.8.9-1a2.1 2.1 0 0 1 2.6.4c.3.4.5.8.5 1.3 0 1.3-2 2-2 2" />
-                          <path d="M20 22v.01" />
-                        </svg>
-                        <span class="text-xs">Company Seat Set</span>
-                      </Match>
-                    </Switch>
-                  </button>
+                  <div class="w-full flex flex-row items-center justify-between">
+                    <div class="flex flex-row w-max gap-2">
+                      <button
+                        type="button"
+                        class="flex flex-row items-center gap-2 justify-center rounded-md px-2 py-1 bg-emerald-500 dark:bg-emerald-700 text-white border border-emerald-600 dark:border-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={u().companyId !== null}
+                      >
+                        <Switch>
+                          <Match when={u().companyId === null}>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <path d="M18 6 7 17l-5-5" />
+                              <path d="m22 10-7.5 7.5L13 16" />
+                            </svg>
+                            <span class="text-xs">Request Company Seat</span>
+                          </Match>
+                          <Match when={u().companyId !== null}>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <path d="M22 10.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h12.5" />
+                              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                              <path d="M18 15.28c.2-.4.5-.8.9-1a2.1 2.1 0 0 1 2.6.4c.3.4.5.8.5 1.3 0 1.3-2 2-2 2" />
+                              <path d="M20 22v.01" />
+                            </svg>
+                            <span class="text-xs">Company Seat Set</span>
+                          </Match>
+                        </Switch>
+                      </button>
+                    </div>
+                    <div class="flex flex-row w-max gap-2">
+                      <button
+                        class="flex flex-row w-max items-center gap-2 justify-center rounded-md px-2 py-1 bg-red-500 dark:bg-red-700 text-white border border-red-600 dark:border-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => {
+                          console.log("disconnect");
+                        }}
+                        disabled={u().companyId === null}
+                      >
+                        <span class="text-xs">Disconnect</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 <div class="flex flex-row gap-2 items-center justify-between w-full">
                   <div class="flex flex-row items-center gap-2"></div>
