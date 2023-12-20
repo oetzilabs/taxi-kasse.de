@@ -111,3 +111,23 @@ export const Companies = {
     }).then((res) => res.json() as ReturnType<typeof Company.all>)
   ),
 };
+
+export const Notices = {
+  get: z.function(z.tuple([z.string()])).implement(
+    async (token) =>
+      Promise.resolve([
+        {
+          id: "1",
+          title: "Notice",
+          content: "This is a notice",
+          createdAt: new Date(),
+          dismissed: false,
+        },
+      ])
+    // fetch(`${API_BASE}/notice`, {
+    //   headers: {
+    //     authorization: `Bearer ${token}`,
+    //   },
+    // }).then((res) => res.json() as ReturnType<typeof System.getNotices>)
+  ),
+};

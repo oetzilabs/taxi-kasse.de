@@ -6,6 +6,6 @@ export default defineConfig({
   plugins: [solid({ adapter: aws() })],
   ssr: {
     noExternal: ["@kobalte/core", "@internationalized/message"],
-    external: ["leaflet", "leaflet/dist/leaflet.css"],
+    external: ["leaflet", "leaflet/dist/leaflet.css", "leaflet-routing-machine", "@solid-primitives/devices"],
   },
 });

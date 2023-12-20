@@ -135,3 +135,40 @@ export const downloadReport = downloadReportZod.implement(async (token, key) =>
     .then((x) => x.blob())
     .then((x) => new File([x], "report.pdf", { type: "application/pdf" }))
 );
+
+export const Notices = {
+  dismiss: z.function(z.tuple([z.string(), z.string().uuid()])).implement(
+    async (token, id) =>
+      Promise.resolve({
+        id,
+        title: "Notice",
+        content: "This is a notice",
+        createdAt: new Date(),
+        dismissed: true,
+      })
+    // fetch(`${API_BASE}/notice/${id}`, {
+    //   method: "PUT",
+    //   headers: {
+    //     authorization: `Bearer ${token}`,
+    //   },
+    // }).then((res) => res.json() as ReturnType<typeof System.dismiss>)
+  ),
+  dismissAll: z.function(z.tuple([z.string()])).implement(
+    async (token) =>
+      Promise.resolve([
+        {
+          id: "1",
+          title: "Notice",
+          content: "This is a notice",
+          createdAt: new Date(),
+          dismissed: true,
+        },
+      ])
+    // fetch(`${API_BASE}/notice/all`, {
+    //   method: "PUT",
+    //   headers: {
+    //     authorization: `Bearer ${token}`,
+    //   },
+    // }).then((res) => res.json() as ReturnType<typeof System.dismissAll>)
+  ),
+};

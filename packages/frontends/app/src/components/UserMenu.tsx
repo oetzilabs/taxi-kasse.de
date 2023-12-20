@@ -109,7 +109,7 @@ export const UserMenu = () => {
             </Match>
           </Switch>
         </div>
-        <div class="w-max">
+        <div class="w-max flex items-center">
           <Suspense
             fallback={
               <div class="flex items-center justify-center">
@@ -181,8 +181,12 @@ export const UserMenu = () => {
                   <DropdownMenu.Root placement="bottom-end">
                     <DropdownMenu.Trigger>
                       <div class="flex w-max flex-row items-center gap-2 cursor-pointer">
-                        <img class="w-7 h-7 rounded-full" src={user().profile.image} alt={user().name} />
-                        <span class="text-sm">{user().name}</span>
+                        <img
+                          class="w-7 h-7 rounded-full border border-neutral-500"
+                          src={user().profile.image}
+                          alt={user().name}
+                        />
+                        <span class="text-sm hidden md:visible">{user().name}</span>
                       </div>
                     </DropdownMenu.Trigger>
                     <DropdownMenu.Portal>
