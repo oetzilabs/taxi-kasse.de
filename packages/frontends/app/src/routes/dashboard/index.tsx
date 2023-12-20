@@ -16,12 +16,14 @@ import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Line } from "solid-chartjs";
-import { For, Match, Show, Suspense, Switch, createEffect, createSignal, onCleanup, onMount } from "solid-js";
+import { For, JSX, Match, Show, Suspense, Switch, createEffect, createSignal, onCleanup, onMount } from "solid-js";
+import { Dynamic } from "solid-js/web";
+import Markdown from "solid-marked/component";
 import { Transition, TransitionGroup } from "solid-transition-group";
 import { useAuth } from "../../components/Auth";
+import { Mutations } from "../../utils/api/mutations";
 import { Queries } from "../../utils/api/queries";
 import { cn } from "../../utils/cn";
-import { Mutations } from "../../utils/api/mutations";
 dayjs.extend(relativeTime);
 dayjs.extend(advancedFormat);
 
@@ -310,6 +312,7 @@ export default function Dashboard() {
   }));
 
   const [noticeIndex, setNoticeIndex] = createSignal(0);
+
   return (
     <div class="flex flex-col container mx-auto h-full">
       <Suspense
@@ -394,7 +397,8 @@ export default function Dashboard() {
                           <div class="flex flex-row gap-2 items-center">
                             <div class="flex flex-row items-center rounded-md border border-neutral-300 dark:border-neutral-800 overflow-clip">
                               <button
-                                class="flex flex-row gap-2 items-center hover:bg-neutral-100 dark:hover:bg-neutral-900  text-neutral-400 dark:text-neutral-500 p-1"
+                                disabled={noticeIndex() === 0}
+                                class="flex flex-row gap-2 items-center hover:bg-neutral-100 dark:hover:bg-neutral-900  text-neutral-400 dark:text-neutral-500 p-1 disabled:opacity-50 disabled:cursor-not-allowed"
                                 onClick={() => {
                                   setNoticeIndex((n) => {
                                     if (n === 0) return theNotices().length - 1;
@@ -417,7 +421,8 @@ export default function Dashboard() {
                                 </svg>
                               </button>
                               <button
-                                class="flex flex-row gap-2 items-center hover:bg-neutral-100 dark:hover:bg-neutral-900 text-neutral-400 dark:text-neutral-500 p-1"
+                                disabled={noticeIndex() === theNotices().length - 1}
+                                class="flex flex-row gap-2 items-center hover:bg-neutral-100 dark:hover:bg-neutral-900 text-neutral-400 dark:text-neutral-500 p-1 disabled:opacity-50 disabled:cursor-not-allowed"
                                 onClick={() => {
                                   setNoticeIndex((n) => {
                                     if (n === theNotices().length - 1) return 0;
@@ -465,49 +470,174 @@ export default function Dashboard() {
                             </button>
                           </div>
                         </div>
-                        <Transition>
-                          <Show when={!theNotices()[noticeIndex()].dismissed && theNotices()[noticeIndex()]}>
-                            {(notice) => (
-                              <div class="flex flex-col gap-2">
-                                <div class="flex flex-col gap-2 w-full rounded-md bg-neutral-100 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 p-4">
-                                  <div class="flex flex-row items-center justify-between">
-                                    <div>
-                                      <span class="text-md font-bold">{notice().title}</span>
-                                    </div>
-                                    <div class="flex flex-row items-center gap-2">
-                                      <button
-                                        class="flex flex-row gap-2 items-center rounded-md border border-transparent hover:border-neutral-300 dark:hover:border-neutral-800 px-2 py-1 hover:bg-neutral-50 dark:hover:bg-neutral-950 text-neutral-400 dark:text-neutral-500"
-                                        onClick={async () => {
-                                          await dismissNotice.mutateAsync(notice().id);
-                                        }}
-                                      >
-                                        <span class="text-xs font-medium ">Dismiss</span>
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="14"
-                                          height="14"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          stroke-width="2"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                          class="lucide lucide-x"
+                        <Transition name="slide-fade">
+                          <Switch>
+                            <Match when={!theNotices()[noticeIndex()].dismissed && theNotices()[noticeIndex()]}>
+                              {(notice) => (
+                                <div class="flex flex-col gap-2">
+                                  <div
+                                    class={cn(
+                                      "flex flex-col gap-6 w-full rounded-md bg-neutral-100 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 p-4",
+                                      {
+                                        "bg-red-600 text-white dark:bg-red-700 border-transparent dark:border-transparent":
+                                          notice().type === "error",
+                                        "bg-yellow-400 dark:bg-yellow-700 border-transparent dark:border-transparent":
+                                          notice().type === "warning",
+                                      }
+                                    )}
+                                  >
+                                    <div class="flex flex-row items-center justify-between">
+                                      <div>
+                                        <span
+                                          class={cn("text-md font-bold", {
+                                            "text-white": notice().type === "error",
+                                          })}
                                         >
-                                          <path d="M18 6 6 18" />
-                                          <path d="m6 6 12 12" />
-                                        </svg>
-                                      </button>
+                                          {notice().title}
+                                        </span>
+                                      </div>
+                                      <div class="flex flex-row items-center gap-2">
+                                        <button
+                                          class={cn(
+                                            "flex flex-row gap-2 items-center rounded-md border border-transparent hover:border-neutral-300 dark:hover:border-neutral-800 px-2 py-1 hover:bg-neutral-50 dark:hover:bg-neutral-950 text-neutral-400 dark:text-neutral-500",
+                                            {
+                                              "text-white dark:text-white hover:text-white hover:bg-red-900 dark:hover:bg-red-950 hover:border-transparent dark:hover:border-transparent":
+                                                notice().type === "error",
+                                              "text-black dark:text-white hover:text-white hover:bg-yellow-900 dark:hover:bg-yellow-950 hover:border-transparent dark:hover:border-transparent":
+                                                notice().type === "warning",
+                                            }
+                                          )}
+                                          onClick={async () => {
+                                            await dismissNotice.mutateAsync(notice().id);
+                                          }}
+                                        >
+                                          <span class="text-xs font-medium ">Dismiss</span>
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="14"
+                                            height="14"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            class="lucide lucide-x"
+                                          >
+                                            <path d="M18 6 6 18" />
+                                            <path d="m6 6 12 12" />
+                                          </svg>
+                                        </button>
+                                      </div>
                                     </div>
+                                    <Markdown
+                                      builtins={{
+                                        Strong(props): JSX.Element {
+                                          return <strong class="font-bold">{props.children}</strong>;
+                                        },
+                                        Heading(props): JSX.Element {
+                                          return (
+                                            <Dynamic
+                                              component={`h${props.depth}`}
+                                              class={cn("font-bold", {
+                                                "text-xl": props.depth === 1,
+                                                "text-lg": props.depth === 2,
+                                                "text-md": props.depth === 3,
+                                                "text-sm": props.depth === 4,
+                                                "text-xs": props.depth === 5,
+                                              })}
+                                              id={props.id}
+                                            >
+                                              {props.children}
+                                            </Dynamic>
+                                          );
+                                        },
+                                        Paragraph(props): JSX.Element {
+                                          return <p>{props.children}</p>;
+                                        },
+                                        Root(props): JSX.Element {
+                                          return <div class="flex flex-col gap-0.5">{props.children}</div>;
+                                        },
+                                        Break(): JSX.Element {
+                                          return <br />;
+                                        },
+                                        ThematicBreak(): JSX.Element {
+                                          return <div class="w-full h-[1px] bg-neutral-300 dark:bg-neutral-700 my-4" />;
+                                        },
+                                        Blockquote(props): JSX.Element {
+                                          return <blockquote>{props.children}</blockquote>;
+                                        },
+                                        Image(props): JSX.Element {
+                                          return <img src={props.url} alt={props.alt ?? props.title ?? undefined} />;
+                                        },
+                                        Code(props): JSX.Element {
+                                          return (
+                                            <code class="flex flex-col p-2 bg-black dark:bg-white rounded-md text-white dark:text-black leading-none">
+                                              {props.children}
+                                            </code>
+                                          );
+                                        },
+                                        InlineCode(props): JSX.Element {
+                                          return (
+                                            <code class="flex flex-col p-1 px-2 text-sm w-max bg-black dark:bg-white rounded-md text-white dark:text-black leading-none">
+                                              {props.children}
+                                            </code>
+                                          );
+                                        },
+                                        Emphasis(props): JSX.Element {
+                                          return <em>{props.children}</em>;
+                                        },
+                                        List(props): JSX.Element {
+                                          return (
+                                            <Dynamic
+                                              component={props.ordered ? "ol" : "ul"}
+                                              start={props.start ?? undefined}
+                                            >
+                                              {props.children}
+                                            </Dynamic>
+                                          );
+                                        },
+                                        ListItem(props): JSX.Element {
+                                          return (
+                                            <li>
+                                              <Show when={props.checked != null} fallback={props.children}>
+                                                <input type="checkbox" checked={props.checked ?? undefined} />
+                                                {props.children}
+                                              </Show>
+                                            </li>
+                                          );
+                                        },
+                                        Link(props): JSX.Element {
+                                          return (
+                                            <A
+                                              href={props.url}
+                                              target={
+                                                ["./", "/"].some((x) => props.url.startsWith(x)) ? undefined : "_blank"
+                                              }
+                                              title={props.title ?? undefined}
+                                              class="text-blue-700 dark:text-blue-500 hover:underline"
+                                            >
+                                              {props.children}
+                                            </A>
+                                          );
+                                        },
+                                      }}
+                                    >
+                                      {notice().content}
+                                    </Markdown>
+                                    <span
+                                      class={cn("text-xs text-neutral-400 dark:text-neutral-600", {
+                                        "text-white dark:text-white": notice().type === "error",
+                                        "text-black dark:text-white": notice().type === "warning",
+                                      })}
+                                    >
+                                      Added by {notice().author.name} {dayjs(notice().createdAt).fromNow()}
+                                    </span>
                                   </div>
-                                  <span class="text-sm">{notice().content}</span>
-                                  <span class="text-xs text-neutral-400 dark:text-neutral-600">
-                                    {dayjs(notice().createdAt).fromNow()}
-                                  </span>
                                 </div>
-                              </div>
-                            )}
-                          </Show>
+                              )}
+                            </Match>
+                          </Switch>
                         </Transition>
                       </div>
                     )}

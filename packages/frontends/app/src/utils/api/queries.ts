@@ -118,12 +118,53 @@ export const Notices = {
       Promise.resolve([
         {
           id: "1",
-          title: "Notice",
-          content: "This is a notice",
-          createdAt: new Date(),
+          type: "info",
+          title: "Demo Notice",
+          content: `
+# This is a demo notice (mdx) with large amounts of text. 
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Massa tincidunt nunc pulvinar sapien et ligula ullamcorper malesuada proin. Pretium viverra suspendisse potenti nullam ac tortor vitae purus faucibus. Aliquet enim tortor at auctor. Enim nec dui nunc mattis. Interdum posuere lorem ipsum dolor. Tristique senectus et netus et malesuada fames ac turpis egestas. 
+
+------
+
+Do you have any questions regarding this notice? [Contact us](/contact/notice/1)`,
+          createdAt: dayjs().subtract(1, "day").toDate(),
           dismissed: false,
+          author: {
+            name: "Admin",
+          },
         },
-      ])
+        {
+          id: "2",
+          type: "error",
+          author: {
+            name: "Admin",
+          },
+          dismissed: false,
+          createdAt: dayjs().subtract(4, "day").toDate(),
+          title: "Demo Notice | Error",
+          content: `
+# This is a demo notice (mdx) with large amounts of text.
+
+Warning: This notice is **important**. Please read it.
+`,
+        },
+        {
+          id: "3",
+          type: "warning",
+          author: {
+            name: "Admin",
+          },
+          dismissed: false,
+          createdAt: dayjs().subtract(18, "day").toDate(),
+          title: "Demo Notice | Warning",
+          content: `
+# This is a demo notice (mdx) with large amounts of text.
+
+Warning: This notice is **important**. Please read it.
+`,
+        },
+      ] as const)
     // fetch(`${API_BASE}/notice`, {
     //   headers: {
     //     authorization: `Bearer ${token}`,

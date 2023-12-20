@@ -34,7 +34,7 @@ export function ApiStack({ stack }: StackContext) {
     },
     defaults: {
       function: {
-        // handler: "packages/functions/src/migrator.handler",
+        runtime: "nodejs20.x",
         bind: [secrets.GOOGLE_CLIENT_ID, auth, secrets.DATABASE_URL, secrets.DATABASE_AUTH_TOKEN, bucket],
         copyFiles: [
           {

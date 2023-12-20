@@ -186,7 +186,7 @@ export const UserMenu = () => {
                           src={user().profile.image}
                           alt={user().name}
                         />
-                        <span class="text-sm hidden md:visible">{user().name}</span>
+                        <span class="text-sm invisible md:visible">{user().name}</span>
                       </div>
                     </DropdownMenu.Trigger>
                     <DropdownMenu.Portal>
