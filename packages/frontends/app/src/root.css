@@ -27,6 +27,18 @@
   opacity: 0;
 }
 
+.slide-fade-horizontal-enter-active,
+.slide-fade-horizontal-exit-active {
+  transition: opacity 0.3s, transform 0.3s;
+}
+.slide-fade-horizontal-enter,
+.slide-fade-horizontal-exit-to {
+  transform: translateX(10px);
+  opacity: 0;
+}
+.slide-fade-horizontal-enter {
+  transform: translateX(-10px);
+}
 
 /* scrollbars */
 ::-webkit-scrollbar {

@@ -38,5 +38,18 @@ export const ThemeProvider = (props: { children: JSX.Element }) => {
       document.removeEventListener("keydown", handler);
     });
   });
-  return <Theme.Provider value={cmMode}>{props.children}</Theme.Provider>;
+  return (
+    <Theme.Provider
+      value={[
+        cmMode[0],
+        ((t: ThemeColors) => {
+          const tt = cmMode[1](t);
+          window.localStorage.setItem("colorMode", t);
+          return tt;
+        }) as Setter<ThemeColors>,
+      ]}
+    >
+      {props.children}
+    </Theme.Provider>
+  );
 };

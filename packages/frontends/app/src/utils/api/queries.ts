@@ -172,3 +172,39 @@ Warning: This notice is **important**. Please read it.
     // }).then((res) => res.json() as ReturnType<typeof System.getNotices>)
   ),
 };
+
+export const Notifications = {
+  all: z.function(z.tuple([z.string()])).implement(
+    async (token) =>
+      Promise.resolve([
+        {
+          id: "1",
+          createdAt: new Date(),
+          type: "info",
+          title: "Demo Notification",
+          content: "This is a demo notification, in the future this will be a list of notifications.",
+          dismissedAt: dayjs().subtract(3, "day").toDate(),
+        },
+        {
+          id: "2",
+          createdAt: new Date(),
+          type: "warning",
+          title: "Demo Notification | Warning",
+          content: "This is a warning demo notification, in the future this will be a list of notifications.",
+          dismissedAt: null,
+        },
+      ] as Array<{
+        id: string;
+        createdAt: Date;
+        type: "info" | "warning" | "error";
+        title: string;
+        content: string;
+        dismissedAt: Date | null;
+      }>)
+    // fetch(`${API_BASE}/notification/all`, {
+    //   headers: {
+    //     authorization: `Bearer ${token}`,
+    //   },
+    // }).then((res) => res.json() as ReturnType<typeof User.notifications>)
+  ),
+};
