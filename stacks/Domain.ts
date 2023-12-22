@@ -4,7 +4,7 @@ import { StackContext } from "sst/constructs";
 const PRODUCTION = "taxi-kasse.de";
 const DEV = `dev.${PRODUCTION}`;
 
-export function DNSStack(ctx: StackContext) {
+export function Domain(ctx: StackContext) {
   if (ctx.stack.stage === "production") {
     const zone = new HostedZone(ctx.stack, "zone", {
       zoneName: PRODUCTION,

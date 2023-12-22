@@ -1,8 +1,6 @@
 import { StackContext, Config } from "sst/constructs";
 
-
-export function SecretsStack({ stack, app }: StackContext) {
-
+export function Secrets({ stack, app }: StackContext) {
   const secrets = Config.Secret.create(
     stack,
     "GOOGLE_CLIENT_ID",

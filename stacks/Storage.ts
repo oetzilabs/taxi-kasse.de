@@ -1,7 +1,7 @@
 import { Bucket, StackContext } from "sst/constructs";
 import { RemovalPolicy } from "aws-cdk-lib";
 
-export function StorageStack({ stack, app }: StackContext) {
+export function Storage({ stack, app }: StackContext) {
   const bucket = new Bucket(stack, `${app.name}-bucket`, {
     cdk: {
       bucket: {

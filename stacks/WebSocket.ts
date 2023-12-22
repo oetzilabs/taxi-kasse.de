@@ -1,46 +1,12 @@
 import { Topic, StackContext, use, WebSocketApi } from "sst/constructs";
-import { SecretsStack } from "./SecretsStack";
-import { DNSStack } from "./DNSStack";
+import { Secrets } from "./Secrets";
+import { Domain } from "./Domain";
+import { Notification } from "./Notification";
 
-export function NotificationStack({ stack }: StackContext) {
-  const secrets = use(SecretsStack);
-  const domain = use(DNSStack);
-  const notifications = new Topic(stack, "notifications", {
-    defaults: {
-      function: {
-        bind: [
-          secrets.GOOGLE_CLIENT_ID,
-          secrets.GOOGLE_CLIENT_SECRET,
-          secrets.DATABASE_URL,
-          secrets.DATABASE_AUTH_TOKEN,
-        ],
-      },
-    },
-    subscribers: {
-      system: {
-        function: {
-          handler: "packages/functions/src/notifications/system.main",
-          retryAttempts: 0,
-          deadLetterQueueEnabled: false,
-        },
-      },
-      user: {
-        function: {
-          handler: "packages/functions/src/notifications/user.main",
-          retryAttempts: 0,
-          deadLetterQueueEnabled: false,
-        },
-      },
-      company: {
-        function: {
-          handler: "packages/functions/src/notifications/company.main",
-          retryAttempts: 0,
-          deadLetterQueueEnabled: false,
-        },
-      },
-    },
-  });
-
+export function WebSocket({ stack }: StackContext) {
+  const secrets = use(Secrets);
+  const domain = use(Domain);
+  const notifications = use(Notification);
   const ws = new WebSocketApi(stack, "ws", {
     customDomain: {
       domainName: "ws." + domain.domain,
@@ -92,10 +58,8 @@ export function NotificationStack({ stack }: StackContext) {
   });
 
   stack.addOutputs({
-    notificationsARN: notifications.topicArn,
-    notificationsName: notifications.topicName,
     ws: ws.customDomainUrl ?? ws.url,
   });
 
-  return { notifications, ws };
+  return ws;
 }

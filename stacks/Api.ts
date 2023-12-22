@@ -1,15 +1,17 @@
 import { Api, Config, StackContext, use } from "sst/constructs";
 import { Auth } from "sst/constructs/future";
-import { StorageStack } from "./StorageStack";
-import { DNSStack } from "./DNSStack";
-import { SecretsStack } from "./SecretsStack";
-import { NotificationStack } from "./NotificationStack";
+import { Storage } from "./Storage";
+import { Domain } from "./Domain";
+import { Secrets } from "./Secrets";
+import { Notification } from "./Notification";
+import { WebSocket } from "./WebSocket";
 
-export function ApiStack({ stack }: StackContext) {
-  const { notifications, ws } = use(NotificationStack);
-  const domain = use(DNSStack);
-  const secrets = use(SecretsStack);
-  const { bucket } = use(StorageStack);
+export function API({ stack }: StackContext) {
+  const notifications = use(Notification);
+  const ws = use(WebSocket);
+  const domain = use(Domain);
+  const secrets = use(Secrets);
+  const { bucket } = use(Storage);
 
   const auth = new Auth(stack, "auth", {
     authenticator: {

@@ -1,10 +1,11 @@
 import { SSTConfig } from "sst";
-import { ApiStack } from "./stacks/ApiStack";
-import { SolidStartStack } from "./stacks/SolidStartStack";
-import { StorageStack } from "./stacks/StorageStack";
-import { DNSStack } from "./stacks/DNSStack";
-import { SecretsStack } from "./stacks/SecretsStack";
-import { NotificationStack } from "./stacks/NotificationStack";
+import { API } from "./stacks/Api";
+import { SolidStart } from "./stacks/SolidStart";
+import { Storage } from "./stacks/Storage";
+import { Domain } from "./stacks/Domain";
+import { Secrets } from "./stacks/Secrets";
+import { Notification } from "./stacks/Notification";
+import { WebSocket } from "./stacks/WebSocket";
 
 export default {
   config(_input) {
@@ -17,11 +18,12 @@ export default {
     app.setDefaultRemovalPolicy("destroy");
     app
       //
-      .stack(DNSStack)
-      .stack(SecretsStack)
-      .stack(StorageStack)
-      .stack(NotificationStack)
-      .stack(ApiStack)
-      .stack(SolidStartStack);
+      .stack(Domain)
+      .stack(Secrets)
+      .stack(Storage)
+      .stack(Notification)
+      .stack(WebSocket)
+      .stack(API)
+      .stack(SolidStart);
   },
 } satisfies SSTConfig;

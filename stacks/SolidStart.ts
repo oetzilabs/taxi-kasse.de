@@ -1,17 +1,19 @@
 import { SolidStartSite, StackContext, use } from "sst/constructs";
-import { ApiStack } from "./ApiStack";
+import { API } from "./Api";
 // import { DatabaseStack } from "./DatabaseStack";
-import { StorageStack } from "./StorageStack";
-import { DNSStack } from "./DNSStack";
-import { SecretsStack } from "./SecretsStack";
-import { NotificationStack } from "./NotificationStack";
+import { Storage } from "./Storage";
+import { Domain } from "./Domain";
+import { Secrets } from "./Secrets";
+import { Notification } from "./Notification";
+import { WebSocket } from "./WebSocket";
 
-export function SolidStartStack({ stack, app }: StackContext) {
-  const domain = use(DNSStack);
-  const { api, auth } = use(ApiStack);
-  const secrets = use(SecretsStack);
-  const { bucket } = use(StorageStack);
-  const { notifications, ws } = use(NotificationStack);
+export function SolidStart({ stack, app }: StackContext) {
+  const domain = use(Domain);
+  const { api, auth } = use(API);
+  const secrets = use(Secrets);
+  const { bucket } = use(Storage);
+  const notifications = use(Notification);
+  const ws = use(WebSocket);
 
   const CallbackUrlBase = domain.domain.includes("dev") ? "http://localhost:3000" : `https://app.${domain.domain}`;
 
