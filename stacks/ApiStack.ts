@@ -2,18 +2,11 @@ import { Api, Config, StackContext, use } from "sst/constructs";
 import { Auth } from "sst/constructs/future";
 import { StorageStack } from "./StorageStack";
 import { DNSStack } from "./DNSStack";
+import { SecretsStack } from "./SecretsStack";
 
 export function ApiStack({ stack }: StackContext) {
   const domain = use(DNSStack);
-
-  const secrets = Config.Secret.create(
-    stack,
-    "GOOGLE_CLIENT_ID",
-    "GOOGLE_CLIENT_SECRET",
-    "DATABASE_URL",
-    "DATABASE_AUTH_TOKEN"
-  );
-
+  const secrets = use(SecretsStack);
   const { bucket } = use(StorageStack);
 
   const auth = new Auth(stack, "auth", {
@@ -205,7 +198,5 @@ export function ApiStack({ stack }: StackContext) {
   return {
     api,
     auth,
-    GOOGLE_CLIENT_ID: secrets.GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET: secrets.GOOGLE_CLIENT_SECRET,
   };
 }

@@ -3,15 +3,18 @@ import { ApiStack } from "./ApiStack";
 // import { DatabaseStack } from "./DatabaseStack";
 import { StorageStack } from "./StorageStack";
 import { DNSStack } from "./DNSStack";
+import { SecretsStack } from "./SecretsStack";
 
 export function SolidStartStack({ stack, app }: StackContext) {
   const domain = use(DNSStack);
-  const { api, auth, GOOGLE_CLIENT_ID } = use(ApiStack);
-  // const { db } = use(DatabaseStack);
+  const { api, auth } = use(ApiStack);
+  const secrets = use(SecretsStack);
   const { bucket } = use(StorageStack);
+
   const CallbackUrlBase = domain.domain.includes("dev") ? "http://localhost:3000" : `https://app.${domain.domain}`;
+
   const solidStartApp = new SolidStartSite(stack, `${app.name}-app`, {
-    bind: [bucket, api, auth, GOOGLE_CLIENT_ID],
+    bind: [bucket, api, auth, secrets.GOOGLE_CLIENT_ID],
     path: "packages/frontends/app",
     buildCommand: "pnpm build",
     environment: {
@@ -27,6 +30,7 @@ export function SolidStartStack({ stack, app }: StackContext) {
 
   stack.addOutputs({
     SiteUrl: solidStartApp.url || "http://localhost:3000",
+    CallbackUrlBase,
   });
 
   return {

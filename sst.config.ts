@@ -3,6 +3,8 @@ import { ApiStack } from "./stacks/ApiStack";
 import { SolidStartStack } from "./stacks/SolidStartStack";
 import { StorageStack } from "./stacks/StorageStack";
 import { DNSStack } from "./stacks/DNSStack";
+import { SecretsStack } from "./stacks/SecretsStack";
+import { NotificationStack } from "./stacks/NotificationStack";
 
 export default {
   config(_input) {
@@ -16,8 +18,10 @@ export default {
     app
       //
       .stack(DNSStack)
+      .stack(SecretsStack)
       .stack(StorageStack)
       .stack(ApiStack)
+      .stack(NotificationStack)
       .stack(SolidStartStack);
   },
 } satisfies SSTConfig;
