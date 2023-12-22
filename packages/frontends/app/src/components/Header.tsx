@@ -12,6 +12,7 @@ import { createQuery } from "@tanstack/solid-query";
 import { Queries } from "../utils/api/queries";
 import { Transition } from "solid-transition-group";
 import { useTheme } from "./theme";
+import { useNotifications } from "./Notification";
 
 const HeaderStore = createStore({
   visible: () => true,
@@ -53,29 +54,15 @@ export const Header = () => {
 
   const [theme, setTheme] = useTheme();
 
-  const notifications = createQuery(() => ({
-    queryKey: ["notifications"],
-    queryFn: async () => {
-      const token = auth.token;
-      if (!token) {
-        return Promise.reject("You are not logged in.");
-      }
-      return Queries.Notifications.all(token);
-    },
-    get enabled() {
-      const a = auth.isAuthenticated;
-      const t = auth.token;
-      return a && !!t;
-    },
-  }));
-
+  const notifications = useNotifications();
   const [notificationPage, setNotificationPage] = createSignal(0);
 
   const missedNotifications = () => {
-    if (!notifications.isSuccess || !notifications.data) {
+    const nQ = notifications.queue();
+    if (!nQ) {
       return [];
     }
-    const filtered = notifications.data.filter((n) => n.dismissedAt === null);
+    const filtered = nQ.filter((n) => n.dismissedAt === null);
     return filtered;
   };
 
@@ -229,7 +216,10 @@ export const Header = () => {
                 >
                   <div>
                     <Popover.Root placement="bottom-end">
-                      <Popover.Trigger class="flex items-center p-2 bg-transparent hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-full border border-neutral-300 dark:border-neutral-700">
+                      <Popover.Trigger
+                        class="flex items-center p-2 bg-transparent hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-full border border-neutral-300 dark:border-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={missedNotifications().length === 0}
+                      >
                         <Switch
                           fallback={
                             <svg
@@ -248,13 +238,7 @@ export const Header = () => {
                             </svg>
                           }
                         >
-                          <Match
-                            when={
-                              notifications.isSuccess &&
-                              notifications.data.every((n) => n.dismissedAt !== null) &&
-                              notifications.data
-                            }
-                          >
+                          <Match when={missedNotifications().length >= 0}>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="14"
@@ -272,9 +256,7 @@ export const Header = () => {
                           </Match>
                           <Match
                             when={
-                              notifications.isSuccess &&
-                              notifications.data.some((n) => n.dismissedAt === null) &&
-                              notifications.data
+                              missedNotifications()[notificationPage()] && missedNotifications()[notificationPage()]
                             }
                           >
                             <svg
@@ -301,10 +283,7 @@ export const Header = () => {
                           <Transition name="slide-fade-horizontal">
                             <Show
                               when={
-                                notifications.isSuccess &&
-                                notifications.data &&
-                                notifications.data.some((n) => n.dismissedAt === null) &&
-                                missedNotifications()[notificationPage()]
+                                missedNotifications()[notificationPage()] && missedNotifications()[notificationPage()]
                               }
                             >
                               {(n) => (
@@ -312,7 +291,7 @@ export const Header = () => {
                                   <div class="flex flex-row items-center justify-between w-full">
                                     <div class="flex flex-row items-center gap-2">
                                       <Switch>
-                                        <Match when={n().type === "info"}>
+                                        <Match when={n().type.includes("info")}>
                                           <svg
                                             xmlns="http://www.w3.org/2000/svg"
                                             width="14"
@@ -329,7 +308,7 @@ export const Header = () => {
                                             <path d="M12 8h.01" />
                                           </svg>
                                         </Match>
-                                        <Match when={n().type === "warning"}>
+                                        <Match when={n().type.includes("warning")}>
                                           <svg
                                             xmlns="http://www.w3.org/2000/svg"
                                             width="14"
@@ -377,10 +356,7 @@ export const Header = () => {
                                       <div class="flex flex-row items-center border border-neutral-300 dark:border-neutral-800 rounded-md">
                                         <button
                                           class="flex flex-row items-center p-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                                          disabled={
-                                            notifications.isPending ||
-                                            (notifications.isSuccess && notificationPage() === 0)
-                                          }
+                                          disabled={notificationPage() === 0}
                                           onClick={() => setNotificationPage((p) => p - 1)}
                                         >
                                           <svg
@@ -399,11 +375,7 @@ export const Header = () => {
                                         </button>
                                         <button
                                           class="flex flex-row items-center p-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                                          disabled={
-                                            notifications.isPending ||
-                                            (notifications.isSuccess &&
-                                              notificationPage() === missedNotifications().length - 1)
-                                          }
+                                          disabled={notificationPage() === missedNotifications().length - 1}
                                           onClick={() => setNotificationPage((p) => p + 1)}
                                         >
                                           <svg

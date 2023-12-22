@@ -3,8 +3,10 @@ import { Auth } from "sst/constructs/future";
 import { StorageStack } from "./StorageStack";
 import { DNSStack } from "./DNSStack";
 import { SecretsStack } from "./SecretsStack";
+import { NotificationStack } from "./NotificationStack";
 
 export function ApiStack({ stack }: StackContext) {
+  const { notifications, ws } = use(NotificationStack);
   const domain = use(DNSStack);
   const secrets = use(SecretsStack);
   const { bucket } = use(StorageStack);
@@ -28,7 +30,15 @@ export function ApiStack({ stack }: StackContext) {
     defaults: {
       function: {
         runtime: "nodejs20.x",
-        bind: [secrets.GOOGLE_CLIENT_ID, auth, secrets.DATABASE_URL, secrets.DATABASE_AUTH_TOKEN, bucket],
+        bind: [
+          notifications,
+          secrets.GOOGLE_CLIENT_ID,
+          auth,
+          ws,
+          secrets.DATABASE_URL,
+          secrets.DATABASE_AUTH_TOKEN,
+          bucket,
+        ],
         copyFiles: [
           {
             from: "packages/core/src/drizzle",
@@ -42,6 +52,12 @@ export function ApiStack({ stack }: StackContext) {
       },
     },
     routes: {
+      "POST /notifications/send": {
+        function: {
+          handler: "packages/functions/src/notifications/send.main",
+          description: "This is the notifications send function",
+        },
+      },
       "GET /": {
         function: {
           handler: "packages/functions/src/lambda.handler",

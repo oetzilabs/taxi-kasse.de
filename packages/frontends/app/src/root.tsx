@@ -10,6 +10,7 @@ import { Header } from "./components/Header";
 import { TitleP } from "./components/Title";
 import { ThemeProvider, cmMode } from "./components/theme";
 import "./root.css";
+import { NotificationProvider } from "./components/Notification";
 
 const queryClient = new QueryClient();
 
@@ -32,7 +33,9 @@ export default function Root() {
             <ErrorBoundary>
               <QueryClientProvider client={queryClient}>
                 <Auth />
-                <Header />
+                <NotificationProvider>
+                  <Header />
+                </NotificationProvider>
                 <Content />
                 <div class="w-full h-10 p-1.5 border-t border-neutral-200 dark:border-neutral-800 justify-end items-center gap-2.5 inline-flex text-neutral-700">
                   <div class="justify-center items-end gap-2.5 flex">

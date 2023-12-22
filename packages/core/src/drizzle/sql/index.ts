@@ -1,4 +1,4 @@
-import { createClient } from "@libsql/client";
+import { createClient } from "@libsql/client/web";
 import { drizzle } from "drizzle-orm/libsql";
 import { migrate as mig } from "drizzle-orm/libsql/migrator";
 import { join } from "path";
@@ -11,5 +11,6 @@ export const db = drizzle(client, {
 });
 
 export const migrate = async () => {
-  return mig(db, { migrationsFolder: join(process.cwd(), "packages/core/src/drizzle/migrations") });
+  const p = process.env.IS_LOCAL ? "packages/core/src/drizzle/migrations" : "drizzle/migrations";
+  return mig(db, { migrationsFolder: join(process.cwd(), p) });
 };

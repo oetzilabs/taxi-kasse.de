@@ -2,6 +2,7 @@ import { Company } from "@taxi-kassede/core/entities/company";
 import { User } from "@taxi-kassede/core/entities/users";
 import { z } from "zod";
 import { UserCreateReportResult } from "../../../../../functions/src/user";
+import { Notify, Notifications as N } from "@taxi-kassede/core/entities/notifications";
 
 export * as Mutations from "./mutations";
 
@@ -190,22 +191,31 @@ export const Notifications = {
     //   },
     // }).then((res) => res.json() as ReturnType<typeof System.dismiss>)
   ),
-  dismissAll: z.function(z.tuple([z.string()])).implement(
-    async (token) =>
-      Promise.resolve([
-        {
-          id: "1",
-          title: "Notification",
-          content: "This is a notification",
-          createdAt: new Date(),
-          dismissed: true,
-        },
-      ])
-    // fetch(`${API_BASE}/notification/all`, {
-    //   method: "PUT",
-    //   headers: {
-    //     authorization: `Bearer ${token}`,
-    //   },
-    // }).then((res) => res.json() as ReturnType<typeof System.dismissAll>)
+  dismissAll: z.function(z.tuple([z.string()])).implement(async (token) =>
+    Promise.resolve([
+      {
+        id: "1",
+        title: "Notification",
+        content: "This is a notification",
+        createdAt: new Date(),
+        dismissed: true,
+      },
+    ])
+  ),
+  // fetch(`${API_BASE}/notification/all`, {
+  //   method: "PUT",
+  //   headers: {
+  //     authorization: `Bearer ${token}`,
+  //   },
+  // }).then((res) => res.json() as ReturnType<typeof System.dismissAll>)
+  send: z.function(z.tuple([z.string(), z.custom<Notify>()])).implement(async (token, input) =>
+    fetch(`${API_BASE}/notifications/send`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    }).then((x) => x.json() as Promise<any>)
   ),
 };

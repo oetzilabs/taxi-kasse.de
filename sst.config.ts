@@ -20,8 +20,8 @@ export default {
       .stack(DNSStack)
       .stack(SecretsStack)
       .stack(StorageStack)
-      .stack(ApiStack)
       .stack(NotificationStack)
+      .stack(ApiStack)
       .stack(SolidStartStack);
   },
 } satisfies SSTConfig;
