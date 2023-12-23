@@ -1,0 +1,140 @@
+import { QueryClient } from "@tanstack/solid-query";
+import { Switch, Match } from "solid-js";
+import { useIsRouting } from "solid-start";
+import { useWS } from "./WebSocket";
+import { cn } from "../utils/cn";
+
+export const Bottom = (props: { queryClient: QueryClient; buildVersion: string }) => {
+  const isRouting = useIsRouting();
+  const ws = useWS();
+  return (
+    <div class="w-full h-10 p-1.5 border-t border-neutral-200 dark:border-neutral-800 justify-end items-center gap-2.5 inline-flex text-neutral-700">
+      <div class="justify-center items-end gap-2.5 flex">
+        <div class="px-1 justify-center items-center gap-1 flex">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="lucide lucide-info"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 16v-4" />
+            <path d="M12 8h.01" />
+          </svg>
+          <div class="text-center text-neutral-600 text-xs font-medium select-none">
+            Build Version: {props.buildVersion}
+          </div>
+        </div>
+      </div>
+      <div class="grow shrink basis-0 h-6"></div>
+
+      <div class="justify-center items-end gap-2.5 flex">
+        <div
+          class={cn("p-1 rounded-md justify-center items-center gap-1 flex", {
+            "text-emerald-500": ws.status() === "connected",
+          })}
+        >
+          <Switch
+            fallback={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-check-check"
+              >
+                <path d="M18 6 7 17l-5-5" />
+                <path d="m22 10-7.5 7.5L13 16" />
+              </svg>
+            }
+          >
+            <Match when={ws.status() === "connecting"}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="animate-spin"
+              >
+                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+              </svg>
+            </Match>
+          </Switch>
+          <div class="text-center text-xs font-medium select-none">
+            <Switch fallback={<span>Connected</span>}>
+              <Match when={ws.status() == "disconnected"}>
+                <span>Disconnected</span>
+              </Match>
+              <Match when={ws.status() == "connecting"}>
+                <span>Connecting</span>
+              </Match>
+            </Switch>
+          </div>
+        </div>
+      </div>
+      <div class="justify-center items-end gap-2.5 flex">
+        <div class="p-1 rounded-md justify-center items-center gap-1 flex">
+          <Switch
+            fallback={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-check-check"
+              >
+                <path d="M18 6 7 17l-5-5" />
+                <path d="m22 10-7.5 7.5L13 16" />
+              </svg>
+            }
+          >
+            <Match when={props.queryClient.isFetching() || props.queryClient.isMutating() || isRouting()}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="animate-spin"
+              >
+                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+              </svg>
+            </Match>
+          </Switch>
+          <div class="text-center text-xs font-medium select-none">
+            <Switch fallback="Updated">
+              <Match when={props.queryClient.isFetching()}>Updating...</Match>
+              <Match when={props.queryClient.isMutating()}>Syncing...</Match>
+              <Match when={isRouting()}>Routing...</Match>
+            </Switch>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

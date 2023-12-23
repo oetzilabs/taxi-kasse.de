@@ -1,5 +1,5 @@
 import { SNS } from "@aws-sdk/client-sns";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, notInArray } from "drizzle-orm";
 import { Topic } from "sst/node/topic";
 import { z } from "zod";
 import { db } from "../drizzle/sql";
@@ -72,14 +72,38 @@ export const dismiss = z
 
 export const dismissAll = z.function(z.tuple([z.string().uuid()])).implement(async (userId) => {
   // set dismissedAt to now
-  const _notifications = await db.select({ id: notifications.id }).from(notifications);
-  const notificationsIds = _notifications.map((x) => x.id);
-  const toDismiss = await db
-    .select({ notificationId: user_dismissed_notifications.notificationId })
+  const dismissedNotifications = await db
+    .select({ id: user_dismissed_notifications.notificationId })
     .from(user_dismissed_notifications)
-    .where(eq(user_dismissed_notifications.userId, userId))
-    .where(inArray(user_dismissed_notifications.notificationId, notificationsIds));
-  const dismissedNotifications = [];
+    .where(eq(user_dismissed_notifications.userId, userId));
+  const notificationsIds = dismissedNotifications.map((x) => x.id);
+  if (!notificationsIds.length) {
+    // check if there are any notifications
+    const __notifications = await db.select().from(notifications);
+    if (!__notifications.length) {
+      // no notifications, nothing to dismiss
+      return [];
+    }
+    // no dismissed notifications, dismiss all
+    const newDismissedNotifications = [];
+    for (let i = 0; i < __notifications.length; i++) {
+      const [x] = await db
+        .insert(user_dismissed_notifications)
+        .values({
+          userId,
+          notificationId: __notifications[i].id,
+          dismissedAt: new Date(),
+        })
+        .returning();
+      newDismissedNotifications.push(x);
+    }
+    return newDismissedNotifications;
+  }
+  const toDismiss = await db
+    .select({ notificationId: notifications.id })
+    .from(notifications)
+    .where(notInArray(notifications.id, notificationsIds));
+  const newDismissedNotifications = [];
   for (let i = 0; i < toDismiss.length; i++) {
     const [x] = await db
       .insert(user_dismissed_notifications)
@@ -89,7 +113,7 @@ export const dismissAll = z.function(z.tuple([z.string().uuid()])).implement(asy
         dismissedAt: new Date(),
       })
       .returning();
-    dismissedNotifications.push(x);
+    newDismissedNotifications.push(x);
   }
-  return dismissedNotifications;
+  return newDismissedNotifications;
 });

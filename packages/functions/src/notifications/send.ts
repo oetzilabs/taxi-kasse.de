@@ -20,7 +20,6 @@ export const main = ApiHandler(async (event) => {
   }
 
   const notification = await Notifications.create(valid.data);
-  console.log("Notification created", notification);
 
   const x = await WebsocketCore.broadcast(notification);
 
@@ -43,7 +42,6 @@ export const dismiss = ApiHandler(async (event) => {
   }
 
   const x = await Notifications.dismiss(user.id, valid.data);
-  console.log(x);
 
   return json(x);
 });
