@@ -60,6 +60,18 @@ export function API({ stack }: StackContext) {
           description: "This is the notifications send function",
         },
       },
+      "PUT /notifications/dismiss/{nid}": {
+        function: {
+          handler: "packages/functions/src/notifications/send.dismiss",
+          description: "This is the notifications dismiss function",
+        },
+      },
+      "PUT /notifications/dismiss/all": {
+        function: {
+          handler: "packages/functions/src/notifications/send.dismissAll",
+          description: "This is the notifications dismissAll function",
+        },
+      },
       "GET /": {
         function: {
           handler: "packages/functions/src/lambda.handler",

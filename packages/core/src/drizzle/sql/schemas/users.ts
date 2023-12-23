@@ -4,6 +4,7 @@ import { relations } from "drizzle-orm";
 import { profiles } from "./profile";
 import { companies } from "./company";
 import { day_entries } from "./day_entry";
+import { user_dismissed_notifications } from "./user_dismissed_notifications";
 
 export const users = sqliteTable("users", {
   ...Entity.defaults,
@@ -26,4 +27,5 @@ export const userRelation = relations(users, ({ one, many }) => ({
     references: [companies.id],
   }),
   day_entries: many(day_entries),
+  dismissedNotifications: many(user_dismissed_notifications),
 }));

@@ -1,10 +1,12 @@
 import {} from "@solid-primitives/scheduled";
 import { createReconnectingWS, createWS, makeWS } from "@solid-primitives/websocket";
-import { createMutation } from "@tanstack/solid-query";
+import { Mutation, createMutation } from "@tanstack/solid-query";
 import { Notify } from "@taxi-kassede/core/entities/notifications";
 import { Accessor, createContext, createSignal, onCleanup, onMount, useContext } from "solid-js";
 import { parseCookie } from "solid-start";
 import { useAuth } from "./Auth";
+import { z } from "zod";
+import { Mutations } from "../utils/api/mutations";
 
 type NotificationCtxValue = {
   queue: Accessor<Notify[]>;
@@ -23,9 +25,15 @@ export const NotificationProvider = (props: { children: any }) => {
 
   const dismiss = createMutation(() => ({
     mutationFn: async (id: string) => {
-      const newQueue = queue().filter((n) => n.id !== id);
-      setQueue(newQueue);
-      return newQueue;
+      const token = auth.token;
+      if (!token) {
+        return Promise.reject("No token");
+      }
+      const dismissedNotification = await Mutations.Notifications.dismiss(token, id);
+      const q = queue();
+      const x = q.filter((n) => n.id !== dismissedNotification.notificationId);
+      setQueue(x);
+      return x;
     },
     mutationKey: ["dismiss-notification"],
   }));
@@ -44,6 +52,8 @@ export const NotificationProvider = (props: { children: any }) => {
       console.log(e);
       return;
     }
+    const n = z.custom<Notify>().parse(data);
+    setQueue([...queue(), n]);
     console.log("ws message", data);
   };
 
@@ -52,8 +62,12 @@ export const NotificationProvider = (props: { children: any }) => {
   onMount(() => {
     // subscribe to websocket
     const ws = createReconnectingWS(import.meta.env.VITE_NOTIFICATION_WS_URL);
+
     ws.addEventListener("open", (e) => {
       // ping the server to update the session
+      // ask for notifications
+      if (!auth.user?.id) return;
+      ws.send(JSON.stringify({ action: "ping", userId: auth.user?.id }));
     });
     ws.addEventListener("close", (e) => {
       console.log("ws closed");

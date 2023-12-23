@@ -175,40 +175,23 @@ export const Notices = {
 };
 
 export const Notifications = {
-  dismiss: z.function(z.tuple([z.string(), z.string().uuid()])).implement(
-    async (token, id) =>
-      Promise.resolve({
-        id,
-        title: "Notification",
-        content: "This is a notification",
-        createdAt: new Date(),
-        dismissed: true,
-      })
-    // fetch(`${API_BASE}/notification/${id}`, {
-    //   method: "PUT",
-    //   headers: {
-    //     authorization: `Bearer ${token}`,
-    //   },
-    // }).then((res) => res.json() as ReturnType<typeof System.dismiss>)
+  dismiss: z.function(z.tuple([z.string(), z.string().uuid()])).implement(async (token, id) =>
+    fetch(`${API_BASE}/notifications/dismiss/${id}`, {
+      method: "PUT",
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    }).then((res) => res.json() as ReturnType<typeof N.dismiss>)
   ),
   dismissAll: z.function(z.tuple([z.string()])).implement(async (token) =>
-    Promise.resolve([
-      {
-        id: "1",
-        title: "Notification",
-        content: "This is a notification",
-        createdAt: new Date(),
-        dismissed: true,
+    fetch(`${API_BASE}/notifications/dismiss/all`, {
+      method: "PUT",
+      headers: {
+        authorization: `Bearer ${token}`,
       },
-    ])
+    }).then((res) => res.json() as ReturnType<typeof N.dismissAll>)
   ),
-  // fetch(`${API_BASE}/notification/all`, {
-  //   method: "PUT",
-  //   headers: {
-  //     authorization: `Bearer ${token}`,
-  //   },
-  // }).then((res) => res.json() as ReturnType<typeof System.dismissAll>)
-  send: z.function(z.tuple([z.string(), z.custom<Notify>()])).implement(async (token, input) =>
+  send: z.function(z.tuple([z.string(), z.custom<Omit<Notify, "id">>()])).implement(async (token, input) =>
     fetch(`${API_BASE}/notifications/send`, {
       method: "POST",
       headers: {

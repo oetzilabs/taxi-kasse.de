@@ -23,20 +23,6 @@ export function Notification({ stack }: StackContext) {
           deadLetterQueueEnabled: false,
         },
       },
-      user: {
-        function: {
-          handler: "packages/functions/src/notifications/user.main",
-          retryAttempts: 0,
-          deadLetterQueueEnabled: false,
-        },
-      },
-      company: {
-        function: {
-          handler: "packages/functions/src/notifications/company.main",
-          retryAttempts: 0,
-          deadLetterQueueEnabled: false,
-        },
-      },
     },
   });
 

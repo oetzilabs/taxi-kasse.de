@@ -238,7 +238,7 @@ export const Header = () => {
                             </svg>
                           }
                         >
-                          <Match when={missedNotifications().length >= 0}>
+                          <Match when={missedNotifications().length === 0}>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="14"
@@ -287,66 +287,76 @@ export const Header = () => {
                               }
                             >
                               {(n) => (
-                                <div class="flex flex-col items-start w-max p-4 gap-4">
-                                  <div class="flex flex-row items-center justify-between w-full">
-                                    <div class="flex flex-row items-center gap-2">
-                                      <Switch>
-                                        <Match when={n().type.includes("info")}>
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="14"
-                                            height="14"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                          >
-                                            <circle cx="12" cy="12" r="10" />
-                                            <path d="M12 16v-4" />
-                                            <path d="M12 8h.01" />
-                                          </svg>
-                                        </Match>
-                                        <Match when={n().type.includes("warning")}>
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="14"
-                                            height="14"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                          >
-                                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-                                            <path d="M12 9v4" />
-                                            <path d="M12 17h.01" />
-                                          </svg>
-                                        </Match>
-                                      </Switch>
-                                      <Popover.Title>{n().title}</Popover.Title>
+                                <div class="flex flex-col items-start w-max">
+                                  <div class="p-4 flex flex-col items-start w-full gap-4">
+                                    <div class="flex flex-row items-center justify-between w-full">
+                                      <div class="flex flex-row items-center gap-2">
+                                        <Switch>
+                                          <Match when={n().type.includes("info")}>
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              width="14"
+                                              height="14"
+                                              viewBox="0 0 24 24"
+                                              fill="none"
+                                              stroke="currentColor"
+                                              stroke-width="2"
+                                              stroke-linecap="round"
+                                              stroke-linejoin="round"
+                                            >
+                                              <circle cx="12" cy="12" r="10" />
+                                              <path d="M12 16v-4" />
+                                              <path d="M12 8h.01" />
+                                            </svg>
+                                          </Match>
+                                          <Match when={n().type.includes("warning")}>
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              width="14"
+                                              height="14"
+                                              viewBox="0 0 24 24"
+                                              fill="none"
+                                              stroke="currentColor"
+                                              stroke-width="2"
+                                              stroke-linecap="round"
+                                              stroke-linejoin="round"
+                                            >
+                                              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                                              <path d="M12 9v4" />
+                                              <path d="M12 17h.01" />
+                                            </svg>
+                                          </Match>
+                                        </Switch>
+                                        <Popover.Title>{n().title}</Popover.Title>
+                                      </div>
+                                      <Popover.CloseButton>
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="14"
+                                          height="14"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          stroke-width="2"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                        >
+                                          <path d="M18 6 6 18" />
+                                          <path d="m6 6 12 12" />
+                                        </svg>
+                                      </Popover.CloseButton>
                                     </div>
-                                    <Popover.CloseButton>
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                      >
-                                        <path d="M18 6 6 18" />
-                                        <path d="m6 6 12 12" />
-                                      </svg>
-                                    </Popover.CloseButton>
+                                    <Popover.Description class="text-sm max-w-[300px]">
+                                      {n().content}
+                                    </Popover.Description>
+                                    <button
+                                      class="flex flex-row gap-2 items-center rounded-md border border-neutral-300 dark:border-neutral-800 px-2 py-1 hover:bg-neutral-50 dark:hover:bg-neutral-950 text-neutral-400 dark:text-neutral-500 text-xs"
+                                      onClick={() => notifications.dismiss(n().id)}
+                                    >
+                                      Dismiss
+                                    </button>
                                   </div>
-                                  <Popover.Description class="text-sm max-w-[300px]">{n().content}</Popover.Description>
-                                  <div class="flex flex-row items-center justify-between w-full">
+                                  <div class="flex flex-row items-center justify-between w-full border-t border-neutral-300 dark:border-neutral-800 px-4 py-2">
                                     <div class="flex flex-row gap-2 w-full">
                                       <button class="flex flex-row gap-2 items-center rounded-md border border-neutral-300 dark:border-neutral-800 px-2 py-1 hover:bg-neutral-50 dark:hover:bg-neutral-950 text-neutral-400 dark:text-neutral-500 text-xs">
                                         Dismiss all
