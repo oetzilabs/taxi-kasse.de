@@ -1,4 +1,5 @@
 import L, { LatLngTuple } from "leaflet";
+import "leaflet-rotate";
 import "leaflet-routing-machine";
 import "leaflet/dist/leaflet.css";
 import { Match, Switch, createEffect, createSignal, onCleanup, onMount } from "solid-js";
@@ -67,7 +68,16 @@ function loadMap(
     m = L.map(div, {
       touchZoom: true,
       zoomControl: false,
+      // @ts-ignore
+      rotate: true,
+      rotateControl: {
+        closeOnZeroBearing: false,
+        position: "topright",
+      },
+      touchRotate: true,
     }).setView(coordinates, zoom);
+    // @ts-ignore
+    m.compassBearing.enable();
     m.on("zoom", (e) => {
       if (!m) return;
       const zoom = m.getZoom();
