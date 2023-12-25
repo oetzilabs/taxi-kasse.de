@@ -1,20 +1,15 @@
 import { A } from "@solidjs/router";
-import { createEffect } from "solid-js";
+import { onCleanup, onMount } from "solid-js";
+import { setStretchedBottom, stretchedBottom } from "../components/Bottom";
 
 export default function Home() {
-  createEffect(() => {
-    const glowEffects = document.querySelectorAll(".glow-effect");
-
-    glowEffects.forEach((glowEffect) => {
-      const glowLines = glowEffect.querySelectorAll("rect");
-      const rx = getComputedStyle(glowEffect).borderRadius;
-
-      glowLines.forEach((line) => {
-        line.setAttribute("rx", rx);
-      });
+  onMount(() => {
+    const oldStretchedBottom = stretchedBottom();
+    setStretchedBottom(false);
+    onCleanup(() => {
+      setStretchedBottom(oldStretchedBottom);
     });
   });
-
   return (
     <div class="flex w-full flex-col gap-4 py-8 md:px-0 px-4">
       <div class="flex flex-col gap-8 items-center justify-center">
