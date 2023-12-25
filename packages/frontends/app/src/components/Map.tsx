@@ -6,6 +6,7 @@ import { createStore } from "solid-js/store";
 import { RouteProvider } from "./Route";
 import { RouteControl } from "./RouteControl";
 import { ThemeColors, useTheme } from "./theme";
+import { setStretchedHeader, stretchedHeader } from "./Header";
 
 type Geo =
   | {

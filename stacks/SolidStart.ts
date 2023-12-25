@@ -11,7 +11,7 @@ export function SolidStart({ stack, app }: StackContext) {
   const domain = use(Domain);
   const { api, auth } = use(API);
   const secrets = use(Secrets);
-  const { bucket } = use(Storage);
+  const bucket = use(Storage);
   const notifications = use(Notification);
   const ws = use(WebSocket);
 
@@ -33,12 +33,28 @@ export function SolidStart({ stack, app }: StackContext) {
     },
   });
 
+  const solidStartMain = new SolidStartSite(stack, `${app.name}-main`, {
+    bind: [bucket, api, auth, notifications, secrets.GOOGLE_CLIENT_ID],
+    path: "packages/frontends/main",
+    buildCommand: "pnpm build",
+    environment: {
+      VITE_APP_URL: (solidStartApp.customDomainUrl ?? solidStartApp.url) || "http://localhost:3000",
+    },
+    customDomain: {
+      domainName: domain.domain,
+      domainAlias: `www.${domain.domain}`,
+      hostedZone: domain.zone.zoneName,
+    },
+  });
+
   stack.addOutputs({
-    SiteUrl: solidStartApp.url || "http://localhost:3000",
+    AppSiteUrl: (solidStartApp.customDomainUrl ?? solidStartApp.url) || "http://localhost:3000",
+    MainSiteUrl: (solidStartMain.customDomainUrl ?? solidStartMain.url) || "http://localhost:4000",
     CallbackUrlBase,
   });
 
   return {
     solidStartApp,
+    solidStartMain,
   };
 }

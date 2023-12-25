@@ -17,7 +17,5 @@ export function Storage({ stack, app }: StackContext) {
     BucketRegion: app.region,
   });
 
-  return {
-    bucket,
-  };
+  return bucket;
 }

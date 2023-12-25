@@ -119,22 +119,11 @@ export const Notices = {
         {
           id: "1",
           type: "info",
-          title: "Tech Demo Notice",
+          title: "Demo Notice",
           content: `
-# This is a tech demo notice (mdx) with large amounts of text. 
+# This is a demo notice (mdx) with large amounts of text. 
 
-This project will be launched at some time, the ETA of it is currently not known. I'm currently working on it in my free time, and I'm not sure when it will be done. There is a lot of work to be done, and I'm not sure how long it will take. 
-
-## As for now these are the features that are out:
-- [x] User Authentication
-- [x] Calendar Management
-
-## These are the features that are planned for the future:
-
-- [ ] Company Management
-- [ ] Employee Management
-- [ ] Notice Management
-- [ ] Notification Management
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Massa tincidunt nunc pulvinar sapien et ligula ullamcorper malesuada proin. Pretium viverra suspendisse potenti nullam ac tortor vitae purus faucibus. Aliquet enim tortor at auctor. Enim nec dui nunc mattis. Interdum posuere lorem ipsum dolor. Tristique senectus et netus et malesuada fames ac turpis egestas. 
 
 ------
 

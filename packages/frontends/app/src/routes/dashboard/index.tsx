@@ -24,6 +24,7 @@ import { useAuth } from "../../components/Auth";
 import { Mutations } from "../../utils/api/mutations";
 import { Queries } from "../../utils/api/queries";
 import { cn } from "../../utils/cn";
+import { fixedBottom, setFixedBottom, setStretchedBottom, stretchedBottom } from "../../components/Bottom";
 dayjs.extend(relativeTime);
 dayjs.extend(advancedFormat);
 
@@ -313,8 +314,19 @@ export default function Dashboard() {
 
   const [noticeIndex, setNoticeIndex] = createSignal(0);
 
+  onMount(() => {
+    const oldFixedBottom = fixedBottom();
+    const oldStretchedBottom = stretchedBottom();
+    setFixedBottom(true);
+    setStretchedBottom(false);
+    onCleanup(() => {
+      setFixedBottom(oldFixedBottom);
+      setStretchedBottom(oldStretchedBottom);
+    });
+  });
+
   return (
-    <div class="flex flex-col container mx-auto h-full">
+    <div class="flex flex-col container mx-auto h-full pb-[200px]">
       <Suspense
         fallback={
           <div class="flex flex-row gap-2 items-center justify-center text-neutral-500 w-full h-full">
@@ -386,7 +398,7 @@ export default function Dashboard() {
             when={!auth.isLoading && auth.isAuthenticated && !company.isPending && company.isSuccess && company.data}
           >
             {(c) => (
-              <div class="flex flex-col gap-8 p-8">
+              <div class="flex flex-col gap-8 py-8 md:px-0 px-4">
                 <div class="text-2xl font-bold">Welcome back, {auth.user?.name}</div>
                 <TransitionGroup name="slide-fade">
                   <Show when={notices.isSuccess && notices.data && notices.data}>
@@ -398,7 +410,7 @@ export default function Dashboard() {
                             <div class="flex flex-row items-center rounded-md border border-neutral-300 dark:border-neutral-800 overflow-clip">
                               <button
                                 disabled={noticeIndex() === 0}
-                                class="flex flex-row gap-2 items-center hover:bg-neutral-100 dark:hover:bg-neutral-900  text-neutral-400 dark:text-neutral-500 p-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                class="flex flex-row gap-2 items-center hover:bg-neutral-100 dark:hover:bg-neutral-900 text-neutral-400 dark:text-neutral-500 hover:text-black dark:hover:text-white p-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                 onClick={() => {
                                   setNoticeIndex((n) => {
                                     if (n === 0) return theNotices().length - 1;
@@ -422,7 +434,7 @@ export default function Dashboard() {
                               </button>
                               <button
                                 disabled={noticeIndex() === theNotices().length - 1}
-                                class="flex flex-row gap-2 items-center hover:bg-neutral-100 dark:hover:bg-neutral-900 text-neutral-400 dark:text-neutral-500 p-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                class="flex flex-row gap-2 items-center hover:bg-neutral-100 dark:hover:bg-neutral-900 text-neutral-400 dark:text-neutral-500 hover:text-black dark:hover:text-white p-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                 onClick={() => {
                                   setNoticeIndex((n) => {
                                     if (n === theNotices().length - 1) return 0;
@@ -553,10 +565,10 @@ export default function Dashboard() {
                                           );
                                         },
                                         Paragraph(props): JSX.Element {
-                                          return <p>{props.children}</p>;
+                                          return <p class="">{props.children}</p>;
                                         },
                                         Root(props): JSX.Element {
-                                          return <div class="flex flex-col gap-0.5">{props.children}</div>;
+                                          return <div class="flex flex-col gap-6">{props.children}</div>;
                                         },
                                         Break(): JSX.Element {
                                           return <br />;
@@ -592,6 +604,7 @@ export default function Dashboard() {
                                             <Dynamic
                                               component={props.ordered ? "ol" : "ul"}
                                               start={props.start ?? undefined}
+                                              class="inline-flex flex-col flex-wrap gap-0.5"
                                             >
                                               {props.children}
                                             </Dynamic>
@@ -599,7 +612,7 @@ export default function Dashboard() {
                                         },
                                         ListItem(props): JSX.Element {
                                           return (
-                                            <li>
+                                            <li class="inline-flex flex-row flex-wrap gap-2">
                                               <Show when={props.checked != null} fallback={props.children}>
                                                 <input type="checkbox" checked={props.checked ?? undefined} />
                                                 {props.children}

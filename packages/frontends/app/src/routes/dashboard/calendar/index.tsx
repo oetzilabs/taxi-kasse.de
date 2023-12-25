@@ -4,12 +4,24 @@ import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import relativeTime from "dayjs/plugin/relativeTime";
 import weekOfYear from "dayjs/plugin/weekOfYear";
-import { For, Match, Show, Suspense, Switch, createContext, createEffect, createSignal, onCleanup } from "solid-js";
+import {
+  For,
+  Match,
+  Show,
+  Suspense,
+  Switch,
+  createContext,
+  createEffect,
+  createSignal,
+  onCleanup,
+  onMount,
+} from "solid-js";
 import { useAuth } from "../../../components/Auth";
 import { CalendarUtils, daysInWeek, monthWeeks } from "../../../utils/calendar";
 import { cn } from "../../../utils/cn";
 import { CalendarMonth, CalendarWeek, CalendarYear } from "../../../components/calendar";
 import { createStore, produce } from "solid-js/store";
+import { setStretchedHeader, stretchedHeader } from "../../../components/Header";
 dayjs.extend(relativeTime);
 dayjs.extend(advancedFormat);
 dayjs.extend(weekOfYear);
@@ -197,6 +209,14 @@ export default function CalendarPage() {
     // update title and url params based on calendar options
     setTitle(calendarOptions);
     setUrlParams(calendarOptions);
+  });
+
+  onMount(() => {
+    const oldStretched = stretchedHeader();
+    setStretchedHeader(true);
+    onCleanup(() => {
+      setStretchedHeader(oldStretched);
+    });
   });
 
   return (

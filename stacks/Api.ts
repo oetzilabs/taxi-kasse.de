@@ -11,7 +11,7 @@ export function API({ stack }: StackContext) {
   const ws = use(WebSocket);
   const domain = use(Domain);
   const secrets = use(Secrets);
-  const { bucket } = use(Storage);
+  const bucket = use(Storage);
 
   const auth = new Auth(stack, "auth", {
     authenticator: {

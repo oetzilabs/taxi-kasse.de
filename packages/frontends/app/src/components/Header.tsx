@@ -14,15 +14,8 @@ import { Transition } from "solid-transition-group";
 import { useTheme } from "./theme";
 import { useWS } from "./WebSocket";
 
-const HeaderStore = createStore({
-  visible: () => true,
-  setVisible: () => {},
-  height: () => 0,
-} as {
-  visible: Accessor<boolean>;
-  setVisible: Setter<boolean>;
-  height: Accessor<number>;
-});
+export const [stretchedHeader, setStretchedHeader] = createSignal(false);
+export const [visibleHeader, setVisibleHeader] = createSignal(true);
 
 export const Header = () => {
   const [auth, setAuthStore] = useAuth();
@@ -45,12 +38,6 @@ export const Header = () => {
   const bcs = useBreadcrumbs();
 
   const navigation = useNavigate();
-  const [visible, setVisible] = createSignal(true);
-  const [height, setHeight] = createSignal(0);
-
-  createEffect(() => {
-    setHeight(document.querySelector("nav")?.clientHeight ?? 0);
-  });
 
   const [theme, setTheme] = useTheme();
 
@@ -71,11 +58,16 @@ export const Header = () => {
       class={cn(
         "flex items-center sticky top-0 z-50 justify-between flex-wrap bg-white dark:bg-black border-b border-neutral-200 dark:border-neutral-800 w-full",
         {
-          "hidden !h-0": !visible(),
+          "hidden !h-0": !visibleHeader(),
         }
       )}
     >
-      <div class="flex items-center justify-between flex-wrap w-full mx-auto p-8">
+      <div
+        class={cn(" flex items-center justify-between flex-wrap transition-[width]", {
+          "w-full p-8": stretchedHeader(),
+          "container mx-auto py-8 md:px-0 px-4": !stretchedHeader(),
+        })}
+      >
         <div class="w-full h-auto flex-col justify-start items-start gap-2 inline-flex">
           <div class="w-full self-stretch justify-between items-center gap-1 inline-flex">
             <div class="w-full justify-start items-center gap-2 inline-flex">
@@ -652,8 +644,4 @@ export const Header = () => {
       </div>
     </nav>
   );
-};
-
-export const useHeader = () => {
-  return HeaderStore;
 };
