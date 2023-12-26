@@ -74,6 +74,7 @@ function loadMap(
         closeOnZeroBearing: false,
         position: "topright",
       },
+      shiftKeyRotate: true,
       touchRotate: true,
     }).setView(coordinates, zoom);
     // @ts-ignore
@@ -106,6 +107,31 @@ function loadMap(
     const circle = L.circle(coordinates, { radius: accuracy ? (accuracy < 10 ? 25 : accuracy) : 25 });
     const featureGroup = L.featureGroup([marker, circle]).addTo(m);
     m.fitBounds(featureGroup.getBounds());
+    m.addEventListener("mousedown", (e) => {
+      // right click is changing rotation
+      if (e.originalEvent.button === 2) {
+        // @ts-ignore - rotate is a custom method that exists
+        const startingBearing = m.getBearing();
+        const startingX = e.originalEvent.clientX;
+        // detect mouse movement and rotate the map accordingly until mouse is released
+        const mouseMove = (e: MouseEvent) => {
+          const diff = e.clientX - startingX;
+          const diffBearing = diff / 10;
+          const finalBearing = startingBearing + diffBearing;
+          // @ts-ignore - rotate is a custom method that exists
+          m.setBearing(finalBearing);
+        };
+        const mouseUp = () => {
+          document.removeEventListener("mousemove", mouseMove);
+          document.removeEventListener("mouseup", mouseUp);
+        };
+        document.addEventListener("mousemove", mouseMove);
+        document.addEventListener("mouseup", mouseUp);
+      }
+    });
+    document.getElementById("map")?.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+    });
   }
 
   setMap(m);
@@ -182,7 +208,7 @@ export const MapComponent = () => {
 
   createEffect(() => {
     // store the map in local storage
-    localStorage.setItem("map", JSON.stringify(mapStore));
+    localStorage.setItem("main-map", JSON.stringify(mapStore));
   });
 
   return (

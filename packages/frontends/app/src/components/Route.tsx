@@ -54,6 +54,49 @@ const LOCAL_STORAGE_ROUTE_HISTORY_KEY = "localrouteshistory" as const;
 const DEFAULT_LOCAL_STORAGE_ROUTE = JSON.stringify({ routes: [], updated: null } as LocalStorageRoutes);
 const DEFAULT_LOCAL_STORAGE_ROUTE_HISTORY = JSON.stringify({ routes: [], updated: null } as LocalStorageRouteHistory);
 
+const rotateMapCamera = (map: L.Map, angle: number) => {
+  map.setView(map.getCenter(), map.getZoom(), {
+    animate: true,
+    // @ts-ignore
+    bearing: angle,
+  });
+};
+
+const rotateMapCameraForStep = (map: L.Map, route: RouteT, step: number) => {
+  const s = route.steps[step].type;
+  if (!s) return;
+  const StepTypeRotationKeys = Object.keys(StepTypeRotation) as (keyof typeof StepTypeRotation)[];
+  let isInArray = undefined;
+  for (const k of StepTypeRotationKeys) {
+    if (k === s) {
+      isInArray = k;
+      break;
+    }
+  }
+  if (!isInArray) return;
+  const stepAngle = StepTypeRotation[isInArray];
+  rotateMapCamera(map, stepAngle);
+};
+
+const StepTypeRotation = {
+  Left: 90,
+  Right: -90,
+  Head: 0,
+} as const;
+
+const timeline = (route: RouteT) => {
+  const _timeline = route.steps.map((step, i) => {
+    const stepAngle = step.type === "Head" ? 0 : step.type === "Left" ? 90 : step.type === "Right" ? -90 : 0;
+    return {
+      angle: stepAngle,
+      text: step.text,
+      current: i === route.currentStep,
+      next: i === route.nextStep,
+    };
+  });
+  return _timeline;
+};
+
 export const RouteContext = createContext<RouteCtx>([
   () => null,
   {

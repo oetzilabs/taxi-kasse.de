@@ -1,9 +1,9 @@
 import { Match, Suspense, Switch, createEffect, onCleanup, onMount } from "solid-js";
 import { isServer } from "solid-js/web";
 import { unstable_clientOnly as clientOnly } from "solid-start";
-import { setStretchedHeader, stretchedHeader } from "../../../components/Header";
+import { setStretchedHeader, stretchedHeader } from "../../components/Header";
 
-const Map = clientOnly(() => import("../../../components/Map").then((m) => ({ default: m.MapComponent })));
+const Map = clientOnly(() => import("../../components/Map").then((m) => ({ default: m.MapComponent })));
 
 export default function MapPage() {
   onMount(() => {

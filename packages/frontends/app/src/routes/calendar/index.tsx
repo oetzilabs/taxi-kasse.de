@@ -16,12 +16,12 @@ import {
   onCleanup,
   onMount,
 } from "solid-js";
-import { useAuth } from "../../../components/Auth";
-import { CalendarUtils, daysInWeek, monthWeeks } from "../../../utils/calendar";
-import { cn } from "../../../utils/cn";
-import { CalendarMonth, CalendarWeek, CalendarYear } from "../../../components/calendar";
+import { useAuth } from "../../components/Auth";
+import { CalendarUtils, daysInWeek, monthWeeks } from "../../utils/calendar";
+import { cn } from "../../utils/cn";
+import { CalendarMonth, CalendarWeek, CalendarYear } from "../../components/calendar";
 import { createStore, produce } from "solid-js/store";
-import { setStretchedHeader, stretchedHeader } from "../../../components/Header";
+import { setStretchedHeader, stretchedHeader } from "../../components/Header";
 dayjs.extend(relativeTime);
 dayjs.extend(advancedFormat);
 dayjs.extend(weekOfYear);

@@ -1,6 +1,6 @@
 import { createMutation } from "@tanstack/solid-query";
-import { Mutations } from "../../../utils/api/mutations";
-import { useAuth } from "../../../components/Auth";
+import { Mutations } from "../../utils/api/mutations";
+import { useAuth } from "../../components/Auth";
 import { Notify } from "@taxi-kassede/core/entities/notifications";
 
 export default function TestNotifications() {

@@ -71,35 +71,13 @@ export const Header = () => {
         <div class="w-full h-auto flex-col justify-start items-start gap-2 inline-flex">
           <div class="w-full self-stretch justify-between items-center gap-1 inline-flex">
             <div class="w-full justify-start items-center gap-2 inline-flex">
-              <A
-                href="/"
-                class="px-2 py-1 rounded-md border border-neutral-300 dark:border-neutral-800 text-neutral-800 dark:text-neutral-400 justify-start items-center gap-1 flex select-none"
-              >
-                <div class="relative">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                  </svg>
-                </div>
-                <div class="text-center text-xs font-medium items-center flex">Home</div>
-              </A>
               <Switch
                 fallback={<div class="animate-pulse w-24 h-4 bg-neutral-100 dark:bg-neutral-800 rounded-md"></div>}
               >
                 <Match when={auth.isAuthenticated}>
                   <>
                     <A
-                      href="/dashboard"
+                      href="/"
                       class="px-2 py-1 rounded-md border border-neutral-300 dark:border-neutral-800 text-neutral-800 dark:text-neutral-400 justify-start items-center gap-1 flex select-none"
                     >
                       <div class="relative">
@@ -123,7 +101,7 @@ export const Header = () => {
                       <div class="text-center text-xs font-medium items-center flex">Dashboard</div>
                     </A>
                     <A
-                      href="/dashboard/map"
+                      href="/map"
                       class="px-2 py-1 rounded-md border border-neutral-300 dark:border-neutral-800 text-neutral-800 dark:text-neutral-400 justify-start items-center gap-1 flex select-none"
                     >
                       <div class="relative">
