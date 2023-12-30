@@ -1,8 +1,10 @@
 import { QueryClient } from "@tanstack/solid-query";
-import { Switch, Match, createSignal } from "solid-js";
+import { Switch, Match, createSignal, For } from "solid-js";
 import { useIsRouting } from "solid-start";
 import { useWS } from "./WebSocket";
 import { cn } from "../utils/cn";
+import { HoverCard } from "@kobalte/core";
+import { Transition, TransitionGroup } from "solid-transition-group";
 
 export const [fixedBottom, setFixedBottom] = createSignal(false);
 export const [stretchedBottom, setStretchedBottom] = createSignal(true);
@@ -51,58 +53,89 @@ export const Bottom = (props: { queryClient: QueryClient; buildVersion: string }
         <div class="grow shrink basis-0 h-6"></div>
         <div class="flex flex-row items-center gap-2">
           <div class="justify-center items-end gap-2.5 flex">
-            <div
-              class={cn("py-1 rounded-md justify-center items-center gap-1 flex", {
-                "text-emerald-500": ws.status() === "connected",
-              })}
-            >
-              <Switch
-                fallback={
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    class="lucide lucide-check-check"
+            <HoverCard.Root>
+              <HoverCard.Trigger>
+                <div
+                  class={cn("py-1 rounded-md justify-center items-center gap-1 flex", {
+                    "text-emerald-500": ws.status() === "connected",
+                  })}
+                >
+                  <Switch
+                    fallback={
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="lucide lucide-check-check"
+                      >
+                        <path d="M18 6 7 17l-5-5" />
+                        <path d="m22 10-7.5 7.5L13 16" />
+                      </svg>
+                    }
                   >
-                    <path d="M18 6 7 17l-5-5" />
-                    <path d="m22 10-7.5 7.5L13 16" />
-                  </svg>
-                }
-              >
-                <Match when={ws.status() === "connecting"}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    class="animate-spin"
-                  >
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                  </svg>
-                </Match>
-              </Switch>
-              <div class="text-center text-xs font-medium select-none">
-                <Switch fallback={<span>Connected</span>}>
-                  <Match when={ws.status() == "disconnected"}>
-                    <span>Disconnected</span>
-                  </Match>
-                  <Match when={ws.status() == "connecting"}>
-                    <span>Connecting</span>
-                  </Match>
-                </Switch>
-              </div>
-            </div>
+                    <Match when={ws.status() === "connecting"}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="animate-spin"
+                      >
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                      </svg>
+                    </Match>
+                  </Switch>
+                  <div class="text-center text-xs font-medium select-none">
+                    <Switch fallback={<span>Connected</span>}>
+                      <Match when={ws.status() == "disconnected"}>
+                        <span>Disconnected</span>
+                      </Match>
+                      <Match when={ws.status() == "connecting"}>
+                        <span>Connecting</span>
+                      </Match>
+                    </Switch>
+                  </div>
+                </div>
+              </HoverCard.Trigger>
+              <HoverCard.Portal>
+                <Transition name="slide-fade">
+                  <HoverCard.Content class="z-50 p-4 flex flex-col gap-4 items-center justify-center rounded-md bg-white dark:bg-black shadow-md border border-neutral-200 dark:border-neutral-800">
+                    <div class="w-full text-sm font-medium text-neutral-600 dark:text-neutral-400">
+                      WebSocket Messages
+                    </div>
+                    <TransitionGroup name="slide-fade">
+                      <For
+                        each={ws.queue()}
+                        fallback={
+                          <div class="w-full tex-center text-xs font-medium text-neutral-600 dark:text-neutral-400">
+                            No messages
+                          </div>
+                        }
+                      >
+                        {(x) => (
+                          <Transition name="slide-fade">
+                            <div class="max-w-[300px] w-full text-xs font-medium text-neutral-600 dark:text-neutral-400 overflow-clip rounded-sm border border-neutral-300 dark:border-neutral-800 p-4">
+                              {JSON.stringify(x)}
+                            </div>
+                          </Transition>
+                        )}
+                      </For>
+                    </TransitionGroup>
+                  </HoverCard.Content>
+                </Transition>
+              </HoverCard.Portal>
+            </HoverCard.Root>
           </div>
           <div class="justify-center items-end gap-2.5 flex">
             <div class="py-1 rounded-md justify-center items-center gap-1 flex">
