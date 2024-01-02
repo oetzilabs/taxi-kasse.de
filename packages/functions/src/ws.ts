@@ -25,9 +25,25 @@ export const ping = WebSocketApiHandler(async (event) => {
   if (!payload.userId) return error("No userId", StatusCodes.BAD_REQUEST);
   const userId = payload.userId;
   const x = await WebsocketCore.update(connectionId, userId);
+  const id = payload.id;
+  const sentAt = Date.now();
+
+  await WebsocketCore.sendMessageToConnection(
+    {
+      type: "pong",
+      recievedId: id,
+      sentAt: Date.now(),
+    },
+    connectionId
+  );
+
   // const missingNotifications = await Notifications.sendMissingNotifications(userId);
   // console.log("missingNotifications", missingNotifications);
-  return json({});
+  return json({
+    type: "pong",
+    recievedId: id,
+    sentAt,
+  });
 });
 
 export const main = WebSocketApiHandler(async (event) => {

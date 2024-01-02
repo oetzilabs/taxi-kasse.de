@@ -8,9 +8,11 @@ import { user_dismissed_notifications } from "../drizzle/sql/schemas/user_dismis
 
 export * as Notifications from "./notifications";
 
+type NotificationStatistics = "ping" | "pong";
+
 type NotificationEntity = "system" | "user" | "company";
 type NotificationAction = "info" | "warning" | "error";
-type NotificationType = `${NotificationEntity}:${NotificationAction}`;
+type NotificationType = `${NotificationEntity}:${NotificationAction}` | NotificationStatistics;
 
 export type Notify = {
   id: string;

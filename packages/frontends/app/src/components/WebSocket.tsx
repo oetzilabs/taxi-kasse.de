@@ -7,6 +7,7 @@ import { parseCookie } from "solid-start";
 import { useAuth } from "./Auth";
 import { z } from "zod";
 import { Mutations } from "../utils/api/mutations";
+import dayjs from "dayjs";
 
 export type WSStatus = "connected" | "disconnected" | "pinging" | "sending" | "connecting";
 
@@ -19,6 +20,10 @@ type WSCtxValue = {
   dismissAll: () => void;
   isDimissing: Accessor<boolean>;
   isDimissingAll: Accessor<boolean>;
+  statistics: Accessor<{
+    stream: number;
+    failed: number;
+  }>;
 };
 
 export const WSCtx = createContext<WSCtxValue>({
@@ -30,15 +35,39 @@ export const WSCtx = createContext<WSCtxValue>({
   dismissAll: () => {},
   isDimissing: () => false,
   isDimissingAll: () => false,
+  statistics: () => ({
+    stream: 0,
+    failed: 0,
+  }),
 });
+
+type PongMessage = {
+  action: "pong";
+  recievedId: string;
+  sentAt: string;
+};
+
+type PingMessage = {
+  action: "ping";
+  userId: string;
+  id: string;
+};
 
 export const WSProvider = (props: { children: any }) => {
   const [status, setStatus] = createSignal<WSStatus>("disconnected");
   const [errors, setErrors] = createSignal<string[]>([]);
-  const [queue, setQueue] = createSignal<Notify[]>([]);
+  const [sentQueue, setSentQueue] = createSignal<any[]>([]);
+  const [recievedQueue, setRecievedQueue] = createSignal<Notify[]>([]);
   const [ws, setWS] = createSignal<ReturnType<typeof createReconnectingWS> | null>(null);
   const [isDimissing, setIsDimissing] = createSignal(false);
   const [isDimissingAll, setIsDimissingAll] = createSignal(false);
+  const [statistics, setStatistics] = createSignal<{
+    stream: number;
+    failed: number;
+  }>({
+    stream: 0,
+    failed: 0,
+  });
 
   const dismiss = createMutation(() => ({
     mutationFn: async (id: string) => {
@@ -48,9 +77,9 @@ export const WSProvider = (props: { children: any }) => {
       }
       setIsDimissing(true);
       const dismissedNotification = await Mutations.Notifications.dismiss(token, id);
-      const q = queue();
+      const q = recievedQueue();
       const x = q.filter((n) => n.id !== dismissedNotification.notificationId);
-      setQueue(x);
+      setRecievedQueue(x);
       setIsDimissing(false);
       return x;
     },
@@ -65,25 +94,70 @@ export const WSProvider = (props: { children: any }) => {
       }
       setIsDimissingAll(true);
       const dismissedNotifications = await Mutations.Notifications.dismissAll(token);
-      setQueue([]);
+      setRecievedQueue([]);
       setIsDimissingAll(false);
       return dismissedNotifications;
     },
     mutationKey: ["dismiss-all-notifications"],
   }));
 
+  const createPingMessage = (): PingMessage => {
+    const userId = auth.user?.id;
+    if (!userId) throw new Error("No user id");
+    const id = Math.random().toString(36).substring(2);
+    return {
+      action: "ping",
+      userId,
+      id,
+    };
+  };
+
+  const updateDownstream = (pongMessage: PongMessage) => {
+    const s = statistics();
+    const counterPart = sentQueue().find((x) => x.id === pongMessage.recievedId);
+    const delta = dayjs(Date.now()).diff(pongMessage.sentAt, "millisecond");
+    if (!counterPart) {
+      return updateFailed();
+    }
+    // remove from sentQueue
+    const x = sentQueue().filter((x) => x.id !== pongMessage.recievedId);
+    setSentQueue(x);
+    setStatistics({
+      ...s,
+      stream: delta,
+    });
+  };
+
+  const updateFailed = () => {
+    const s = statistics();
+    setStatistics({
+      ...s,
+      failed: s.failed + 1,
+    });
+  };
+
   const handlers = {
-    message: (e: any) => {
+    message: (e: any, ...a: any) => {
+      console.log("ws additional info", a);
       const data = JSON.parse(e.data);
       const n = z.custom<Notify>().parse(data);
-      setQueue([...queue(), n]);
+      setRecievedQueue([...recievedQueue(), n]);
+      // update downstream
+      const pongMessage = z.custom<PongMessage>().safeParse(data);
+      if (pongMessage.success) {
+        updateDownstream(pongMessage.data);
+      } else {
+        // updateFailed();
+      }
     },
     open: (e: any) => {
       const userId = auth.user?.id;
       if (!userId) return;
       const w = ws();
       if (!w) return;
-      w.send(JSON.stringify({ action: "ping", userId }));
+      const pm = createPingMessage();
+      setSentQueue([...sentQueue(), pm]);
+      w.send(JSON.stringify(pm));
       setStatus("connected");
     },
     close: (e: any) => {
@@ -111,8 +185,10 @@ export const WSProvider = (props: { children: any }) => {
     ws.addEventListener("message", handlers.message);
     const interval = setInterval(() => {
       if (!auth.user?.id) return;
-      ws.send(JSON.stringify({ action: "ping", userId: auth.user?.id }));
-    }, 10000);
+      const pm = createPingMessage();
+      setSentQueue([...sentQueue(), pm]);
+      ws.send(JSON.stringify(pm));
+    }, 2000);
     onCleanup(() => {
       ws.close();
       ws.removeEventListener("message", handlers.message);
@@ -129,12 +205,13 @@ export const WSProvider = (props: { children: any }) => {
       value={{
         status,
         ws,
-        queue,
+        queue: recievedQueue,
         errors,
         dismiss: dismiss.mutateAsync,
         dismissAll: dismissAll.mutateAsync,
         isDimissing,
         isDimissingAll,
+        statistics,
       }}
     >
       {props.children}

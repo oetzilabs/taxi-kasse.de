@@ -17,6 +17,8 @@ export const notifications = sqliteTable("notifications", {
       "system:info",
       "system:warning",
       "system:error",
+      "ping",
+      "pong",
     ],
   }).notNull(),
   dismissedAt: integer("dismissed_at", {

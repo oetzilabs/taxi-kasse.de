@@ -4,7 +4,7 @@ import { websockets } from "../drizzle/sql/schema";
 import { eq, gte, lte } from "drizzle-orm";
 import { Notify } from "./notifications";
 import { WebSocketApi } from "sst/node/websocket-api";
-import { ApiGatewayManagementApi } from "@aws-sdk/client-apigatewaymanagementapi";
+import { ApiGatewayManagementApi, GoneException } from "@aws-sdk/client-apigatewaymanagementapi";
 import dayjs from "dayjs";
 
 export * as WebsocketCore from "./websocket";
@@ -57,6 +57,9 @@ export const sendMessageToConnection = async (message: any, connectionId: string
     console.log("error sending message", e);
     if (eTyped.statusCode === 410) {
       // Remove stale connections
+      await db.delete(websockets).where(eq(websockets.connectionId, connectionId)).execute();
+    } else if (eTyped instanceof GoneException) {
+      console.log(`GoneException: ${eTyped.message}`);
       await db.delete(websockets).where(eq(websockets.connectionId, connectionId)).execute();
     } else {
       console.error(e);

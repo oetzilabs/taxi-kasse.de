@@ -111,27 +111,48 @@ export const Bottom = (props: { queryClient: QueryClient; buildVersion: string }
               <HoverCard.Portal>
                 <Transition name="slide-fade">
                   <HoverCard.Content class="z-50 p-4 flex flex-col gap-4 items-center justify-center rounded-md bg-white dark:bg-black shadow-md border border-neutral-200 dark:border-neutral-800">
-                    <div class="w-full text-sm font-medium text-neutral-600 dark:text-neutral-400">
-                      WebSocket Messages
-                    </div>
-                    <TransitionGroup name="slide-fade">
-                      <For
-                        each={ws.queue()}
-                        fallback={
-                          <div class="w-full tex-center text-xs font-medium text-neutral-600 dark:text-neutral-400">
-                            No messages
+                    <div class="w-full text-sm font-medium text-neutral-600 dark:text-neutral-400">WebSocket</div>
+                    <div class="w-full flex flex-col gap-2">
+                      <span class="text-sm font-medium">Statistics</span>
+                      <div class="w-full flex flex-col text-xs">
+                        <div
+                          class={cn({
+                            "text-emerald-500": ws.statistics().stream < 140,
+                            "text-orange-500": ws.statistics().stream >= 140 && ws.statistics().stream < 200,
+                            "text-rose-500": ws.statistics().stream >= 200,
+                          })}
+                        >
+                          <div class="flex flex-row gap-4 items-center justify-between ">
+                            <span>Up-/Downstream</span>
+                            <span>{ws.statistics().stream} ms</span>
                           </div>
-                        }
-                      >
-                        {(x) => (
-                          <Transition name="slide-fade">
-                            <div class="max-w-[300px] w-full text-xs font-medium text-neutral-600 dark:text-neutral-400 overflow-clip rounded-sm border border-neutral-300 dark:border-neutral-800 p-4">
-                              {JSON.stringify(x)}
+                        </div>
+                        <div class="text-rose-500">
+                          <div class="flex flex-row gap-4 items-center justify-between">
+                            <span>Failed</span>
+                            <span>{ws.statistics().failed} msg</span>
+                          </div>
+                        </div>
+                      </div>
+                      {/* <TransitionGroup name="slide-fade">
+                        <For
+                          each={ws.queue()}
+                          fallback={
+                            <div class="w-full tex-center text-xs font-medium text-neutral-600 dark:text-neutral-400">
+                              No messages
                             </div>
-                          </Transition>
-                        )}
-                      </For>
-                    </TransitionGroup>
+                          }
+                        >
+                          {(x) => (
+                            <Transition name="slide-fade">
+                              <div class="max-w-[300px] w-full text-xs font-medium text-neutral-600 dark:text-neutral-400 overflow-clip rounded-sm border border-neutral-300 dark:border-neutral-800 p-4">
+                                {JSON.stringify(x)}
+                              </div>
+                            </Transition>
+                          )}
+                        </For>
+                      </TransitionGroup> */}
+                    </div>
                   </HoverCard.Content>
                 </Transition>
               </HoverCard.Portal>

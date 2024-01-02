@@ -57,6 +57,8 @@ export function WebSocket({ stack }: StackContext) {
     },
   });
 
+  ws.bind([ws]);
+
   stack.addOutputs({
     ws: ws.customDomainUrl ?? ws.url,
   });
