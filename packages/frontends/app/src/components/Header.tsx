@@ -55,12 +55,9 @@ export const Header = () => {
 
   return (
     <nav
-      class={cn(
-        "flex items-center sticky top-0 z-50 justify-between flex-wrap bg-white dark:bg-black border-b border-neutral-200 dark:border-neutral-800 w-full",
-        {
-          "hidden !h-0": !visibleHeader(),
-        }
-      )}
+      class={cn("flex items-center sticky top-0 z-50 justify-between flex-wrap bg-white dark:bg-black w-full", {
+        "hidden !h-0": !visibleHeader(),
+      })}
     >
       <div
         class={cn(" flex items-center justify-between flex-wrap transition-[width]", {

@@ -211,17 +211,9 @@ export default function CalendarPage() {
     setUrlParams(calendarOptions);
   });
 
-  onMount(() => {
-    const oldStretched = stretchedHeader();
-    setStretchedHeader(true);
-    onCleanup(() => {
-      setStretchedHeader(oldStretched);
-    });
-  });
-
   return (
     <SearchContext.Provider value={{ search: search() }}>
-      <div class="flex flex-col w-full h-full">
+      <div class="flex flex-col container mx-auto h-full border border-neutral-300 dark:border-neutral-800 rounded-md overflow-clip">
         <div class="w-full p-2.5 bg-white dark:bg-black border-b border-neutral-300 dark:border-neutral-800 justify-center items-center gap-2.5 inline-flex">
           <div class="justify-end items-center gap-2.5 flex">
             <div class="justify-start items-center gap-2.5 flex">

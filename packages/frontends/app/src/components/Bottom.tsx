@@ -7,19 +7,16 @@ import { HoverCard } from "@kobalte/core";
 import { Transition, TransitionGroup } from "solid-transition-group";
 
 export const [fixedBottom, setFixedBottom] = createSignal(false);
-export const [stretchedBottom, setStretchedBottom] = createSignal(true);
+export const [stretchedBottom, setStretchedBottom] = createSignal(false);
 
 export const Bottom = (props: { queryClient: QueryClient; buildVersion: string }) => {
   const isRouting = useIsRouting();
   const ws = useWS();
   return (
     <div
-      class={cn(
-        "w-full h-10 border-t border-neutral-200 dark:border-neutral-800 items-center gap-2.5 inline-flex text-neutral-700 ",
-        {
-          "z-50 bg-white dark:bg-black fixed bottom-0": fixedBottom(),
-        }
-      )}
+      class={cn("w-full h-10 bg-white dark:bg-black items-center gap-2.5 inline-flex text-neutral-700", {
+        "z-50 bg-white dark:bg-black fixed bottom-0": fixedBottom(),
+      })}
     >
       <div
         class={cn("inline-flex px-1 items-center flex-row", {

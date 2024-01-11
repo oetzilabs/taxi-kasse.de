@@ -18,8 +18,8 @@ importers:
         specifier: 10.3.0
         version: 10.3.0
       sst:
-        specifier: 2.39.2
-        version: 2.39.2
+        specifier: 2.39.3
+        version: 2.39.3
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -67,8 +67,8 @@ importers:
         specifier: ^0.19.13
         version: 0.19.13
       sst:
-        specifier: 2.39.2
-        version: 2.39.2
+        specifier: 2.39.3
+        version: 2.39.3
       vitest:
         specifier: ^0.34.6
         version: 0.34.6
@@ -179,8 +179,8 @@ importers:
         specifier: ^0.3.6
         version: 0.3.6(solid-start@0.3.10)(vite@4.4.11)
       solid-start-sst:
-        specifier: 2.39.2
-        version: 2.39.2(solid-start@0.3.10)(vite@4.4.11)
+        specifier: 2.39.3
+        version: 2.39.3(solid-start@0.3.10)(vite@4.4.11)
       tailwindcss:
         specifier: ^3.3.3
         version: 3.3.3
@@ -297,8 +297,8 @@ importers:
         specifier: ^0.3.6
         version: 0.3.6(solid-start@0.3.10)(vite@4.4.11)
       solid-start-sst:
-        specifier: 2.39.2
-        version: 2.39.2(solid-start@0.3.10)(vite@4.4.11)
+        specifier: 2.39.3
+        version: 2.39.3(solid-start@0.3.10)(vite@4.4.11)
       tailwindcss:
         specifier: ^3.3.3
         version: 3.3.3
@@ -361,8 +361,8 @@ importers:
         specifier: ^20.8.4
         version: 20.8.4
       sst:
-        specifier: 2.39.2
-        version: 2.39.2
+        specifier: 2.39.3
+        version: 2.39.3
       vitest:
         specifier: ^0.34.6
         version: 0.34.6
@@ -5327,6 +5327,15 @@ packages:
       '@smithy/smithy-client': 2.1.18
       '@smithy/types': 2.7.0
       tslib: 2.6.2
+
+  /@smithy/util-endpoints@1.0.5:
+    resolution: {integrity: sha512-K7qNuCOD5K/90MjHvHm9kJldrfm40UxWYQxNEShMFxV/lCCCRIg8R4uu1PFAxRvPxNpIdcrh1uK6I1ISjDXZJw==}
+    engines: {node: '>= 14.0.0'}
+    dependencies:
+      '@smithy/node-config-provider': 2.1.8
+      '@smithy/types': 2.7.0
+      tslib: 2.6.2
+    dev: true
 
   /@smithy/util-endpoints@1.0.6:
     resolution: {integrity: sha512-90vy1Q0Z4pNcXUX9TrG50Y5zi0k8ONYTHZ/7KDliHOWUtdGH2a61cVMq/zIvt0Qlunsk8vshk4+DZLMEwIm92Q==}
@@ -10423,8 +10432,8 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /solid-start-sst@2.39.2(solid-start@0.3.10)(vite@4.4.11):
-    resolution: {integrity: sha512-ZuRQV46Y8b7c4O4FAnZ/cn20+NwVm9Vy0rn+uL3Lpj40WZIfc6PvFdpMBEYLBfdDKdFg9wgWDTAXejICN4mhQA==}
+  /solid-start-sst@2.39.3(solid-start@0.3.10)(vite@4.4.11):
+    resolution: {integrity: sha512-Q3OaLDc4rqi4VsvrDw85v2DP5VxUfZrIVBzPBvCdbyi04bh5G1imxJQp1fKxzFEEABSDAFo1kGvrTils9azNdw==}
     peerDependencies:
       solid-start: '*'
       vite: '*'
@@ -10571,8 +10580,8 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /sst@2.39.2:
-    resolution: {integrity: sha512-lWtdSIoaZLa+pNzuwGmfExj6lvRFv6flT0Zrja+jlZt7eMJ8GPMUqFQoX4simkfNaKCDWSgHrQhexuDvFgEDJQ==}
+  /sst@2.39.3:
+    resolution: {integrity: sha512-Jken4H+ZY+pZO7DxgCmL4bIJs5VyXj3VnCXrc0MtlYgzAfyqvpSi/kuOgNe+JF8plbCBS+A0EY5BAzc0TaKcMw==}
     hasBin: true
     peerDependencies:
       '@sls-next/lambda-at-edge': ^3.7.0
@@ -10608,6 +10617,7 @@ packages:
       '@babel/generator': 7.23.0
       '@babel/plugin-syntax-typescript': 7.22.5(@babel/core@7.23.0)
       '@smithy/signature-v4': 2.0.17
+      '@smithy/util-endpoints': 1.0.5
       '@trpc/server': 9.16.0
       adm-zip: 0.5.10
       aws-cdk-lib: 2.110.1(constructs@10.3.0)

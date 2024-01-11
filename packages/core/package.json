@@ -11,7 +11,7 @@
     "@types/node": "^20.8.4",
     "@types/uuid": "^9.0.5",
     "drizzle-kit": "^0.19.13",
-    "sst": "2.39.2",
+    "sst": "2.39.3",
     "vitest": "^0.34.6"
   },
   "dependencies": {
