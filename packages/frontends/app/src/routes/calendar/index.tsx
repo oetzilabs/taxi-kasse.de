@@ -21,7 +21,7 @@ import { CalendarUtils, daysInWeek, monthWeeks } from "../../utils/calendar";
 import { cn } from "../../utils/cn";
 import { CalendarMonth, CalendarWeek, CalendarYear } from "../../components/calendar";
 import { createStore, produce } from "solid-js/store";
-import { setStretchedHeader, stretchedHeader } from "../../components/Header";
+import { setHeaderVariant, headerVariant } from "../../components/Header";
 dayjs.extend(relativeTime);
 dayjs.extend(advancedFormat);
 dayjs.extend(weekOfYear);

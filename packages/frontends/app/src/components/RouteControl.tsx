@@ -9,6 +9,7 @@ import { RouteStep } from "./RouteStep";
 import { toast } from "solid-toast";
 import { createAccelerometer, createGyroscope } from "@solid-primitives/devices";
 import { useTheme } from "./theme";
+import { useNavigate } from "solid-start";
 
 const routeTo = (map: L.Map, name: string, coordinates: [L.LatLng, L.LatLng, ...L.LatLng[]]) => {
   if (!map) return;
@@ -171,14 +172,39 @@ export const RouteControl = (props: { map: L.Map | null }) => {
   const [routeHistoryPage, setRouteHistoryPage] = createSignal<number>(1);
 
   const routeHistoryCut = (page: number = 1) => {
-    return routeHistory().slice(0, page * 2);
+    return routeHistory().slice(0, page * 4);
   };
 
   const [showRouteMenu, setShowRouteMenu] = createSignal<boolean>(false);
 
+  const navigate = useNavigate();
+
   return (
-    <div class="flex flex-col gap-2 bg-white dark:bg-black p-2 md:rounded-md shadow-md border-b md:border border-neutral-200 dark:border-neutral-800 min-w-[100svw] md:min-w-[450px] max-w-[450px] w-full overflow-clip items-start">
-      <div class="w-full items-center flex flex-row justify-between gap-2">
+    <div class="flex flex-col h-full gap-2 bg-white dark:bg-black p-2 md:rounded-md shadow-md border-b md:border border-neutral-200 dark:border-neutral-800 min-w-[100svw] md:min-w-[450px] max-w-[450px] w-full overflow-clip items-start">
+      <div class="w-full flex flex-col gap-2">
+        <button
+          class="py-2 px-4 flex flex-row gap-2 items-center justify-center bg-black dark:bg-white w-max rounded-md border border-neutral-200 dark:border-neutral-800 text-white dark:text-black"
+          onClick={() => {
+            navigate("/");
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+          <span class="text-sm font-bold">Back</span>
+        </button>
+      </div>
+      <div class="w-full  items-center flex flex-row justify-between gap-2">
         <button
           class="py-2 px-4 flex flex-row gap-2 items-center justify-center bg-white dark:bg-black w-full rounded-md border border-neutral-200 dark:border-neutral-800"
           onClick={() => {

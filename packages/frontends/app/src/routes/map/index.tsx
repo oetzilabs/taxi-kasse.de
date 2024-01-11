@@ -1,21 +1,21 @@
 import { Match, Suspense, Switch, createEffect, onCleanup, onMount } from "solid-js";
 import { isServer } from "solid-js/web";
 import { unstable_clientOnly as clientOnly } from "solid-start";
-import { setStretchedHeader, stretchedHeader } from "../../components/Header";
+import { setHeaderVariant, headerVariant, HeaderVariants } from "../../components/Header";
 
 const Map = clientOnly(() => import("../../components/Map").then((m) => ({ default: m.MapComponent })));
 
 export default function MapPage() {
   onMount(() => {
-    const oldHeader = stretchedHeader();
+    const oldHeader = headerVariant();
 
-    setStretchedHeader(true);
+    setHeaderVariant(HeaderVariants.MAP);
     onCleanup(() => {
-      setStretchedHeader(oldHeader);
+      setHeaderVariant(oldHeader);
     });
   });
   return (
-    <div class="w-full h-full flex flex-col">
+    <div class="w-full h-full flex flex-col absolute top-0 left-0">
       <Switch>
         <Match when={isServer}>
           <div></div>
