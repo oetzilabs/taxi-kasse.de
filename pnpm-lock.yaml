@@ -18,8 +18,8 @@ importers:
         specifier: 10.3.0
         version: 10.3.0
       sst:
-        specifier: 2.39.3
-        version: 2.39.3
+        specifier: 2.39.4
+        version: 2.39.4
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -67,8 +67,8 @@ importers:
         specifier: ^0.19.13
         version: 0.19.13
       sst:
-        specifier: 2.39.3
-        version: 2.39.3
+        specifier: 2.39.4
+        version: 2.39.4
       vitest:
         specifier: ^0.34.6
         version: 0.34.6
@@ -179,8 +179,8 @@ importers:
         specifier: ^0.3.6
         version: 0.3.6(solid-start@0.3.10)(vite@4.4.11)
       solid-start-sst:
-        specifier: 2.39.3
-        version: 2.39.3(solid-start@0.3.10)(vite@4.4.11)
+        specifier: 2.39.4
+        version: 2.39.4(solid-start@0.3.10)(vite@4.4.11)
       tailwindcss:
         specifier: ^3.3.3
         version: 3.3.3
@@ -297,8 +297,8 @@ importers:
         specifier: ^0.3.6
         version: 0.3.6(solid-start@0.3.10)(vite@4.4.11)
       solid-start-sst:
-        specifier: 2.39.3
-        version: 2.39.3(solid-start@0.3.10)(vite@4.4.11)
+        specifier: 2.39.4
+        version: 2.39.4(solid-start@0.3.10)(vite@4.4.11)
       tailwindcss:
         specifier: ^3.3.3
         version: 3.3.3
@@ -361,8 +361,8 @@ importers:
         specifier: ^20.8.4
         version: 20.8.4
       sst:
-        specifier: 2.39.3
-        version: 2.39.3
+        specifier: 2.39.4
+        version: 2.39.4
       vitest:
         specifier: ^0.34.6
         version: 0.34.6
@@ -10432,8 +10432,8 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /solid-start-sst@2.39.3(solid-start@0.3.10)(vite@4.4.11):
-    resolution: {integrity: sha512-Q3OaLDc4rqi4VsvrDw85v2DP5VxUfZrIVBzPBvCdbyi04bh5G1imxJQp1fKxzFEEABSDAFo1kGvrTils9azNdw==}
+  /solid-start-sst@2.39.4(solid-start@0.3.10)(vite@4.4.11):
+    resolution: {integrity: sha512-c4dBqt2431YeFGdAhS4c8GI0f6d+7PyAHp0pap95AHVfT4I3KjS0FlgS5A+mtr6mjLO37KlSK2PkC8DPaLPE9Q==}
     peerDependencies:
       solid-start: '*'
       vite: '*'
@@ -10580,8 +10580,8 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /sst@2.39.3:
-    resolution: {integrity: sha512-Jken4H+ZY+pZO7DxgCmL4bIJs5VyXj3VnCXrc0MtlYgzAfyqvpSi/kuOgNe+JF8plbCBS+A0EY5BAzc0TaKcMw==}
+  /sst@2.39.4:
+    resolution: {integrity: sha512-nEIxEeH4HM+S6KyNNfJcqqvkRx01HwVLNa/nqiyir7d5ETtRYDT0ec2Ebd3JDLOiXNYyYTCb/aXzrB72BpiKUw==}
     hasBin: true
     peerDependencies:
       '@sls-next/lambda-at-edge': ^3.7.0
