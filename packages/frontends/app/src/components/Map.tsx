@@ -212,7 +212,7 @@ export const MapComponent = () => {
   return (
     <RouteProvider>
       <div class="w-full h-full relative flex flex-col">
-        <div class="h-[calc(100%-16px)] flex-1 absolute z-[40] md:top-2 md:left-2 top-0 left-0">
+        <div class="md:h-[calc(100%-16px)] flex-1 absolute z-[40] md:top-2 md:left-2 top-0 left-0">
           <RouteControl map={map()} />
         </div>
         <Switch>
