@@ -1,14 +1,10 @@
 import { relations } from "drizzle-orm";
-import { text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod";
-import { prefixed_cuid2 } from "../../../custom_cuid2";
-import { commonTable, Entity } from "./entity";
-import { plan_comment_user_mention_notifications } from "./notifications/plan/comment_user_mention";
-import { organizations_joins } from "./organizations_joins";
-import { plan_comments } from "./plan_comments";
-import { users_organizations } from "./user_organizations";
-import { users_workspaces } from "./users_workspaces";
+import { Validator } from "../../../validator";
+import { commonTable } from "./entity";
+import { user_role } from "./roles";
+import { user_organizations } from "./user_organizations";
 import { schema } from "./utils";
 
 export const users = commonTable(
@@ -16,12 +12,13 @@ export const users = commonTable(
   {
     name: text("name").notNull(),
     email: text("email").notNull(),
-    emailVerifiedAt: timestamp("email_verified_at", {
+    verifiedAt: timestamp("verified_at", {
       withTimezone: true,
       mode: "date",
     }),
+    role: user_role("role").default("member").notNull(),
   },
-  "user",
+  "user"
 );
 
 export const sessions = schema.table("session", {
@@ -47,17 +44,12 @@ export const sessions = schema.table("session", {
     mode: "date",
   }).notNull(),
   access_token: text("access_token"),
-  workspace_id: varchar("workspace_id"),
   organization_id: varchar("organization_id"),
 });
 
 export const userRelation = relations(users, ({ many }) => ({
   sessions: many(sessions),
-  workspaces: many(users_workspaces),
-  organizations: many(users_organizations),
-  joins: many(organizations_joins),
-  notification_comment_mentions: many(plan_comment_user_mention_notifications),
-  comments: many(plan_comments),
+  orgs: many(user_organizations),
 }));
 
 export type UserSelect = typeof users.$inferSelect;
@@ -65,7 +57,7 @@ export type UserInsert = typeof users.$inferInsert;
 export const UserUpdateSchema = createInsertSchema(users)
   .partial()
   .omit({ createdAt: true, updatedAt: true })
-  .extend({ id: prefixed_cuid2 });
+  .extend({ id: Validator.prefixed_cuid2 });
 
 export const sessionRelation = relations(sessions, ({ one }) => ({
   user: one(users, {
@@ -79,4 +71,4 @@ export type SessionInsert = typeof sessions.$inferInsert;
 export const SessionUpdateSchema = createInsertSchema(sessions)
   .partial()
   .omit({ createdAt: true, updatedAt: true })
-  .extend({ id: prefixed_cuid2 });
+  .extend({ id: Validator.prefixed_cuid2 });
