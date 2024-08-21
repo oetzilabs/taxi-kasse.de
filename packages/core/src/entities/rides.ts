@@ -1,4 +1,4 @@
-export module Users {
+export module Rides {
   export const create = () => {};
 
   export const findById = () => {};
