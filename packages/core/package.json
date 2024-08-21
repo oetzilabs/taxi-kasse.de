@@ -1,29 +1,34 @@
 {
-  "name": "@taxi-kassede/core",
+  "name": "@oetzilabs-plaaaner-com/core",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "test": "sst bind vitest",
+    "check": "sst shell 'tsx src/test.ts'",
     "typecheck": "tsc -noEmit",
-    "generate": "drizzle-kit generate:sqlite"
+    "generate": "sst shell 'drizzle-kit generate'",
+    "migrate": "sst shell 'drizzle-kit migrate'",
+    "up": "sst shell 'drizzle-kit up'",
+    "studio": "sst shell 'drizzle-kit studio'"
   },
   "devDependencies": {
-    "@types/node": "^20.8.4",
-    "@types/uuid": "^9.0.5",
-    "drizzle-kit": "^0.19.13",
-    "sst": "2.39.4",
-    "vitest": "^0.34.6"
+    "@tsconfig/node22": "22.0.0",
+    "@types/node": "22.4.2",
+    "drizzle-kit": "0.24.0",
+    "vitest": "2.0.5"
   },
   "dependencies": {
-    "@aws-sdk/client-apigatewaymanagementapi": "3.468.0",
-    "@aws-sdk/client-s3": "3.468.0",
-    "@aws-sdk/client-sns": "3.468.0",
-    "@libsql/client": "0.3.6",
-    "aws-sdk": "^2.1524.0",
-    "dayjs": "1.11.10",
-    "drizzle-orm": "^0.28.6",
+    "@lucia-auth/adapter-drizzle": "^1.0.7",
+    "@neondatabase/serverless": "0.9.4",
+    "@paralleldrive/cuid2": "^2.2.2",
+    "dayjs": "1.11.13",
+    "valibot": "0.38.0",
+    "drizzle-valibot": "0.2.0",
+    "drizzle-orm": "0.33.0",
     "drizzle-zod": "0.5.1",
-    "uuid": "9.0.1",
-    "zod": "^3.22.4"
+    "lucia": "^3.2.0",
+    "node-fetch": "3.3.2",
+    "oslo": "^1.2.1",
+    "zod": "^3.23.8"
   }
 }

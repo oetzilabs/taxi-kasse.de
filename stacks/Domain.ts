@@ -1,35 +1,13 @@
-import { HostedZone } from "aws-cdk-lib/aws-route53";
-import { StackContext } from "sst/constructs";
+export const domain =
+  {
+    production: "taxi-kasse.de",
+    dev: "dev.taxi-kasse.de",
+  }[$app.stage] || $app.stage + ".dev.taxi-kasse.de";
 
-const PRODUCTION = "taxi-kasse.de";
-const DEV = `dev.${PRODUCTION}`;
+export const zone = cloudflare.getZoneOutput({
+  name: "taxi-kasse.de",
+});
 
-export function Domain(ctx: StackContext) {
-  if (ctx.stack.stage === "production") {
-    const zone = new HostedZone(ctx.stack, "zone", {
-      zoneName: PRODUCTION,
-    });
-    return {
-      zone,
-      domain: PRODUCTION,
-    };
-  }
-
-  if (ctx.stack.stage === "dev") {
-    return {
-      zone: new HostedZone(ctx.stack, "zone", {
-        zoneName: DEV,
-      }),
-      domain: DEV,
-    };
-  }
-
-  const zone = HostedZone.fromLookup(ctx.stack, "zone", {
-    domainName: DEV,
-  });
-  return {
-    zone,
-    domain: `${ctx.stack.stage}.${DEV}`,
-  };
-  // return null;
-}
+export const cf = sst.cloudflare.dns({
+  zone: zone.zoneId,
+});

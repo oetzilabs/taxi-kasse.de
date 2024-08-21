@@ -1,13 +1,7 @@
-import { StackContext, Config } from "sst/constructs";
+export const secret = {
+  SECRET_DATABASE_URL: new sst.Secret("DatabaseUrl"),
+  SECRET_GOOGLE_CLIENT_ID: new sst.Secret("GoogleClientId"),
+  SECRET_GOOGLE_CLIENT_SECRET: new sst.Secret("GoogleClientSecret"),
+};
 
-export function Secrets({ stack, app }: StackContext) {
-  const secrets = Config.Secret.create(
-    stack,
-    "GOOGLE_CLIENT_ID",
-    "GOOGLE_CLIENT_SECRET",
-    "DATABASE_URL",
-    "DATABASE_AUTH_TOKEN"
-  );
-
-  return secrets;
-}
+export const allSecrets = Object.values(secret);

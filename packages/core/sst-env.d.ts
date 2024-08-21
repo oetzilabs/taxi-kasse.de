@@ -1,1 +1,4 @@
-/// <reference path="../../.sst/types/index.ts" />
+/* tslint:disable */
+/* eslint-disable */
+/// <reference path="../../sst-env.d.ts" />
+export {};

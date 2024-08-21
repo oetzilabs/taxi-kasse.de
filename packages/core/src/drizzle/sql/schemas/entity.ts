@@ -1,22 +1,45 @@
-import { integer, text } from "drizzle-orm/sqlite-core";
-import { sql } from "drizzle-orm";
-import * as uuid from "uuid";
+import { createId } from "@paralleldrive/cuid2";
+import { BuildExtraConfigColumns, Table } from "drizzle-orm";
+import { PgColumnBuilderBase, PgTableExtraConfig, timestamp, varchar } from "drizzle-orm/pg-core";
+import { schema } from "./utils";
 
 export * as Entity from "./entity";
 
-export const defaults = {
-  id: text("id", { mode: "text" })
+const defaults = (prefix: string) => ({
+  id: varchar("id")
     .primaryKey()
-    .$default(() => uuid.v4()),
-  createdAt: integer("created_at", {
-    mode: "timestamp",
+    .$defaultFn(() => `${prefix}_${createId()}`),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+    mode: "date",
   })
     .notNull()
-    .default(sql`(strftime('%s', 'now'))`),
-  updatedAt: integer("updated_at", {
-    mode: "timestamp",
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", {
+    withTimezone: true,
+    mode: "date",
   }),
-  deletedAt: integer("deleted_at", {
-    mode: "timestamp",
+  deletedAt: timestamp("deleted_at", {
+    withTimezone: true,
+    mode: "date",
   }),
-};
+});
+
+export function commonTable<
+  TTableName extends string,
+  TColumnsMap extends Record<string, PgColumnBuilderBase>,
+  TPrefix extends string,
+>(
+  name: TTableName,
+  columns: TColumnsMap,
+  prefix: TPrefix,
+  extraConfig?: (
+    self: BuildExtraConfigColumns<TTableName, TColumnsMap & ReturnType<typeof defaults>, "pg">,
+  ) => PgTableExtraConfig,
+) {
+  return schema.table<TTableName, TColumnsMap & ReturnType<typeof defaults>>(
+    name,
+    Object.assign(columns, defaults(prefix)),
+    extraConfig,
+  );
+}

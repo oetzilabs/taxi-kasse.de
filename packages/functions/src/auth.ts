@@ -1,87 +1,79 @@
-import { User } from "@taxi-kassede/core/entities/users";
-import { Config } from "sst/node/config";
-import { AuthHandler, GoogleAdapter, createSessionBuilder } from "sst/node/future/auth";
+import { User } from "@taxikassede/core/entities/users";
+import { StatusCodes } from "http-status-codes";
+import { Resource } from "sst";
+import { GoogleAdapter } from "sst/auth/adapter";
+import { auth } from "sst/aws/auth";
+import { sessions } from "./utils";
 
-export const sessions = createSessionBuilder<{
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    image: string;
-    sub: string;
-  };
-}>();
-
-export type UserSession = ReturnType<typeof sessions.use>;
-export type UserSessionAuthenticated = Extract<UserSession, { type: "user" }>;
-
-export const handler = AuthHandler({
+export const handler = auth.authorizer({
+  session: sessions,
+  providers: {
+    google: GoogleAdapter({
+      clientID: Resource.GoogleClientId.value,
+      prompt: "select_account",
+      mode: "oidc",
+    }),
+  },
   callbacks: {
-    error: async (error) => {
-      return { body: JSON.stringify(error), statusCode: 500, headers: {} };
+    error: async (e, req) => {
+      console.log("upps error: ", e);
+      const response = new Response(e.message, {
+        status: StatusCodes.BAD_REQUEST,
+        headers: {
+          Location: process.env.AUTH_FRONTEND_URL + "/auth/error?error=unknown",
+        },
+      });
+      return response;
     },
     auth: {
       async allowClient(clientID, redirect) {
-        if (clientID === "google") return true;
-        return false;
-      },
-      async success(input, response) {
-        const claims = input.tokenset.claims();
-
-        if (!claims.sub) throw new Error("No sub claim in token");
-        if (!claims.name) throw new Error("No name claim in token");
-        if (!claims.email) throw new Error("No email claim in token");
-        if (!claims.picture) throw new Error("No picture claim in token");
-        const userExists = await User.findByEmail(claims.email);
-
-        if (input.provider === "google") {
-          if (!userExists) {
-            let cu = await User.create(
-              {
-                name: claims.name,
-                email: claims.email,
-              },
-              {
-                birthdate: claims.birthdate,
-                image: claims.picture,
-                locale: claims.locale,
-                preferredUsername: claims.preferred_username,
-                phoneNumber: claims.phone_number,
-              }
-            );
-            return response.session({
-              type: "user",
-              properties: {
-                name: claims.name,
-                email: claims.email,
-                sub: claims.sub,
-                image: claims.picture,
-                id: cu.id,
-              },
-            });
-          } else {
-            return response.session({
-              type: "user",
-              properties: {
-                sub: claims.sub,
-                id: userExists.id,
-                name: userExists.name,
-                email: userExists.email,
-                image: claims.picture,
-              },
-            });
-          }
+        console.log(clientID, redirect);
+        const clients = ["google"];
+        if (!clients.includes(clientID)) {
+          return false;
         }
 
-        throw new Error("Unknown provider");
+        return true;
+      },
+      async error(error, request) {
+        console.log("auth-error", error);
+        const response = new Response(error.message, {
+          status: StatusCodes.BAD_REQUEST,
+          headers: {
+            Location: process.env.AUTH_FRONTEND_URL + "/auth/error?error=unknown",
+          },
+        });
+        return response;
+      },
+      async success(response, input) {
+        if (input.provider !== "google") {
+          throw new Error("Unknown provider");
+        }
+        const claims = input.tokenset.claims();
+        const email = claims.email;
+        const name = claims.preferred_username ?? claims.name;
+        if (!email || !name) {
+          console.error("No email or name found in tokenset", input.tokenset);
+          return response.session({
+            type: "public",
+            properties: {},
+          });
+        }
+        let user_ = await User.findByEmail(email);
+        if (!user_) {
+          user_ = await User.create({ email, name });
+        }
+
+        await User.update({ id: user_.id, deletedAt: null });
+
+        return response.session({
+          type: "user",
+          properties: {
+            id: user_.id,
+            email: user_.email,
+          },
+        });
       },
     },
-  },
-  sessions,
-  providers: {
-    google: GoogleAdapter({
-      clientID: Config.GOOGLE_CLIENT_ID,
-      mode: "oidc",
-    }),
   },
 });

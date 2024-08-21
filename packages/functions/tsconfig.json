@@ -1,11 +1,11 @@
 {
-  "extends": "@tsconfig/node18/tsconfig.json",
+  "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
     "module": "esnext",
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "@taxi-kassede/core/*": ["../core/src/*"]
+      "@taxikassede/core/*": ["../core/src/*"]
     }
   }
 }

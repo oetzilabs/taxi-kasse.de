@@ -1,9 +1,13 @@
-import type { Config } from "drizzle-kit";
+import { defineConfig } from "drizzle-kit";
+import { Resource } from "sst";
 
-export default {
+export default defineConfig({
   out: "./src/drizzle/migrations",
   schema: "./src/drizzle/sql/schema.ts",
   verbose: true,
-  driver: "turso",
+  dialect: "postgresql",
   strict: true,
-} satisfies Config;
+  dbCredentials: {
+    url: Resource.DatabaseUrl.value,
+  },
+});

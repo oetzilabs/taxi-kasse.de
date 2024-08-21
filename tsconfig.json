@@ -1,8 +1,7 @@
 {
-  "extends": "@tsconfig/node18/tsconfig.json",
-  "exclude": ["packages"],
+  "extends": ["@tsconfig/node22/tsconfig.json", "./.sst/platform/tsconfig.json"],
+  "exclude": ["packages/"],
   "compilerOptions": {
-    "module": "esnext",
-    "moduleResolution": "node"
+    "skipLibCheck": true
   }
 }

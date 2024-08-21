@@ -1,5 +1,5 @@
 {
-  "name": "taxi-kassede",
+  "name": "taxikassede",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,11 +13,12 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@tsconfig/node18": "^18.2.2",
-    "aws-cdk-lib": "2.110.1",
-    "constructs": "10.3.0",
-    "sst": "2.39.4",
-    "typescript": "^5.2.2"
+    "@ianvs/prettier-plugin-sort-imports": "4.3.1",
+    "prettier-plugin-tailwindcss": "0.6.6",
+    "@tsconfig/node22": "22.0.0",
+    "sst": "3.0.54",
+    "typescript": "5.5.4",
+    "prettier": "3.3.3"
   },
   "workspaces": [
     "packages/*"

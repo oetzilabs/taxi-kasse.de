@@ -1,60 +1,34 @@
-import { SolidStartSite, StackContext, use } from "sst/constructs";
-import { API } from "./Api";
-// import { DatabaseStack } from "./DatabaseStack";
-import { Storage } from "./Storage";
-import { Domain } from "./Domain";
-import { Secrets } from "./Secrets";
-import { Notification } from "./Notification";
-import { WebSocket } from "./WebSocket";
+import { api } from "./Api";
+import { auth } from "./Auth";
+import { cf, domain } from "./Domain";
+import { allSecrets } from "./Secrets";
+// import { bucket } from "./Storage";
+// import { ws } from "./Websocket";
 
-export function SolidStart({ stack, app }: StackContext) {
-  const domain = use(Domain);
-  const { api, auth } = use(API);
-  const secrets = use(Secrets);
-  const bucket = use(Storage);
-  const notifications = use(Notification);
-  const ws = use(WebSocket);
+const main_app_url = $dev ? "http://localhost:3000" : `https://www.${domain}`;
 
-  const CallbackUrlBase = domain.domain.includes("dev") ? "http://localhost:3000" : `https://app.${domain.domain}`;
-
-  const solidStartApp = new SolidStartSite(stack, `${app.name}-app`, {
-    bind: [bucket, api, auth, notifications, secrets.GOOGLE_CLIENT_ID],
-    path: "packages/frontends/app",
-    buildCommand: "pnpm build",
-    environment: {
-      VITE_API_URL: api.url,
-      VITE_AUTH_URL: auth.url,
-      VITE_AUTH_REDIRECT_URL: `${CallbackUrlBase}/api/auth/callback`,
-      VITE_NOTIFICATION_WS_URL: ws.customDomainUrl ?? ws.url,
-    },
-    customDomain: {
-      domainName: "app." + domain.domain,
-      hostedZone: domain.zone.zoneName,
-    },
-  });
-
-  const solidStartMain = new SolidStartSite(stack, `${app.name}-main`, {
-    bind: [bucket, api, auth, notifications, secrets.GOOGLE_CLIENT_ID],
-    path: "packages/frontends/main",
-    buildCommand: "pnpm build",
-    environment: {
-      VITE_APP_URL: (solidStartApp.customDomainUrl ?? solidStartApp.url) || "http://localhost:3000",
-    },
-    customDomain: {
-      domainName: domain.domain,
-      domainAlias: `www.${domain.domain}`,
-      hostedZone: domain.zone.zoneName,
-    },
-  });
-
-  stack.addOutputs({
-    AppSiteUrl: (solidStartApp.customDomainUrl ?? solidStartApp.url) || "http://localhost:3000",
-    MainSiteUrl: (solidStartMain.customDomainUrl ?? solidStartMain.url) || "http://localhost:4000",
-    CallbackUrlBase,
-  });
-
-  return {
-    solidStartApp,
-    solidStartMain,
-  };
-}
+export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
+  link: [
+    // bucket,
+    // ws
+    api,
+    auth,
+    ...allSecrets,
+  ],
+  path: "packages/web",
+  buildCommand: "pnpm build",
+  environment: {
+    VITE_API_URL: api.url,
+    VITE_APP_URL: main_app_url,
+    VITE_AUTH_URL: auth.authenticator.url,
+    // VITE_WS_LINK: ws.url,
+  },
+  domain: {
+    name: `www.${domain}`,
+    dns: cf,
+  },
+  invalidation: {
+    paths: "all",
+    wait: true,
+  },
+});
