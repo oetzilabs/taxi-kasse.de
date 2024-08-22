@@ -14,13 +14,14 @@ export const rides = commonTable(
     org_id: text("org_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
-    amount: decimal("amount", { scale: 2 }).notNull().default("0.00"),
+    income: decimal("income", { scale: 2 }).notNull().default("0.00"),
     distance: decimal("distance", { scale: 3 }).notNull().default("0.000"),
     vehicle_id: text("vehicle_id")
       .notNull()
       .references(() => vehicles.id, { onDelete: "cascade" }),
+    rating: decimal("rating", { scale: 2 }).notNull().default("0.00"),
   },
-  "earn"
+  "ride"
 );
 
 export type RideSelect = typeof rides.$inferSelect;

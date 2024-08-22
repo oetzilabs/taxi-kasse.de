@@ -2,10 +2,8 @@
   "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "baseUrl": ".",
-    "paths": {
-      "@taxikassede/core/*": ["../core/src/*"]
-    }
+    "paths": {}
   }
 }

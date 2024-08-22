@@ -59,7 +59,7 @@ export default function UserMenu(props: { user: UserSession["user"] }) {
         <DropdownMenuSeparator />
         <form action={logout} method="post">
           <DropdownMenuItem
-            class="cursor-pointer text-rose-500 hover:!text-rose-500 hover:!bg-rose-50 w-full"
+            class="text-rose-500 hover:!text-white dark:hover:!bg-rose-600 hover:!bg-rose-500 w-full"
             disabled={isLoggingOut.pending}
             as={"button"}
             closeOnSelect={false}

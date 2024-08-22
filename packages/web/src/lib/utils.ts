@@ -1,15 +1,8 @@
-import type { Activity } from "@taxikassede/core/src/entities/activities";
-import type { ClassValue } from "clsx";
-import clsx from "clsx";
+import clsx, { type ClassValue } from "clsx";
 import { createSignal } from "solid-js";
 import { twMerge } from "tailwind-merge";
 
 export const cn = (...classLists: ClassValue[]) => twMerge(clsx(classLists));
-
-export type ActivityChange = {
-  change: "add" | "remove";
-  activity: Activity;
-};
 
 export const shortUsername = (name: string) => {
   const ns = name.trim().split(" ");
@@ -20,8 +13,6 @@ export const shortUsername = (name: string) => {
 
   return n;
 };
-
-export const [refreshActivities, setFreshActivities] = createSignal<ActivityChange[]>([]);
 
 export const footer_links = {
   "Open Source": [

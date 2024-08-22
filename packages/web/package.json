@@ -9,6 +9,7 @@
   },
   "type": "module",
   "devDependencies": {
+    "@taxikassede/core": "workspace:*",
     "@types/leaflet": "1.9.12",
     "@types/leaflet-routing-machine": "3.2.8",
     "autoprefixer": "10.4.20",

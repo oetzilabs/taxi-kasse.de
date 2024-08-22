@@ -1,4 +1,5 @@
-import { User } from "@taxikassede/core/entities/users";
+import { env } from "node:process";
+import { Users } from "@taxikassede/core/src/entities/users";
 import { StatusCodes } from "http-status-codes";
 import { Resource } from "sst";
 import { GoogleAdapter } from "sst/auth/adapter";
@@ -10,7 +11,6 @@ export const handler = auth.authorizer({
   providers: {
     google: GoogleAdapter({
       clientID: Resource.GoogleClientId.value,
-      prompt: "select_account",
       mode: "oidc",
     }),
   },
@@ -20,7 +20,7 @@ export const handler = auth.authorizer({
       const response = new Response(e.message, {
         status: StatusCodes.BAD_REQUEST,
         headers: {
-          Location: process.env.AUTH_FRONTEND_URL + "/auth/error?error=unknown",
+          Location: env.AUTH_FRONTEND_URL + "/auth/error?error=unknown",
         },
       });
       return response;
@@ -40,7 +40,7 @@ export const handler = auth.authorizer({
         const response = new Response(error.message, {
           status: StatusCodes.BAD_REQUEST,
           headers: {
-            Location: process.env.AUTH_FRONTEND_URL + "/auth/error?error=unknown",
+            Location: env.AUTH_FRONTEND_URL + "/auth/error?error=unknown",
           },
         });
         return response;
@@ -59,12 +59,12 @@ export const handler = auth.authorizer({
             properties: {},
           });
         }
-        let user_ = await User.findByEmail(email);
-        if (!user_) {
-          user_ = await User.create({ email, name });
-        }
 
-        await User.update({ id: user_.id, deletedAt: null });
+        let user_ = await Users.findByEmail(email);
+
+        if (!user_) {
+          user_ = (await Users.create({ email, name })!) as NonNullable<Awaited<ReturnType<typeof Users.create>>>;
+        }
 
         return response.session({
           type: "user",

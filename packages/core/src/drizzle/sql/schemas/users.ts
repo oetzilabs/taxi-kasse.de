@@ -18,7 +18,7 @@ export const users = commonTable(
     }),
     role: user_role("role").default("member").notNull(),
   },
-  "user"
+  "user",
 );
 
 export const sessions = schema.table("session", {
@@ -59,11 +59,12 @@ export const UserUpdateSchema = createInsertSchema(users)
   .omit({ createdAt: true, updatedAt: true })
   .extend({ id: Validator.prefixed_cuid2 });
 
-export const sessionRelation = relations(sessions, ({ one }) => ({
+export const sessionRelation = relations(sessions, ({ one, many }) => ({
   user: one(users, {
     fields: [sessions.userId],
     references: [users.id],
   }),
+  employee: many(user_organizations),
 }));
 
 export type SessionSelect = typeof sessions.$inferSelect;

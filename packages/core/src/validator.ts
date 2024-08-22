@@ -1,4 +1,4 @@
-import { cuid2, pipe, safeParse, string, transform, ValiError } from "valibot";
+import { cuid2, email, pipe, safeParse, string, transform, ValiError } from "valibot";
 import { z } from "zod";
 
 export module Validator {
@@ -12,6 +12,7 @@ export module Validator {
   });
 
   export const Cuid2 = pipe(string(), cuid2());
+  export const EmailSchema = pipe(string(), email());
 
   export const Cuid2Schema = pipe(
     string(),
@@ -38,6 +39,6 @@ export module Validator {
       } else {
         throw parsed.issues;
       }
-    })
+    }),
   );
 }

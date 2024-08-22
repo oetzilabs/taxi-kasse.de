@@ -1,7 +1,6 @@
-import { Lucia, TimeSpan } from "lucia";
-
 import { luciaAdapter } from "@taxikassede/core/src/drizzle/sql";
 import type { SessionSelect, UserSelect } from "@taxikassede/core/src/drizzle/sql/schema";
+import { Lucia, TimeSpan } from "lucia";
 
 export const lucia = new Lucia(luciaAdapter, {
   sessionExpiresIn: new TimeSpan(2, "w"),
@@ -20,7 +19,6 @@ export const lucia = new Lucia(luciaAdapter, {
   getSessionAttributes(databaseSessionAttributes) {
     return {
       access_token: databaseSessionAttributes.access_token,
-      workspace_id: databaseSessionAttributes.workspace_id,
       organization_id: databaseSessionAttributes.organization_id,
       createdAt: databaseSessionAttributes.createdAt,
     };

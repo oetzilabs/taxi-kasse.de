@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { text } from "drizzle-orm/pg-core";
 import { commonTable } from "./entity";
+import { user_organizations } from "./user_organizations";
 import { users } from "./users";
 
 export const organizations = commonTable(
@@ -14,7 +15,7 @@ export const organizations = commonTable(
     phoneNumber: text("phone_number"),
     email: text("email").notNull(),
   },
-  "org"
+  "org",
 );
 
 export type OrganizationSelect = typeof organizations.$inferSelect;
@@ -25,5 +26,5 @@ export const organization_relation = relations(organizations, ({ one, many }) =>
     fields: [organizations.ownerId],
     references: [users.id],
   }),
-  employees: many(users),
+  employees: many(user_organizations),
 }));

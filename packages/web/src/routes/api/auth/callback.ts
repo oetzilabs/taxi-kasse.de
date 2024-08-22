@@ -33,18 +33,15 @@ export async function GET(e: APIEvent) {
     },
   }).then((r) => r.json());
 
-  const { id, workspace_id } = sessionResponse;
+  const { id, organization_id } = sessionResponse;
 
   if (!id) {
     return sendRedirect(event, "/auth/error?error=missing_user", 303);
   }
-  if (!workspace_id) {
-    return sendRedirect(event, "/auth/error?error=missing_workspace", 303);
-  }
 
   const session = await lucia.createSession(id, {
     access_token: response.access_token,
-    workspace_id,
+    organization_id: organization_id ?? null,
     createdAt: new Date(),
   });
 
