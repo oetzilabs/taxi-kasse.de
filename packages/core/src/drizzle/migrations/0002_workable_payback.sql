@@ -1,0 +1,1 @@
+ALTER TABLE "taxikassede"."users" ADD COLUMN "image" text;

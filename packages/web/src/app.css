@@ -72,13 +72,15 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: "IBM Plex Sans", sans-serif;
   }
 }
 
-
 .slide-fade-enter-active,
 .slide-fade-exit-active {
-  transition: opacity 0.3s, transform 0.3s;
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
 }
 .slide-fade-enter,
 .slide-fade-exit-to {
@@ -103,7 +105,9 @@
 
 .slide-fade-horizontal-enter-active,
 .slide-fade-horizontal-exit-active {
-  transition: opacity 0.3s, transform 0.3s;
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
 }
 .slide-fade-horizontal-enter,
 .slide-fade-horizontal-exit-to {
@@ -116,14 +120,14 @@
 
 /* scrollbars */
 ::-webkit-scrollbar {
-  @apply rounded-full w-1.5 h-1.5 overflow-clip
+  @apply h-1.5 w-1.5 overflow-clip rounded-full;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-transparent overflow-clip rounded-full;
+  @apply overflow-clip rounded-full bg-transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply dark:bg-neutral-700 bg-neutral-300 overflow-clip rounded-full;
+  @apply overflow-clip rounded-full bg-neutral-300 dark:bg-neutral-700;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply dark:bg-neutral-600 bg-neutral-400 overflow-clip rounded-full;
+  @apply overflow-clip rounded-full bg-neutral-400 dark:bg-neutral-600;
 }

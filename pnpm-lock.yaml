@@ -154,6 +154,9 @@ importers:
       '@corvu/resizable':
         specifier: 0.2.3
         version: 0.2.3(solid-js@1.8.21)
+      '@fontsource/ibm-plex-sans':
+        specifier: ^5.0.21
+        version: 5.0.21
       '@kobalte/core':
         specifier: 0.13.4
         version: 0.13.4(solid-js@1.8.21)
@@ -1386,6 +1389,9 @@ packages:
 
   '@floating-ui/utils@0.2.7':
     resolution: {integrity: sha512-X8R8Oj771YRl/w+c1HqAC1szL8zWQRwFvgDwT129k9ACdBoud/+/rX9V0qiMl6LWUdP9voC2nDVZYPMQQsb6eA==}
+
+  '@fontsource/ibm-plex-sans@5.0.21':
+    resolution: {integrity: sha512-YmQJgR5rbynZPrbnfU2UojSduA8K5FV0jEq8CzTB6AU0C65ZZYrD1BX96rz/IBQx+uDeDfi4w9vP5Zb+TB5Uqw==}
 
   '@httptoolkit/websocket-stream@6.0.1':
     resolution: {integrity: sha512-A0NOZI+Glp3Xgcz6Na7i7o09+/+xm2m0UCU8gdtM2nIv6/cjLmhMZMqehSpTlgbx9omtLmV8LVqOskPEyWnmZQ==}
@@ -7476,6 +7482,8 @@ snapshots:
       '@floating-ui/utils': 0.2.7
 
   '@floating-ui/utils@0.2.7': {}
+
+  '@fontsource/ibm-plex-sans@5.0.21': {}
 
   '@httptoolkit/websocket-stream@6.0.1':
     dependencies:

@@ -12,13 +12,14 @@ export const users = commonTable(
   {
     name: text("name").notNull(),
     email: text("email").notNull(),
+    image: text("image"),
     verifiedAt: timestamp("verified_at", {
       withTimezone: true,
       mode: "date",
     }),
     role: user_role("role").default("member").notNull(),
   },
-  "user",
+  "user"
 );
 
 export const sessions = schema.table("session", {

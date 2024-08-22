@@ -52,6 +52,7 @@ export const handler = auth.authorizer({
         const claims = input.tokenset.claims();
         const email = claims.email;
         const name = claims.preferred_username ?? claims.name;
+        const image = claims.picture ?? "/assets/images/avatar.png";
         if (!email || !name) {
           console.error("No email or name found in tokenset", input.tokenset);
           return response.session({
@@ -63,14 +64,14 @@ export const handler = auth.authorizer({
         let user_ = await Users.findByEmail(email);
 
         if (!user_) {
-          user_ = await Users.create({ email, name })!;
+          user_ = await Users.create({ email, name, image })!;
         }
 
         return response.session({
           type: "user",
           properties: {
-            id: user_.id,
-            email: user_.email,
+            id: user_!.id,
+            email: user_!.email,
           },
         });
       },

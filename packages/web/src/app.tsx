@@ -12,9 +12,10 @@ import { isServer } from "solid-js/web";
 import { Toaster } from "solid-sonner";
 import { logout } from "./utils/api/actions";
 import "./app.css";
-import { createReconnectingWS, ReconnectingWebSocket } from "@solid-primitives/websocket";
-
-const [websocket, setWebsocket] = createSignal<ReconnectingWebSocket | null>(null);
+import '@fontsource/ibm-plex-sans/400.css';
+import '@fontsource/ibm-plex-sans/500.css';
+import '@fontsource/ibm-plex-sans/600.css';
+import '@fontsource/ibm-plex-sans/700.css';
 
 export default function App() {
   const authLink = import.meta.env.VITE_AUTH_URL;

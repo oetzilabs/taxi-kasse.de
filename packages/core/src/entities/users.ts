@@ -11,7 +11,7 @@ export module Users {
     createInsertSchema(users, {
       id: Validator.Cuid2Schema,
     }),
-    ["createdAt", "updatedAt"],
+    ["createdAt", "updatedAt"]
   );
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.users.findFirst>[0]>["with"];
@@ -35,8 +35,8 @@ export module Users {
       throw isValid.issues;
     }
     const [created] = await tsx.insert(users).values(isValid.output).returning();
-    const user = await Users.findById(created.id);
-    return user!;
+    const user = await Users.findById(created.id)!;
+    return user;
   };
 
   export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
