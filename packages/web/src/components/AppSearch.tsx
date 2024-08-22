@@ -27,7 +27,7 @@ type List = {
 
 export const AppSearch = () => {
   const location = useLocation();
-  const paths = ["/", "/auth/login"];
+  const paths = ["/", "/auth/login", "/auth/verify-email"];
   const available = () => paths.includes(location.pathname);
   const [openSearch, setOpenSearch] = createSignal(false);
   const session = createAsync(() => getAuthenticatedSession());
@@ -109,7 +109,7 @@ export const AppSearch = () => {
     <div class="flex flex-row items-center">
       <Show when={!available()}>
         <div
-          class="flex flex-row items-center justify-between rounded-lg border-transparent border md:border-neutral-200 dark:md:border-neutral-800 px-2.5 pr-1 h-8 gap-2 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-900 text-muted-foreground bg-background w-max"
+          class="flex flex-row items-center justify-between rounded-lg border-transparent border md:border-neutral-200 dark:md:border-neutral-800 px-3 pr-2 h-10 gap-2 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-900 text-muted-foreground bg-background w-max"
           onClick={() => setOpenSearch(true)}
         >
           <div class="flex flex-row items-center gap-2">

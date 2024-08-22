@@ -27,9 +27,9 @@ export default function VerifyEmailPage() {
   });
 
   return (
-    <div class="h-[calc(100vh-65px)] flex flex-col items-center justify-center p-10">
-      <div class="w-full h-full flex flex-col items-center justify-center gap-8">
-        <div class="w-full flex flex-col items-center justify-center h-max gap-4">
+    <div class="h-[calc(100vh-65px)] flex flex-col pt-20">
+      <div class="w-full grow flex flex-col items-center justify-start gap-8">
+        <div class="w-full flex flex-col items-center h-max gap-4">
           <Show
             when={verified() && verified()}
             fallback={<span class="text-center text-sm">Please verify your email address</span>}
