@@ -1,5 +1,6 @@
 import { lucia } from "@/lib/auth";
 import type { APIEvent } from "@solidjs/start/server";
+import { Users } from "@taxikassede/core/src/entities/users";
 import { appendHeader, sendRedirect } from "vinxi/http";
 
 export async function GET(e: APIEvent) {
@@ -48,7 +49,9 @@ export async function GET(e: APIEvent) {
   appendHeader(event, "Set-Cookie", lucia.createSessionCookie(session.id).serialize());
 
   event.context.session = session;
-  event.context.user = null;
 
-  return sendRedirect(event, "/", 303);
+  const user = await Users.findById(id);
+
+  if (user && user.verifiedAt) return sendRedirect(event, "/", 303);
+  return sendRedirect(event, "/auth/verify-email", 303);
 }

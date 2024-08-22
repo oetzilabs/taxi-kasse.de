@@ -1,7 +1,7 @@
 import { footer_links } from "@/lib/utils";
 import { A } from "@solidjs/router";
 import { For } from "solid-js";
-import { Logo } from "./ui/custom/logo";
+import { Logo } from "./Logo";
 
 export function Footer() {
   return (
@@ -11,7 +11,7 @@ export function Footer() {
           <div class="w-max">
             <A href="/" class="flex flex-row gap-4 items-center justify-center">
               <Logo />
-              <span class="font-semibold leading-none text-lg -mt-1 sr-only md:not-sr-only">plaaaner.com</span>
+              <span class="font-semibold leading-none text-lg -mt-1 sr-only md:not-sr-only">Taxi-Kasse.de</span>
             </A>
           </div>
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-20 w-full md:w-max">

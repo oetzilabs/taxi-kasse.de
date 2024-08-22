@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { decimal, text, timestamp } from "drizzle-orm/pg-core";
-import { earnings } from "./earnings";
 import { commonTable } from "./entity";
+import { rides } from "./rides";
 import { users } from "./users";
 
 export const vehicles = commonTable(
@@ -19,14 +19,14 @@ export const vehicles = commonTable(
     }),
     mileage: decimal("mileage", { scale: 3 }).notNull().default("0.000"),
   },
-  "vehicle"
+  "vehicle",
 );
 
 export type VehicleSelect = typeof vehicles.$inferSelect;
 export type VehicleInsert = typeof vehicles.$inferInsert;
 
 export const vehicle_relation = relations(vehicles, ({ one, many }) => ({
-  earnings: many(earnings),
+  rides: many(rides),
   owner_id: one(users, {
     fields: [vehicles.owner_id],
     references: [users.id],

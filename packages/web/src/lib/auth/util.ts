@@ -1,4 +1,5 @@
-import { cache, redirect } from "@solidjs/router";
+import { setTimeout } from "node:timers/promises";
+import { action, cache, redirect } from "@solidjs/router";
 import { Organizations } from "@taxikassede/core/src/entities/organizations";
 import { Users } from "@taxikassede/core/src/entities/users";
 import { getCookie, getEvent } from "vinxi/http";
@@ -119,3 +120,50 @@ export const getCurrentOrganization = cache(async () => {
 
   return org;
 }, "current-organization");
+
+export const sendVerificationEmail = action(async () => {
+  "use server";
+  const [ctx, event] = await getContext();
+  if (!ctx) {
+    throw redirect("/auth/login");
+  }
+
+  if (!ctx.session) {
+    console.error("Unauthorized");
+    throw redirect("/auth/login");
+  }
+
+  if (!ctx.user) {
+    console.error("Unauthorized");
+    throw redirect("/auth/login");
+  }
+
+  // SES send email to user with verification code
+  await setTimeout(2000);
+
+  return true;
+});
+
+export const checkVerification = cache(async () => {
+  "use server";
+  const [ctx, event] = await getContext();
+  if (!ctx) {
+    throw redirect("/auth/login");
+  }
+
+  if (!ctx.session) {
+    console.error("Unauthorized");
+    throw redirect("/auth/login");
+  }
+
+  if (!ctx.user) {
+    console.error("Unauthorized");
+    throw redirect("/auth/login");
+  }
+  const user = await Users.findById(ctx.user.id);
+  if (!user) {
+    throw redirect("/auth/login");
+  }
+
+  return user.verifiedAt !== null;
+}, "check-verification");

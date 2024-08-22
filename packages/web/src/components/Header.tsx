@@ -15,7 +15,7 @@ export function Header() {
   const { toggleColorMode, colorMode } = useColorMode();
 
   return (
-    <header class="bg-teal-500 dark:bg-teal-600 flex flex-row border-b border-teal-600 dark:border-teal-700 w-full py-2 items-center justify-between">
+    <header class="bg-background flex flex-row border-b border-neutral-100 dark:border-neutral-900 w-full py-4 items-center justify-between">
       <div class="flex flex-row w-full items-center justify-between px-4 container">
         <div class="flex flex-row items-center justify-start w-max gap-2">
           <A href="/" class="flex flex-row gap-4 items-center justify-center">
