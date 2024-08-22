@@ -27,13 +27,15 @@ export module Users {
     sessions: true,
   };
 
+  export type Info = NonNullable<Awaited<ReturnType<typeof Users.findById>>>;
+
   export const create = async (data: InferInput<typeof Users.CreateSchema>, tsx = db) => {
     const isValid = safeParse(Users.CreateSchema, data);
     if (!isValid.success) {
       throw isValid.issues;
     }
     const [created] = await tsx.insert(users).values(isValid.output).returning();
-    const user = Users.findById(created.id);
+    const user = await Users.findById(created.id);
     return user!;
   };
 
@@ -68,7 +70,7 @@ export module Users {
   };
 
   export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
-    const isValid = safeParse(pipe(string(), Validator.Cuid2Schema), id);
+    const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
     }

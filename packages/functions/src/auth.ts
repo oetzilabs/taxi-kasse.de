@@ -63,7 +63,7 @@ export const handler = auth.authorizer({
         let user_ = await Users.findByEmail(email);
 
         if (!user_) {
-          user_ = (await Users.create({ email, name })!) as NonNullable<Awaited<ReturnType<typeof Users.create>>>;
+          user_ = await Users.create({ email, name })!;
         }
 
         return response.session({

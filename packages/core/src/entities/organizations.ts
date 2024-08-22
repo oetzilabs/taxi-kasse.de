@@ -21,8 +21,17 @@ export module Organizations {
     },
     user: true,
   };
+  export type Info = NonNullable<Awaited<ReturnType<typeof Organizations.findById>>>;
 
-  export const create = async () => {};
+  export const create = async (data: InferInput<typeof Organizations.CreateSchema>, tsx = db) => {
+    const isValid = safeParse(Organizations.CreateSchema, data);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+    const [created] = await tsx.insert(organizations).values(isValid.output).returning();
+    const org = await Organizations.findById(created.id);
+    return org!;
+  };
 
   export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
     const isValid = safeParse(pipe(string(), Validator.Cuid2Schema), id);
@@ -59,7 +68,7 @@ export module Organizations {
   };
 
   export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
-    const isValid = safeParse(pipe(string(), Validator.Cuid2Schema), id);
+    const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;
     return db.delete(organizations).where(eq(organizations.id, isValid.output)).returning();
   };
