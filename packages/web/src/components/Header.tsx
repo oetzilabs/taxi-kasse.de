@@ -16,13 +16,13 @@ export function Header() {
 
   return (
     <header class="bg-background flex flex-row border-b border-neutral-200 dark:border-neutral-900 w-full py-4 items-center justify-between">
-      <div class="flex flex-row w-full items-center justify-between px-4">
+      <div class="flex flex-row w-full items-center justify-between px-8">
         <div class="flex flex-row items-center justify-start w-max gap-2">
           <A href="/" class="flex flex-row gap-4 items-center justify-center">
             <Logo small />
           </A>
         </div>
-        <div class="w-full flex flex-col items-center justify-center">
+        <div class="w-full flex flex-col items-center justify-center container px-0">
           <AppSearch />
         </div>
         <div class="w-max items-center justify-end flex flex-row gap-2">

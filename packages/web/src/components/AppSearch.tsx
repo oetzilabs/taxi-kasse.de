@@ -105,15 +105,15 @@ export const AppSearch = () => {
   });
 
   return (
-    <div class="flex flex-row items-center">
+    <div class="flex flex-row items-center w-full">
       <Show when={!available()}>
         <div
-          class="flex flex-row items-center justify-between rounded-lg border-transparent border md:border-neutral-200 dark:md:border-neutral-800 px-3 pr-2 h-10 gap-2 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-900 text-muted-foreground bg-background w-max"
+          class="flex flex-row items-center justify-between rounded-lg border-transparent border md:border-neutral-200 dark:md:border-neutral-800 px-3 pr-2 h-10 gap-2 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-900 text-muted-foreground bg-background w-full"
           onClick={() => setOpenSearch(true)}
         >
-          <div class="flex flex-row items-center gap-2">
+          <div class="flex flex-row items-center gap-2 w-full">
             <Search class="size-4" />
-            <div class="min-w-[200px] w-full max-w-max text-sm">Commands</div>
+            <div class="w-full text-sm">Commands</div>
           </div>
           <div class="flex flex-row items-center gap-2">
             <kbd class="text-[10px] text-muted-foreground font-semibold leading-[0.5rem] bg-neutral-100 dark:bg-neutral-900 rounded-sm p-2">

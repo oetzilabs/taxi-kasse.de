@@ -55,7 +55,7 @@ export default function LoginPage() {
   let formRef: HTMLFormElement;
 
   return (
-    <div class="md:container h-[calc(100vh-49px)] flex flex-col items-center justify-center md:px-10">
+    <div class="md:container h-[calc(100vh-73px)] flex flex-col items-center justify-center md:px-10">
       <div class="w-full h-[650px] md:border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-clip">
         <div class="w-full relative flex h-full flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
           <div class="relative hidden h-full flex-col bg-muted p-10 dark:border-r lg:flex">

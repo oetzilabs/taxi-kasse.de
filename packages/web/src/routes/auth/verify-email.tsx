@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { checkVerification, getAuthenticatedSession, sendVerificationEmail } from "@/lib/auth/util";
-import { createAsync, redirect, revalidate, useAction, useSubmission } from "@solidjs/router";
+import { createAsync, redirect, revalidate, useAction, useNavigate, useSubmission } from "@solidjs/router";
 import { Loader2, Send } from "lucide-solid";
 import { onCleanup, onMount, Show } from "solid-js";
 
@@ -16,10 +16,15 @@ export default function VerifyEmailPage() {
   const sendingVerification = useSubmission(sendVerificationEmail);
 
   const verified = createAsync(() => checkVerification());
+  const navigate = useNavigate();
 
   onMount(() => {
     const interval = setInterval(async () => {
       await revalidate([checkVerification.key]);
+      const isVerified = verified();
+      if (isVerified) {
+        navigate("/dashboard");
+      }
     }, 5000);
     onCleanup(() => {
       clearInterval(interval);
@@ -27,7 +32,7 @@ export default function VerifyEmailPage() {
   });
 
   return (
-    <div class="h-[calc(100vh-65px)] flex flex-col pt-20">
+    <div class="h-[calc(100vh-73px)] flex flex-col pt-20">
       <div class="w-full grow flex flex-col items-center justify-start gap-8">
         <div class="w-full flex flex-col items-center h-max gap-4">
           <Show

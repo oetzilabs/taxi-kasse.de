@@ -10,7 +10,7 @@ export const route = {
 
 export default function NotFound() {
   return (
-    <main class="py-10 container mx-auto flex flex-col items-center justify-center h-[calc(100dvh-49px)]">
+    <main class="py-10 container mx-auto flex flex-col items-center justify-center h-[calc(100dvh-73px)]">
       <div class="flex flex-col gap-4 -mt-[200px]">
         <div class="flex flex-col items-start space-y-3 sm:flex-row sm:space-y-0 sm:items-center sm:space-x-3">
           <p class="font-semibold text-red-500/50 text-9xl">404</p>

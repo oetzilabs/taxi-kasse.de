@@ -81,7 +81,7 @@ export default function Component() {
   };
 
   return (
-    <div class="container mx-auto px-4 py-8">
+    <div class="py-20 px-4">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold">Rides</h1>
         <ToggleGroup value={view()} onChange={(value) => setView(value)}>
