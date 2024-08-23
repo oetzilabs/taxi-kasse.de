@@ -12,7 +12,6 @@ import { useColorMode } from "@kobalte/core";
 import { createAsync, useLocation, useNavigate } from "@solidjs/router";
 import { Search } from "lucide-solid";
 import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
-import { toast } from "solid-sonner";
 
 type Option = {
   label: string;

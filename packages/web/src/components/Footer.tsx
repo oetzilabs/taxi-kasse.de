@@ -5,8 +5,8 @@ import { Logo } from "./Logo";
 
 export function Footer() {
   return (
-    <footer class="bg-neutral-50 dark:bg-black flex flex-col border-t border-neutral-200 dark:border-neutral-800 w-full px-4 py-10 items-center">
-      <div class="container flex flex-row w-full items-center justify-between px-4 ">
+    <footer class="bg-neutral-50 dark:bg-black flex flex-col border-t border-neutral-200 dark:border-neutral-800 w-full py-20 items-center">
+      <div class="container flex flex-row w-full items-center justify-between">
         <div class="flex flex-row justify-between w-full gap-10">
           <div class="w-max">
             <A href="/" class="flex flex-row gap-4 items-center justify-center">
@@ -18,7 +18,7 @@ export function Footer() {
             <For each={Object.entries(footer_links)}>
               {([title, links]) => (
                 <div class="flex flex-col gap-4">
-                  <h4 class="text-base font-semibold text-[#4F46E4]">{title}</h4>
+                  <h4 class="font-bold">{title}</h4>
                   <div class="flex flex-col gap-3">
                     <For each={links}>
                       {(link) => (
