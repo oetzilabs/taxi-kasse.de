@@ -10,9 +10,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { UserSession } from "@/lib/auth/util";
 import { A, useAction, useSubmission } from "@solidjs/router";
-import { Cloud, Keyboard, LifeBuoy, Loader2, LogOut, Settings, User } from "lucide-solid";
-import { Match, Switch } from "solid-js";
+import { Cloud, Eye, EyeOff, Keyboard, LifeBuoy, Loader2, LogOut, Settings, User } from "lucide-solid";
+import { Match, Show, Switch } from "solid-js";
 import { logout } from "../utils/api/actions";
+import { headerMenu, setHeaderMenu } from "./stores/headermenu";
 
 export default function UserMenu(props: { user: UserSession["user"] }) {
   const logoutAction = useAction(logout);
@@ -45,6 +46,22 @@ export default function UserMenu(props: { user: UserSession["user"] }) {
           <DropdownMenuItem>
             <Keyboard class="size-4" />
             <span>Keyboard shortcuts</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            class="cursor-pointer"
+            onClick={() => setHeaderMenu((s) => ({ ...s, enabled: !s.enabled }))}
+          >
+            <Switch>
+              <Match when={headerMenu.enabled}>
+                <Eye class="size-4" />
+                <span>Hide Menu</span>
+              </Match>
+              <Match when={!headerMenu.enabled}>
+                <EyeOff class="size-4" />
+                <span>Show Menu</span>
+              </Match>
+            </Switch>
+            <span></span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
