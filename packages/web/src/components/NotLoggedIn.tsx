@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router";
-import { Fingerprint } from "lucide-solid";
+import Fingerprint from "lucide-solid/icons/fingerprint";
 
 export const NotLoggedIn = () => {
   return (

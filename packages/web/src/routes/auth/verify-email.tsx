@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { checkVerification, getAuthenticatedSession, sendVerificationEmail } from "@/lib/auth/util";
 import { createAsync, redirect, revalidate, useAction, useNavigate, useSubmission } from "@solidjs/router";
-import { Loader2, Send } from "lucide-solid";
+import Loader2 from "lucide-solid/icons/loader-2";
+import Send from "lucide-solid/icons/send";
 import { onCleanup, onMount, Show } from "solid-js";
 
 export const route = {

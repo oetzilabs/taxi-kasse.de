@@ -6,16 +6,19 @@ import { MetaProvider, Title } from "@solidjs/meta";
 import { Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
 import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
-import { AlertCircleIcon, CheckCheck, Info, Loader2 } from "lucide-solid";
+import AlertCircle from "lucide-solid/icons/alert-circle";
+import CheckCheck from "lucide-solid/icons/check-check";
+import Info from "lucide-solid/icons/info";
+import Loader2 from "lucide-solid/icons/loader-2";
 import { createSignal, ErrorBoundary, onCleanup, onMount, Show, Suspense } from "solid-js";
 import { isServer } from "solid-js/web";
 import { Toaster } from "solid-sonner";
 import { logout } from "./utils/api/actions";
 import "./app.css";
-import '@fontsource/ibm-plex-sans/400.css';
-import '@fontsource/ibm-plex-sans/500.css';
-import '@fontsource/ibm-plex-sans/600.css';
-import '@fontsource/ibm-plex-sans/700.css';
+import "@fontsource/ibm-plex-sans/400.css";
+import "@fontsource/ibm-plex-sans/500.css";
+import "@fontsource/ibm-plex-sans/600.css";
+import "@fontsource/ibm-plex-sans/700.css";
 
 export default function App() {
   const authLink = import.meta.env.VITE_AUTH_URL;
@@ -75,9 +78,9 @@ export default function App() {
                       icons={{
                         info: <Info class="size-4" />,
                         success: <CheckCheck class="size-4" />,
-                        error: <AlertCircleIcon class="size-4" />,
+                        error: <AlertCircle class="size-4" />,
                         loading: <Loader2 class="size-4 animate-spin" />,
-                        warning: <AlertCircleIcon class="size-4" />,
+                        warning: <AlertCircle class="size-4" />,
                       }}
                       gap={4}
                     />

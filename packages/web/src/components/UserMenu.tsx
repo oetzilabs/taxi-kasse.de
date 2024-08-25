@@ -10,7 +10,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { UserSession } from "@/lib/auth/util";
 import { A, useAction, useSubmission } from "@solidjs/router";
-import { Cloud, Eye, EyeOff, Keyboard, LifeBuoy, Loader2, LogOut, Settings, User } from "lucide-solid";
+import Cloud from "lucide-solid/icons/cloud";
+import Eye from "lucide-solid/icons/eye";
+import EyeOff from "lucide-solid/icons/eye-off";
+import Keyboard from "lucide-solid/icons/keyboard";
+import LifeBuoy from "lucide-solid/icons/life-buoy";
+import Loader2 from "lucide-solid/icons/loader-2";
+import LogOut from "lucide-solid/icons/log-out";
+import Settings from "lucide-solid/icons/settings";
+import User from "lucide-solid/icons/user";
 import { Match, Show, Switch } from "solid-js";
 import { logout } from "../utils/api/actions";
 import { headerMenu, setHeaderMenu } from "./stores/headermenu";

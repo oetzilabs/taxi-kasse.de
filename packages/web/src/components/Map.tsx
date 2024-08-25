@@ -5,7 +5,7 @@ import L, { LatLngTuple } from "leaflet";
 // import "leaflet-routing-machine";
 import "leaflet/dist/leaflet.css";
 import { cookieStorage, makePersisted } from "@solid-primitives/storage";
-import { Loader2 } from "lucide-solid";
+import Loader2 from "lucide-solid/icons/loader-2";
 import { createEffect, createSignal, Match, onCleanup, onMount, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
 import { toast } from "solid-sonner";
@@ -78,12 +78,11 @@ export default function Map() {
     setMapStore({ type: "loading" });
     navigator.geolocation.watchPosition(
       (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
         setMapStore({
           type: "success",
-          coordinates: [latitude, longitude],
-          zoom: 16,
-          accuracy: accuracy ?? 25,
+          coordinates: [position.coords.latitude, position.coords.longitude],
+          zoom: 20,
+          accuracy: position.coords.accuracy ?? 25,
         });
       },
       (error) => {

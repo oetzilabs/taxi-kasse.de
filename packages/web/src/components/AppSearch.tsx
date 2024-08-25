@@ -10,7 +10,7 @@ import {
 import { getAuthenticatedSession, type UserSession } from "@/lib/auth/util";
 import { useColorMode } from "@kobalte/core";
 import { createAsync, useLocation, useNavigate } from "@solidjs/router";
-import { Search } from "lucide-solid";
+import Search from "lucide-solid/icons/search";
 import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
 
 type Option = {

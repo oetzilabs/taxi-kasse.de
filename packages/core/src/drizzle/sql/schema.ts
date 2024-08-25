@@ -7,3 +7,6 @@ export * from "./schemas/verifications";
 export * from "./schemas/organizations";
 export * from "./schemas/roles";
 export * from "./schemas/user_organizations";
+
+export * from "./schemas/destinations";
+export * from "./schemas/orders";

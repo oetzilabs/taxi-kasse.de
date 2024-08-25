@@ -1,4 +1,6 @@
-import { BookText, ChartSpline, Workflow } from "lucide-solid";
+import BookText from "lucide-solid/icons/book-text";
+import ChartSpline from "lucide-solid/icons/chart-spline";
+import Workflow from "lucide-solid/icons/workflow";
 import { createSignal, For, onCleanup, Show } from "solid-js";
 import { cn } from "../lib/utils";
 import { Badge } from "./ui/badge";

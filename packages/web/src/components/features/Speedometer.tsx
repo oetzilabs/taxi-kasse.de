@@ -1,19 +1,23 @@
-import { createSignal, onCleanup } from "solid-js";
+import { Accessor, createSignal, onCleanup } from "solid-js";
+import { useControls } from "../providers/controls";
+import { Skeleton } from "../ui/skeleton";
 
-export const Speedometer = () => {
-  const [currentSpeed, setCurrentSpeed] = createSignal(0);
+type SpeedometerProps = {};
+
+export default function Speedometer(props: SpeedometerProps) {
+  const controls = useControls();
+
+  const currentSpeed = () =>
+    controls?.controls.currentRide?.status === "active" ? controls?.controls.currentRide?.speed : 0;
   const maxSpeed = 200;
 
-  const speedSteps = {
-    // green
-    0: "#333333",
-    25: "#33bb88",
-    50: "#33bb88",
-    75: "#ffbe0b",
-    80: "#ffbe0b",
-    100: "#ffbe0b",
-    120: "#e63946",
-  };
+  const speedSteps: Array<[[number, number], string]> = [
+    // percentage-range, color
+    [[0, 25], "#333333"],
+    [[25, 75], "#33bb88"],
+    [[75, 100], "#ffbe0b"],
+    [[100, Infinity], "#e63946"],
+  ];
 
   // // Simulate speed changes
   // const interval = setInterval(() => {
@@ -24,15 +28,8 @@ export const Speedometer = () => {
 
   const speedPercent = () => (currentSpeed() / maxSpeed) * 100;
 
-  const color = () => {
-    if (currentSpeed() <= 25) return speedSteps[0];
-    if (currentSpeed() <= 50) return speedSteps[25];
-    if (currentSpeed() <= 75) return speedSteps[50];
-    if (currentSpeed() <= 80) return speedSteps[75];
-    if (currentSpeed() <= 100) return speedSteps[80];
-    if (currentSpeed() <= 120) return speedSteps[100];
-    if (currentSpeed() > 120) return speedSteps[120];
-  };
+  const color = () =>
+    speedSteps.find(([range]) => speedPercent() >= range[0] && speedPercent() <= range[1])?.[1] ?? "#333333";
 
   const polarToCartesian = (centerX: number, centerY: number, radius: number, angleInDegrees: number) => {
     const angleInRadians = ((angleInDegrees - 180) * Math.PI) / 180.0;
@@ -50,9 +47,9 @@ export const Speedometer = () => {
   };
 
   return (
-    <div class="p-4 grid gap-4">
-      <div class="relative">
-        <svg class="w-full" viewBox="0 0 200 100">
+    <div class="px-4 py-16 grid gap-4 w-full">
+      <div class="relative w-full flex flex-row items-center justify-center">
+        <svg class="w-2/3" viewBox="0 0 200 100">
           <path
             d={describeArc(100, 100, 80, 0, 180)}
             fill="none"
@@ -87,4 +84,4 @@ export const Speedometer = () => {
       </div>
     </div>
   );
-};
+}

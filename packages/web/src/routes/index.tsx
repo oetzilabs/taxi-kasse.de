@@ -6,7 +6,7 @@ import { getAuthenticatedSession } from "~/lib/auth/util";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { ArrowRight } from "lucide-solid";
+import ArrowRight from "lucide-solid/icons/arrow-right";
 import { createEffect, createSignal, onCleanup, Show } from "solid-js";
 import { Footer } from "../components/Footer";
 import UsedByComopaniesSection from "../components/UsedByCompanies";

@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { getAuthenticatedSession } from "@/lib/auth/util";
 import { A } from "@solidjs/router";
-import type { SVGAttributes } from "lucide-solid";
 import { createSignal, For, JSX } from "solid-js";
+
+type SVGAttributes = Partial<JSX.SvgSVGAttributes<SVGSVGElement>>;
 
 export const route = {
   preload: async () => {

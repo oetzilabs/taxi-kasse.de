@@ -1,16 +1,30 @@
 import { useColorMode } from "@kobalte/core";
-import { A, createAsync } from "@solidjs/router";
-import { LogIn, Moon, Sun } from "lucide-solid";
-import { Match, Show, Switch } from "solid-js";
+import { A, createAsync, useLocation, useResolvedPath } from "@solidjs/router";
+import Car from "lucide-solid/icons/car";
+import Home from "lucide-solid/icons/home";
+import LogIn from "lucide-solid/icons/log-in";
+import MessageSquare from "lucide-solid/icons/message-square";
+import Moon from "lucide-solid/icons/moon";
+import Sun from "lucide-solid/icons/sun";
+import { For, JSX, Match, Show, Switch } from "solid-js";
 import { getAuthenticatedSession } from "../lib/auth/util";
 import { cn } from "../lib/utils";
 import { AppSearch } from "./AppSearch";
 import { Logo } from "./Logo";
+import { headerMenu } from "./stores/headermenu";
 import { Button, buttonVariants } from "./ui/button";
 import UserMenu from "./UserMenu";
 
+const menu: Record<string, JSX.Element> = {
+  dashboard: <Home class="size-4" />,
+  rides: <Car class="size-4" />,
+  messages: <MessageSquare class="size-4" />,
+};
+
 export function Header() {
   const session = createAsync(() => getAuthenticatedSession());
+  const location = useLocation();
+  const path = useResolvedPath(() => location.pathname);
 
   const { toggleColorMode, colorMode } = useColorMode();
 
@@ -21,6 +35,22 @@ export function Header() {
           <A href="/" class="flex flex-row gap-4 items-center justify-center">
             <Logo small />
           </A>
+          <div class="flex flex-row gap-0 w-max">
+            <div class="flex flex-row items-start gap-4 w-max px-4">
+              <For each={headerMenu.list}>
+                {(linkItem) => (
+                  <A
+                    href={linkItem.href}
+                    data-active={path() === linkItem.href}
+                    class="flex flex-row items-center justify-start gap-2.5 border-b-2 border-transparent data-[active=true]:font-bold p-0 w-full"
+                  >
+                    {menu[linkItem.value]}
+                    <span class="text-sm ">{linkItem.label}</span>
+                  </A>
+                )}
+              </For>
+            </div>
+          </div>
         </div>
         <div class="w-full flex flex-col items-center justify-center container px-0">
           <AppSearch />
