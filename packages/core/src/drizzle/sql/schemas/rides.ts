@@ -3,7 +3,17 @@ import { decimal, text } from "drizzle-orm/pg-core";
 import { commonTable } from "./entity";
 import { organizations } from "./organizations";
 import { users } from "./users";
+import { schema } from "./utils";
 import { vehicles } from "./vehicles";
+
+export const rideStatus = schema.enum("ride_status", [
+  "pending",
+  "accepted",
+  "rejected",
+  "completed",
+  "cancelled",
+  "archived",
+]);
 
 export const rides = commonTable(
   "rides",
@@ -20,8 +30,9 @@ export const rides = commonTable(
       .notNull()
       .references(() => vehicles.id, { onDelete: "cascade" }),
     rating: decimal("rating", { scale: 2 }).notNull().default("0.00"),
+    status: rideStatus("status").notNull().default("pending"),
   },
-  "ride"
+  "ride",
 );
 
 export type RideSelect = typeof rides.$inferSelect;

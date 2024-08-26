@@ -10,3 +10,5 @@ export * from "./schemas/user_organizations";
 
 export * from "./schemas/destinations";
 export * from "./schemas/orders";
+
+export * from "./schemas/system-notifications";

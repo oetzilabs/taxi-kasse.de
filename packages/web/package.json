@@ -42,6 +42,7 @@
     "@solidjs/router": "0.14.3",
     "@solidjs/start": "1.0.6",
     "@tanstack/solid-query": "5.52.0",
+    "@tanstack/solid-table": "^8.20.5",
     "chart.js": "4.4.4",
     "class-variance-authority": "0.7.0",
     "clsx": "2.1.1",

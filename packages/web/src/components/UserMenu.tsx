@@ -21,7 +21,6 @@ import Settings from "lucide-solid/icons/settings";
 import User from "lucide-solid/icons/user";
 import { Match, Show, Switch } from "solid-js";
 import { logout } from "../utils/api/actions";
-import { headerMenu, setHeaderMenu } from "./stores/headermenu";
 
 export default function UserMenu(props: { user: UserSession["user"] }) {
   const logoutAction = useAction(logout);
@@ -54,22 +53,6 @@ export default function UserMenu(props: { user: UserSession["user"] }) {
           <DropdownMenuItem>
             <Keyboard class="size-4" />
             <span>Keyboard shortcuts</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            class="cursor-pointer"
-            onClick={() => setHeaderMenu((s) => ({ ...s, enabled: !s.enabled }))}
-          >
-            <Switch>
-              <Match when={headerMenu.enabled}>
-                <Eye class="size-4" />
-                <span>Hide Menu</span>
-              </Match>
-              <Match when={!headerMenu.enabled}>
-                <EyeOff class="size-4" />
-                <span>Show Menu</span>
-              </Match>
-            </Switch>
-            <span></span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

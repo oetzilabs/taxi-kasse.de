@@ -1,9 +1,9 @@
+import { eq } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-valibot";
 import { InferInput, omit, safeParse } from "valibot";
 import { db } from "../drizzle/sql";
 import { rides } from "../drizzle/sql/schemas/rides";
 import { Validator } from "../validator";
-import { eq } from "drizzle-orm";
 
 export module Rides {
   export const CreateSchema = createInsertSchema(rides);
@@ -11,7 +11,7 @@ export module Rides {
     createInsertSchema(rides, {
       id: Validator.Cuid2Schema,
     }),
-    ["createdAt", "updatedAt"]
+    ["createdAt", "updatedAt"],
   );
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.rides.findFirst>[0]>["with"];
@@ -36,6 +36,17 @@ export module Rides {
     }
     return db.query.rides.findFirst({
       where: (fields, ops) => ops.eq(fields.id, isValid.output),
+      with: _with,
+    });
+  };
+
+  export const findByUserId = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+    const isValid = safeParse(Validator.Cuid2Schema, id);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+    return db.query.rides.findMany({
+      where: (fields, ops) => ops.eq(fields.user_id, isValid.output),
       with: _with,
     });
   };

@@ -22,6 +22,20 @@
       "when": 1724332678273,
       "tag": "0002_workable_payback",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1724662067852,
+      "tag": "0003_typical_black_knight",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1724663704737,
+      "tag": "0004_spotty_zaran",
+      "breakpoints": true
     }
   ]
 }
