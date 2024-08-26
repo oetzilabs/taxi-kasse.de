@@ -20,9 +20,9 @@ export default function Sidebar() {
         <Show when={session() && session()!.user !== null}>
           {(s) => (
             <div class="flex flex-col gap-0 w-max h-full">
-              <aside class="w-64 h-screen p-4">
-                <nav>
-                  <ul class="flex flex-col gap-2">
+              <aside class="flex flex-col w-64 p-4 grow">
+                <nav class="flex flex-col grow">
+                  <ul class="flex flex-col gap-2 h-full">
                     <li>
                       <NavLink
                         href="/dashboard"
@@ -63,6 +63,7 @@ export default function Sidebar() {
                         Vehicles
                       </NavLink>
                     </li>
+                    <div class="grow" />
                     <Separator />
                     <li>
                       <NavLink

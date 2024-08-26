@@ -132,9 +132,26 @@ export const EARNINGS_COLUMNS: ColumnDef<Rides.Info>[] = [
         <span class="capitalize">{props.row.original.rating}</span>
       </div>
     ),
-    filterFn: (row, id, value) => {
-      return Array.isArray(value) && value.includes(row.getValue(id));
-    },
+  },
+  {
+    accessorKey: "distance",
+    header: (props) => <TableColumnHeader column={props.column} title="Distance" />,
+    cell: (props) => (
+      <div class="flex w-[100px] items-center">
+        <span class="capitalize">{props.row.original.distance}</span>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "vehicle_id",
+    header: (props) => <TableColumnHeader column={props.column} title="Vehicle" />,
+    cell: (props) => (
+      <div class="flex w-[100px] items-center">
+        <span class="capitalize">
+          {props.row.original.vehicle.name} ({props.row.original.vehicle.model})
+        </span>
+      </div>
+    ),
   },
   {
     id: "actions",

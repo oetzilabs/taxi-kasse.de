@@ -2,7 +2,7 @@ import { A } from "@solidjs/router";
 import { For } from "solid-js";
 import { Button } from "./ui/button";
 
-function UsedByComopaniesSection() {
+function UsedByCompaniesSection() {
   const companies = [
     {
       name: "Taxi-Kasse.de",
@@ -39,9 +39,9 @@ function UsedByComopaniesSection() {
         <For each={companies}>
           {(c) => (
             <div class="w-full h-16 flex flex-col items-center justify-center">
-              <img
-                src={c.image}
-                alt={c.name}
+              <div
+                // src={c.image}
+                // alt={c.name}
                 class="w-full h-full max-w-80 xl:max-w-full bg-neutral-100 dark:bg-neutral-900 rounded-lg outline-none"
                 title={c.name}
               />
@@ -59,4 +59,4 @@ function UsedByComopaniesSection() {
   );
 }
 
-export default UsedByComopaniesSection;
+export default UsedByCompaniesSection;

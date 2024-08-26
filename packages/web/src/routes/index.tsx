@@ -7,9 +7,11 @@ import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import relativeTime from "dayjs/plugin/relativeTime";
 import ArrowRight from "lucide-solid/icons/arrow-right";
+import Sparkles from "lucide-solid/icons/sparkles";
 import { createEffect, createSignal, onCleanup, Show } from "solid-js";
 import { Footer } from "../components/Footer";
-import UsedByComopaniesSection from "../components/UsedByCompanies";
+import { Badge } from "../components/ui/badge";
+import UsedByCompaniesSection from "../components/UsedByCompanies";
 
 dayjs.extend(relativeTime);
 dayjs.extend(advancedFormat);
@@ -56,8 +58,14 @@ export default function Dashboard() {
         <div class="flex flex-col gap-6">
           <h2 class="text-8xl font-bold text-gray-800 dark:text-white">
             Cab Driving{" "}
-            <span class="text-gradient-primary-to-secondary-from-bottom bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-300">
+            <span class="text-gradient-primary-to-secondary-from-bottom bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-300 relative">
               Magic
+              <div class="absolute top-0 right-0 flex flex-row gap-2 items-center transform translate-x-full translate-y-5">
+                <div class="flex flex-row gap-2 items-center px-2 py-1 text-white dark:text-black rounded-lg text-xs bg-gradient-to-r from-blue-400 to-teal-300 font-medium">
+                  <Sparkles class="size-3" />
+                  Beta
+                </div>
+              </div>
             </span>
           </h2>
           <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl">
@@ -67,7 +75,7 @@ export default function Dashboard() {
         </div>
         <div class="flex flex-row gap-3 w-full relative">
           <Show
-            when={session() && !session()!.user !== null}
+            when={session() && session()!.user !== null}
             fallback={
               <Button as={A} href="/auth/login">
                 Register Now!
@@ -93,7 +101,7 @@ export default function Dashboard() {
         </div>
         <div class="flex flex-col gap-0 w-full border-t border-neutral-200 dark:border-neutral-800 z-0 bg-background h-max">
           <FeatureSection />
-          <UsedByComopaniesSection />
+          <UsedByCompaniesSection />
           <TestimonialSection />
         </div>
       </section>
