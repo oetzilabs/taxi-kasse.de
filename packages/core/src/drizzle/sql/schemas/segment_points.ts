@@ -55,7 +55,7 @@ export const segment_points = commonTable(
     longitude: decimal("longitude", { scale: 6 }).notNull(),
     direction: integer("direction").notNull(), // degrees clockwise from north
     elevation: decimal("elevation", { scale: 2 }), // Optional: Elevation at the point
-    point_type: segment_point_type("point_type").default("unknown"),
+    point_type: segment_point_type("point_type").notNull().default("unknown"),
     previous_segment_point_id: text("previous_segment_point_id").references((): AnyPgColumn => segment_points.id),
   },
   "segment_point",
