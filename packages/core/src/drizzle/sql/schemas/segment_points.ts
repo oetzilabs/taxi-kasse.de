@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { decimal, integer, text } from "drizzle-orm/pg-core";
+import { AnyPgColumn, decimal, integer, text } from "drizzle-orm/pg-core";
 import { commonTable } from "./entity";
 import { route_segments } from "./route_segments";
 import { routes } from "./routes";
@@ -53,8 +53,10 @@ export const segment_points = commonTable(
       .references(() => route_segments.id, { onDelete: "cascade" }),
     latitude: decimal("latitude", { scale: 6 }).notNull(),
     longitude: decimal("longitude", { scale: 6 }).notNull(),
+    direction: integer("direction").notNull(), // degrees clockwise from north
     elevation: decimal("elevation", { scale: 2 }), // Optional: Elevation at the point
     point_type: segment_point_type("point_type").default("unknown"),
+    previous_segment_point_id: text("previous_segment_point_id").references((): AnyPgColumn => segment_points.id),
   },
   "segment_point",
 );
