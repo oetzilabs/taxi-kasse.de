@@ -6,6 +6,7 @@ export * from "./schemas/vehicles";
 export * from "./schemas/rides";
 export * from "./schemas/routes";
 export * from "./schemas/route_segments";
+export * from "./schemas/route_waypoints";
 export * from "./schemas/segment_points";
 
 export * from "./schemas/verifications";

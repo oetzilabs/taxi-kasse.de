@@ -1,12 +1,12 @@
 import { relations } from "drizzle-orm";
-import { text } from "drizzle-orm/pg-core";
+import { text, decimal } from "drizzle-orm/pg-core";
 import { commonTable } from "./entity";
 
 export const destinations = commonTable(
   "destinations",
   {
-    lat: text("lat").notNull(),
-    lng: text("lng").notNull(),
+    latitude: decimal("latitude", { scale: 6 }).notNull(),
+    longitude: decimal("longitude", { scale: 6 }).notNull(),
     streetname: text("streetname").notNull(),
     zipcode: text("zipcode").notNull(),
     country: text("country").notNull(),

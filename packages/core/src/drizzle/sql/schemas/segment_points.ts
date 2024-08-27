@@ -48,7 +48,7 @@ export const segment_point_type = schema.enum("segment_point_type", [
 export const segment_points = commonTable(
   "segment_points",
   {
-    segment_id: text("segment_id")
+    route_segment_id: text("route_segment_id")
       .notNull()
       .references(() => route_segments.id, { onDelete: "cascade" }),
     latitude: decimal("latitude", { scale: 6 }).notNull(),
@@ -58,15 +58,15 @@ export const segment_points = commonTable(
     point_type: segment_point_type("point_type").notNull().default("unknown"),
     previous_segment_point_id: text("previous_segment_point_id").references((): AnyPgColumn => segment_points.id),
   },
-  "segment_point",
+  "segment_point"
 );
 
 export type SegmentPointSelect = typeof segment_points.$inferSelect;
 export type SegmentPointInsert = typeof segment_points.$inferInsert;
 
 export const point_relations = relations(segment_points, ({ one }) => ({
-  segment: one(route_segments, {
-    fields: [segment_points.segment_id],
+  route_segment: one(route_segments, {
+    fields: [segment_points.route_segment_id],
     references: [route_segments.id],
   }),
 }));

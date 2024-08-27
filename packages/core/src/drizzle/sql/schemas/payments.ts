@@ -9,8 +9,10 @@ type ExcludedIntervalPlural = ExcludedInterval | `${ExcludedInterval}s`;
 type IntervalSingular = Exclude<UnitTypeLong, ExcludedInterval>;
 type IntervalPlural = Exclude<UnitTypeLongPlural, ExcludedIntervalPlural>;
 type NotOne<T> = T extends 1 ? never : T;
-type Intervals = `1 ${IntervalSingular}` | `${NotOne<number>} ${IntervalPlural}`;
+export type Intervals = `1 ${IntervalSingular}` | `${NotOne<number>} ${IntervalPlural}`;
 
+// This is for the drivers to use.
+// They might add payments they have to make to external services, so they can keep track of them
 export const payments = commonTable(
   "payments",
   {
