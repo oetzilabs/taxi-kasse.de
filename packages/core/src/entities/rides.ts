@@ -15,7 +15,32 @@ export module Rides {
   );
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.rides.findFirst>[0]>["with"];
-  export const _with: WithOptions = {};
+  export const _with: WithOptions = {
+    user: {
+      with: {
+        orgs: {
+          with: {
+            organization: true,
+          },
+        },
+      },
+    },
+    org: {
+      with: {
+        user: true,
+        employees: {
+          with: {
+            user: true,
+          },
+        },
+      },
+    },
+    vehicle: {
+      with: {
+        owner: true,
+      },
+    },
+  };
 
   export type Info = NonNullable<Awaited<ReturnType<typeof Rides.findById>>>;
 
@@ -29,23 +54,23 @@ export module Rides {
     return ride!;
   };
 
-  export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+  export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return db.query.rides.findFirst({
+    return tsx.query.rides.findFirst({
       where: (fields, ops) => ops.eq(fields.id, isValid.output),
       with: _with,
     });
   };
 
-  export const findByUserId = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+  export const findByUserId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return db.query.rides.findMany({
+    return tsx.query.rides.findMany({
       where: (fields, ops) => ops.eq(fields.user_id, isValid.output),
       with: _with,
     });
@@ -59,11 +84,11 @@ export module Rides {
     return tsx.update(rides).set(isValid.output).where(eq(rides.id, isValid.output.id)).returning();
   };
 
-  export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+  export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return db.delete(rides).where(eq(rides.id, isValid.output)).returning();
+    return tsx.delete(rides).where(eq(rides.id, isValid.output)).returning();
   };
 }

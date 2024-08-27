@@ -11,7 +11,7 @@ export module Users {
     createInsertSchema(users, {
       id: Validator.Cuid2Schema,
     }),
-    ["createdAt", "updatedAt"]
+    ["createdAt", "updatedAt"],
   );
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.users.findFirst>[0]>["with"];
@@ -39,12 +39,12 @@ export module Users {
     return user;
   };
 
-  export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+  export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return db.query.users.findFirst({
+    return tsx.query.users.findFirst({
       where: (fields, ops) => ops.eq(fields.id, isValid.output),
       with: _with,
     });
@@ -69,11 +69,11 @@ export module Users {
     return tsx.update(users).set(isValid.output).where(eq(users.id, isValid.output.id)).returning();
   };
 
-  export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+  export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return db.delete(users).where(eq(users.id, isValid.output)).returning();
+    return tsx.delete(users).where(eq(users.id, isValid.output)).returning();
   };
 }

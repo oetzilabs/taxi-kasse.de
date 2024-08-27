@@ -32,23 +32,23 @@ export module Orders {
     return ride!;
   };
 
-  export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+  export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return db.query.orders.findFirst({
+    return tsx.query.orders.findFirst({
       where: (fields, ops) => ops.eq(fields.id, isValid.output),
       with: _with,
     });
   };
 
-  export const findAllByOrganizationId = async (destinationId: InferInput<typeof Validator.Cuid2Schema>) => {
+  export const findAllByOrganizationId = async (destinationId: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, destinationId);
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return db.query.orders.findMany({
+    return tsx.query.orders.findMany({
       where: (fields, ops) => ops.eq(fields.organization_id, isValid.output),
       with: _with,
     });
@@ -62,11 +62,11 @@ export module Orders {
     return tsx.update(orders).set(isValid.output).where(eq(orders.id, isValid.output.id)).returning();
   };
 
-  export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+  export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return db.delete(orders).where(eq(orders.id, isValid.output)).returning();
+    return tsx.delete(orders).where(eq(orders.id, isValid.output)).returning();
   };
 }

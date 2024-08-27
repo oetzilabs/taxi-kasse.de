@@ -27,7 +27,7 @@ export type VehicleInsert = typeof vehicles.$inferInsert;
 
 export const vehicle_relation = relations(vehicles, ({ one, many }) => ({
   rides: many(rides),
-  owner_id: one(users, {
+  owner: one(users, {
     fields: [vehicles.owner_id],
     references: [users.id],
   }),

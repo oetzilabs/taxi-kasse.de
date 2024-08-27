@@ -29,12 +29,12 @@ export module SystemNotifications {
     return ride!;
   };
 
-  export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+  export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return db.query.system_notifications.findFirst({
+    return tsx.query.system_notifications.findFirst({
       where: (fields, ops) => ops.eq(fields.id, isValid.output),
       with: _with,
     });
@@ -52,11 +52,11 @@ export module SystemNotifications {
       .returning();
   };
 
-  export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+  export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return db.delete(system_notifications).where(eq(system_notifications.id, isValid.output)).returning();
+    return tsx.delete(system_notifications).where(eq(system_notifications.id, isValid.output)).returning();
   };
 }
