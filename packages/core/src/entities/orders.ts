@@ -28,8 +28,8 @@ export module Orders {
       throw isValid.issues;
     }
     const [created] = await tsx.insert(orders).values(isValid.output).returning();
-    const ride = await Orders.findById(created.id);
-    return ride!;
+    const order = await Orders.findById(created.id);
+    return order!;
   };
 
   export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
