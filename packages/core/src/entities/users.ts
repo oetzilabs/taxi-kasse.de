@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-valibot";
 import { email, InferInput, omit, pipe, safeParse, string } from "valibot";
 import { db } from "../drizzle/sql";
-import { users } from "../drizzle/sql/schemas/users";
+import { currency_code, users } from "../drizzle/sql/schemas/users";
 import { Validator } from "../validator";
 
 export module Users {
@@ -75,5 +75,35 @@ export module Users {
       throw isValid.issues;
     }
     return tsx.delete(users).where(eq(users.id, isValid.output)).returning();
+  };
+
+  export const getPreferredCurrencyByUserId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+    const isValid = safeParse(Validator.Cuid2Schema, id);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+
+    const convert_currency_to_symbol: Record<
+      (typeof currency_code.enumValues)[number],
+      {
+        prefix: string;
+        sufix: string;
+      }
+    > = {
+      USD: { prefix: "$", sufix: "USD" },
+      EUR: { prefix: "", sufix: "€" },
+      GBP: { prefix: "", sufix: "£" },
+      CHF: { prefix: "", sufix: "CHF" },
+      JPY: { prefix: "¥", sufix: "JPY" },
+      AUD: { prefix: "$", sufix: "AUD" },
+      CAD: { prefix: "$", sufix: "CAD" },
+      NZD: { prefix: "$", sufix: "NZD" },
+    };
+
+    const result = await tsx.select({ currency: users.currency_code }).from(users).where(eq(users.id, isValid.output));
+
+    if (result.length === 0) return convert_currency_to_symbol.USD;
+
+    return convert_currency_to_symbol[result[0].currency];
   };
 }

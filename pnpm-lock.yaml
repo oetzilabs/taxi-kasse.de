@@ -154,6 +154,9 @@ importers:
       '@corvu/resizable':
         specifier: 0.2.3
         version: 0.2.3(solid-js@1.8.21)
+      '@fontsource-variable/plus-jakarta-sans':
+        specifier: ^5.0.22
+        version: 5.0.22
       '@fontsource/ibm-plex-sans':
         specifier: ^5.0.21
         version: 5.0.21
@@ -1441,6 +1444,9 @@ packages:
 
   '@floating-ui/utils@0.2.7':
     resolution: {integrity: sha512-X8R8Oj771YRl/w+c1HqAC1szL8zWQRwFvgDwT129k9ACdBoud/+/rX9V0qiMl6LWUdP9voC2nDVZYPMQQsb6eA==}
+
+  '@fontsource-variable/plus-jakarta-sans@5.0.22':
+    resolution: {integrity: sha512-YDV+FVn+icpvB004N3R973K/0W75FRPaEmeOoZ5nBuPAN8hizhUfTHpWpEv9FUr3C8FkPFwzrVl3gvdkzDdBxw==}
 
   '@fontsource/ibm-plex-sans@5.0.21':
     resolution: {integrity: sha512-YmQJgR5rbynZPrbnfU2UojSduA8K5FV0jEq8CzTB6AU0C65ZZYrD1BX96rz/IBQx+uDeDfi4w9vP5Zb+TB5Uqw==}
@@ -7839,6 +7845,8 @@ snapshots:
       '@floating-ui/utils': 0.2.7
 
   '@floating-ui/utils@0.2.7': {}
+
+  '@fontsource-variable/plus-jakarta-sans@5.0.22': {}
 
   '@fontsource/ibm-plex-sans@5.0.21': {}
 

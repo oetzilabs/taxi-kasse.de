@@ -1,15 +1,26 @@
 import { relations } from "drizzle-orm";
-import { text } from "drizzle-orm/pg-core";
+import { json, text } from "drizzle-orm/pg-core";
 import { commonTable } from "./entity";
+
+export type SystemNotificationAction =
+  | {
+      type: "hide";
+      label: string;
+    }
+  | {
+      type: "open:link";
+      label: string;
+      href: string;
+    };
 
 export const system_notifications = commonTable(
   "system_notifications",
   {
-    message: text("message").notNull(),
-    bg_color: text("bg_color").notNull().default("#000000"),
-    text_color: text("text_color").notNull().default("#FFFFFF"),
+    title: text("title").notNull(),
+    message: text("message"),
+    action: json("action").$type<SystemNotificationAction>().default({ type: "hide", label: "Close" }),
   },
-  "sys_notif",
+  "system_notification",
 );
 
 export type SystemNotificationSelect = typeof system_notifications.$inferSelect;

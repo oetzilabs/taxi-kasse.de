@@ -6,7 +6,7 @@ import { users } from "./users";
 import { schema } from "./utils";
 import { vehicles } from "./vehicles";
 
-export const rideStatus = schema.enum("ride_status", [
+export const ride_status = schema.enum("ride_status", [
   "pending",
   "accepted",
   "rejected",
@@ -14,6 +14,8 @@ export const rideStatus = schema.enum("ride_status", [
   "cancelled",
   "archived",
 ]);
+
+export const ride_added_by = schema.enum("ride_added", ["user:manual", "system:auto", "admin:manual"]);
 
 export const rides = commonTable(
   "rides",
@@ -30,7 +32,8 @@ export const rides = commonTable(
       .notNull()
       .references(() => vehicles.id, { onDelete: "cascade" }),
     rating: decimal("rating", { scale: 2 }).notNull().default("0.00"),
-    status: rideStatus("status").notNull().default("pending"),
+    status: ride_status("status").notNull().default("pending"),
+    added_by: ride_added_by("added_by").notNull().default("system:auto"),
   },
   "ride",
 );

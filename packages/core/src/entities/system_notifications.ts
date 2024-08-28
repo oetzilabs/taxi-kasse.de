@@ -2,7 +2,8 @@ import { eq } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-valibot";
 import { InferInput, omit, safeParse } from "valibot";
 import { db } from "../drizzle/sql";
-import { system_notifications } from "../drizzle/sql/schemas/system-notifications";
+import { user_hidden_system_notifications } from "../drizzle/sql/schema";
+import { system_notifications } from "../drizzle/sql/schemas/system_notifications";
 import { Validator } from "../validator";
 
 export module SystemNotifications {
@@ -40,6 +41,12 @@ export module SystemNotifications {
     });
   };
 
+  export const all = async (tsx = db) => {
+    return tsx.query.system_notifications.findMany({
+      with: _with,
+    });
+  };
+
   export const update = async (data: InferInput<typeof SystemNotifications.UpdateSchema>, tsx = db) => {
     const isValid = safeParse(SystemNotifications.UpdateSchema, data.id);
     if (!isValid.success) {
@@ -58,5 +65,32 @@ export module SystemNotifications {
       throw isValid.issues;
     }
     return tsx.delete(system_notifications).where(eq(system_notifications.id, isValid.output)).returning();
+  };
+
+  export const userHidesById = async (
+    system_notification_id: InferInput<typeof Validator.Cuid2Schema>,
+    user_id: InferInput<typeof Validator.Cuid2Schema>,
+    tsx = db,
+  ) => {
+    const isValid = safeParse(Validator.Cuid2Schema, system_notification_id);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+    const isValid2 = safeParse(Validator.Cuid2Schema, user_id);
+    if (!isValid2.success) {
+      throw isValid2.issues;
+    }
+
+    // add to user_hidden_system_notifications
+
+    const [added] = await tsx
+      .insert(user_hidden_system_notifications)
+      .values({
+        user_id: isValid2.output,
+        system_notification_id: isValid.output,
+      })
+      .returning();
+
+    return added;
   };
 }

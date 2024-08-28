@@ -2,6 +2,7 @@ export * from "./schemas/utils";
 
 export * from "./schemas/users";
 export * from "./schemas/vehicles";
+export * from "./schemas/vehicle_models";
 
 export * from "./schemas/rides";
 export * from "./schemas/routes";
@@ -17,4 +18,5 @@ export * from "./schemas/user_organizations";
 export * from "./schemas/destinations";
 export * from "./schemas/orders";
 
-export * from "./schemas/system-notifications";
+export * from "./schemas/system_notifications";
+export * from "./schemas/user_hidden_system_notifications";

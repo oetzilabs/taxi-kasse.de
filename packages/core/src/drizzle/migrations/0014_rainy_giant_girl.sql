@@ -1,0 +1,2 @@
+ALTER TABLE "taxikassede"."user_hidden_system_notifications" ALTER COLUMN "user_id" SET NOT NULL;--> statement-breakpoint
+ALTER TABLE "taxikassede"."user_hidden_system_notifications" ALTER COLUMN "system_notification_id" SET NOT NULL;

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sum } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-valibot";
 import { InferInput, omit, safeParse } from "valibot";
 import { db } from "../drizzle/sql";
@@ -68,5 +68,22 @@ export module Orders {
       throw isValid.issues;
     }
     return tsx.delete(orders).where(eq(orders.id, isValid.output)).returning();
+  };
+
+  export const sumByUserId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+    const isValid = safeParse(Validator.Cuid2Schema, id);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+    const result = await tsx
+      .select({ sum: sum(orders.estimated_cost) })
+      .from(orders)
+      .where(eq(orders.driver_id, isValid.output));
+
+    const _sum = result[0].sum;
+    if (_sum === null) return 0;
+    const __sum = Number(_sum);
+    if (Number.isNaN(__sum)) return 0;
+    return __sum;
   };
 }

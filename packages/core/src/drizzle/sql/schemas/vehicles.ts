@@ -3,6 +3,7 @@ import { decimal, text, timestamp } from "drizzle-orm/pg-core";
 import { commonTable } from "./entity";
 import { rides } from "./rides";
 import { users } from "./users";
+import { vehicle_models } from "./vehicle_models";
 
 export const vehicles = commonTable(
   "vehicles",
@@ -12,7 +13,7 @@ export const vehicles = commonTable(
       .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     license_plate: text("license_plate").notNull(),
-    model: text("model").notNull(),
+    model: text("model").references(() => vehicle_models.id, { onDelete: "set null" }),
     inspection_date: timestamp("inspection_date", {
       withTimezone: true,
       mode: "date",
@@ -30,5 +31,9 @@ export const vehicle_relation = relations(vehicles, ({ one, many }) => ({
   owner: one(users, {
     fields: [vehicles.owner_id],
     references: [users.id],
+  }),
+  model: one(vehicle_models, {
+    fields: [vehicles.model],
+    references: [vehicle_models.id],
   }),
 }));

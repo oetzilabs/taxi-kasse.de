@@ -15,18 +15,18 @@ export default function Sidebar() {
   const session = createAsync(() => getAuthenticatedSession());
 
   return (
-    <div class="flex flex-col w-max grow bg-background border-r border-neutral-200 dark:border-neutral-800">
+    <div class="flex flex-col w-max grow">
       <div class="flex flex-col gap-0 w-max h-full">
         <Show when={session() && session()!.user !== null}>
           {(s) => (
             <div class="flex flex-col gap-0 w-max h-full">
-              <aside class="flex flex-col w-64 p-4 grow">
+              <aside class="flex flex-col min-w-48 p-4 pl-0 grow">
                 <nav class="flex flex-col grow">
                   <ul class="flex flex-col gap-2 h-full">
                     <li>
                       <NavLink
                         href="/dashboard"
-                        class="flex items-center gap-4 py-2 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900"
+                        class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
                         activeClass="bg-neutral-200 dark:bg-neutral-700"
                       >
                         <Home class="size-4" />
@@ -36,7 +36,7 @@ export default function Sidebar() {
                     <li>
                       <NavLink
                         href="/rides"
-                        class="flex items-center gap-4 py-2 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900"
+                        class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
                         activeClass="bg-neutral-200 dark:bg-neutral-700"
                       >
                         <Car class="size-4" />
@@ -46,7 +46,7 @@ export default function Sidebar() {
                     <li>
                       <NavLink
                         href="/messages"
-                        class="flex items-center gap-4 py-2 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900"
+                        class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
                         activeClass="bg-neutral-200 dark:bg-neutral-700"
                       >
                         <MessageSquare class="size-4" />
@@ -56,19 +56,17 @@ export default function Sidebar() {
                     <li>
                       <NavLink
                         href="/vehicles"
-                        class="flex items-center gap-4 py-2 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900"
+                        class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
                         activeClass="bg-neutral-200 dark:bg-neutral-700"
                       >
                         <Truck class="size-4" />
                         Vehicles
                       </NavLink>
                     </li>
-                    <div class="grow" />
-                    <Separator />
                     <li>
                       <NavLink
                         href="/settings"
-                        class="flex items-center gap-4 py-2 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900"
+                        class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
                         activeClass="bg-neutral-200 dark:bg-neutral-700"
                       >
                         <Settings class="size-4" />

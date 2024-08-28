@@ -7,6 +7,8 @@ import { user_role } from "./roles";
 import { user_organizations } from "./user_organizations";
 import { schema } from "./utils";
 
+export const currency_code = schema.enum("currency_code", ["USD", "EUR", "GBP", "CHF", "JPY", "AUD", "CAD", "NZD"]);
+
 export const users = commonTable(
   "users",
   {
@@ -18,8 +20,9 @@ export const users = commonTable(
       mode: "date",
     }),
     role: user_role("role").default("member").notNull(),
+    currency_code: currency_code("currency_code").notNull().default("USD"),
   },
-  "user"
+  "user",
 );
 
 export const sessions = schema.table("session", {
