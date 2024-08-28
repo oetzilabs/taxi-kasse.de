@@ -5,6 +5,7 @@ import { db } from "../drizzle/sql";
 import { AddressSelect } from "../drizzle/sql/schema";
 import { orders } from "../drizzle/sql/schemas/orders";
 import { Validator } from "../validator";
+import { Helper } from "../helper-functions"
 
 export module Orders {
   export const CreateSchema = createInsertSchema(orders);
@@ -12,7 +13,7 @@ export module Orders {
     createInsertSchema(orders, {
       id: Validator.Cuid2Schema,
     }),
-    ["createdAt", "updatedAt"],
+    ["createdAt", "updatedAt"]
   );
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.orders.findFirst>[0]>["with"];
@@ -106,22 +107,37 @@ export module Orders {
     if (!isValid.success) {
       throw isValid.issues;
     }
-    const orders_by_region: Record<string, Orders.Info[]> = {};
-    const _orders = (await Promise.all(region_ids.map((id) => findByRegionId(id)))).flat();
+    const orders_by_region: Map<string, Orders.Info[]> = new Map();
+    const _orders = (await Promise.all(region_ids.map((id) => findByRegionId(id, tsx)))).flat();
     for (const order of _orders) {
       if (!order) continue;
       if (!order.region_id) continue;
-      if (!orders_by_region[order.region_id]) orders_by_region[order.region_id] = [];
-      orders_by_region[order.region_id].push(order);
+      if (!orders_by_region.has(order.region_id)) orders_by_region.set(order.region_id, []);
+      const orders_by_region_id = orders_by_region.get(order.region_id)!;
+      orders_by_region_id.push(order);
+      orders_by_region.set(order.region_id, orders_by_region_id);
     }
 
-    const region_with_the_most_orders = Object.keys(orders_by_region).reduce((a, b) => {
-      return orders_by_region[a].length > orders_by_region[b].length ? a : b;
-    }, region_ids[0]);
+    if (orders_by_region.size === 0) return [];
 
-    const _orders2 = orders_by_region[region_with_the_most_orders];
+    let region_with_the_most_orders: string | undefined = undefined;
+    // rework that using a standart for loop:
+    for (const [region_id, _orders] of orders_by_region) {
+      if (!region_with_the_most_orders) {
+        region_with_the_most_orders = region_id;
+        continue;
+      }
+      if(_orders.length < 5) continue; // we are skipping any region with less than 5 orders
+      if (orders_by_region.get(region_with_the_most_orders)!.length > orders_by_region.get(region_id)!.length) {
+        region_with_the_most_orders = region_id;
+      }
+    }
 
-    // get the lat lang of the closest origin
+    if(!region_with_the_most_orders) return []
+
+    const _orders2 = orders_by_region.get(region_with_the_most_orders);
+
+    if(!_orders2) return [];
 
     const origins: AddressSelect[] = [];
 
@@ -129,26 +145,24 @@ export module Orders {
       if (!order.origin_id) continue;
       origins.push(order.origin);
     }
+    const lat = Number(origins[0].latitude);
+    const lng = Number(origins[0].longitude);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) return [];
+    const radius = 2; // km
 
-    // create an area of lat lang of origins which are in the radius of a number.
+    const hs: Map<string, { lat: number, lng: number; address: string }> = new Map();
 
-    const radius = 10; // km
-
-    const hotspots: Record<string, { latlang: [number, number]; address: string }> = {};
-
-    for (const origin of origins) {
-      const lat = Number(origin.latitude);
-      const lng = Number(origin.longitude);
-      if (Number.isNaN(lat) || Number.isNaN(lng)) continue;
-      const distance = Math.sqrt(Math.pow(lat - lat, 2) + Math.pow(lng - lng, 2));
-      if (distance > radius) continue;
-      // save the lat lang of the origin
-      hotspots[origin.id] = {
-        latlang: [lat, lng],
+    for (const origin of origins.slice(0, 5)) {
+      hs.set(origin.id, {
         address: origin.streetname + " " + origin.zipcode + " " + origin.country,
-      };
+        lat: Number(origin.latitude),
+        lng: Number(origin.longitude),
+      });
     }
-
-    return hotspots;
+    const list_of_points =Array.from(hs.values());
+    const { lat:clat, lng:clng } = Helper.calculateCentroid(list_of_points);
+    const valid_subsets = Helper.findValidSubsets(list_of_points, clat, clng, radius);
+    // !TODO: We need to gather the address of the centerpoint of the hotspot
+    return valid_subsets;
   };
 }

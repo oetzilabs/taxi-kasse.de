@@ -150,7 +150,7 @@ export default function DashboardPage() {
                   }
                 >
                   <Show
-                    when={hotspot() && nonEmptyObject(hotspot()!) && Object.entries(hotspot()!)}
+                    when={hotspot() && hotspot()!}
                     keyed
                     fallback={
                       <div class="flex flex-col gap-1 h-full grow bg-white/5 backdrop-blur-sm rounded-md p-2 border border-yellow-200 shadow-sm">
@@ -169,10 +169,9 @@ export default function DashboardPage() {
                     {(h) => (
                       <div class="flex flex-row items-center">
                         <For each={h}>
-                          {([o_id, v]) => (
+                          {(v) => (
                             <div class="flex flex-row items-center gap-2">
-                              <span class="font-bold">{o_id}</span>
-                              <span>{v.address}</span>
+                              <span>{v.points.join(", ")}</span>
                             </div>
                           )}
                         </For>
