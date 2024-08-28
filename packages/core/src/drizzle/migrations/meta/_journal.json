@@ -57,6 +57,13 @@
       "when": 1724779662484,
       "tag": "0007_white_whizzer",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1724828318604,
+      "tag": "0008_colorful_ares",
+      "breakpoints": true
     }
   ]
 }
