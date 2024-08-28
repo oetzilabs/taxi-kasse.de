@@ -132,7 +132,7 @@ export default function DashboardLayout(props: RouteSectionProps) {
           </div>
         )}
       </Show>
-      <div class="flex flex-row gap-0 w-full">
+      <div class="flex flex-col xl:flex-row gap-4 w-full">
         <Sidebar />
         <div class="flex flex-col gap-0 w-full grow">{props.children}</div>
       </div>

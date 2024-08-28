@@ -12,10 +12,13 @@ export * from "./schemas/segment_points";
 
 export * from "./schemas/verifications";
 export * from "./schemas/organizations";
+export * from "./schemas/regions";
+export * from "./schemas/organization_regions";
+
 export * from "./schemas/roles";
 export * from "./schemas/user_organizations";
 
-export * from "./schemas/destinations";
+export * from "./schemas/addresses";
 export * from "./schemas/orders";
 
 export * from "./schemas/system_notifications";
