@@ -42,6 +42,13 @@ export module Organizations {
     });
   };
 
+  export const findByName = async (name: string, tsx = db) => {
+    return tsx.query.organizations.findFirst({
+      where: (fields, ops) => ops.eq(fields.name, name),
+      with: _with,
+    });
+  };
+
   export const findByUserId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;

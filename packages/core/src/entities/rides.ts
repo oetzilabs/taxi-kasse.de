@@ -2,7 +2,7 @@ import { count, eq, sum } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-valibot";
 import { InferInput, omit, safeParse } from "valibot";
 import { db } from "../drizzle/sql";
-import { rides, RideSelect } from "../drizzle/sql/schemas/rides";
+import { RideInsert, rides, RideSelect } from "../drizzle/sql/schemas/rides";
 import { Validator } from "../validator";
 
 export module Rides {
@@ -41,6 +41,9 @@ export module Rides {
       },
     },
   };
+
+  export type Create = InferInput<typeof CreateSchema>;
+  export type CreateLegacy = Omit<RideInsert, "user_id" | "org_id" | "createdAt" | "updatedAt" | "id" | "deletedAt">;
 
   export type Info = NonNullable<Awaited<ReturnType<typeof Rides.findById>>>;
 

@@ -1,4 +1,5 @@
 import { A, createAsync } from "@solidjs/router";
+import Building2 from "lucide-solid/icons/building-2";
 import Car from "lucide-solid/icons/car";
 import Home from "lucide-solid/icons/home";
 import Map from "lucide-solid/icons/map";
@@ -68,6 +69,14 @@ export default function Sidebar() {
                 Regions
               </NavLink>
               <NavLink
+                href="/organizations"
+                class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
+                activeClass="bg-neutral-200 dark:bg-neutral-700"
+              >
+                <Building2 class="size-4" />
+                Organizations
+              </NavLink>
+              <NavLink
                 href="/settings"
                 class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
                 activeClass="bg-neutral-200 dark:bg-neutral-700"
@@ -96,6 +105,10 @@ export default function Sidebar() {
                     <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/vehicles">
                       <Truck class="size-4" />
                       <span>Vehicles</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/organizations">
+                      <Building2 class="size-4" />
+                      <span>Organizations</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/settings">

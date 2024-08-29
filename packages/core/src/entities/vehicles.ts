@@ -79,4 +79,15 @@ export module Vehicles {
     }
     return tsx.delete(vehicles).where(eq(vehicles.id, isValid.output)).returning();
   };
+
+  export const findByUserId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+    const isValid = safeParse(Validator.Cuid2Schema, id);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+    return tsx.query.vehicles.findMany({
+      where: (fields, ops) => ops.eq(fields.owner_id, isValid.output),
+      with: _with,
+    });
+  };
 }

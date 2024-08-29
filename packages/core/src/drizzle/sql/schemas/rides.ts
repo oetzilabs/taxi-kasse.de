@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { decimal, text } from "drizzle-orm/pg-core";
+import { decimal, text, timestamp } from "drizzle-orm/pg-core";
 import { commonTable } from "./entity";
 import { organizations } from "./organizations";
 import { users } from "./users";
@@ -34,6 +34,8 @@ export const rides = commonTable(
     rating: decimal("rating", { scale: 2 }).notNull().default("0.00"),
     status: ride_status("status").notNull().default("pending"),
     added_by: ride_added_by("added_by").notNull().default("system:auto"),
+    startedAt: timestamp("startedAt").notNull(),
+    endedAt: timestamp("endedAt").notNull(),
   },
   "ride",
 );
