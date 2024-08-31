@@ -3,7 +3,7 @@ import { defineConfig } from "@solidjs/start/config";
 
 export default defineConfig({
   server: {
-    preset: "aws-lambda-streaming",
+    preset: "aws-lambda",
     esbuild: {
       options: {
         target: "esnext",
@@ -13,7 +13,7 @@ export default defineConfig({
   },
   vite: {
     ssr: {
-      noExternal: ["@kobalte/core", "lucide-solid"], 
+      noExternal: ["@kobalte/core"],
       external: [
         "leaflet",
         "leaflet/dist/leaflet.css",
