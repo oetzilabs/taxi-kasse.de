@@ -12,6 +12,6 @@ export default {
   // @ianvs/prettier-plugin-sort-imports plugin's options
   // https://github.com/IanVS/prettier-plugin-sort-imports#options
   importOrderParserPlugins: ["typescript", "jsx", "decorators-legacy"],
-  importOrderTypeScriptVersion: "5.4.5",
+  importOrderTypeScriptVersion: "5.5.4",
   importOrder: ["<TYPES>^(node:)", "<TYPES>", "<TYPES>^[.]", "<BUILTIN_MODULES>", "<THIRD_PARTY_MODULES>", "^[.]"],
 };

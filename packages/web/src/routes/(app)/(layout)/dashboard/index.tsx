@@ -1,4 +1,5 @@
 import { EarningsTable } from "@/components/data-tables/earnings";
+import AddRideModal from "@/components/forms/AddRide";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getHotspot } from "@/lib/api/orders";
@@ -9,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { A, createAsync, revalidate, RouteDefinition } from "@solidjs/router";
 import { clientOnly } from "@solidjs/start";
 import { getSystemNotifications } from "~/lib/api/system_notifications";
+import { LucideProps } from "lucide-solid";
 import Box from "lucide-solid/icons/box";
 import Car from "lucide-solid/icons/car";
 import DollarSign from "lucide-solid/icons/dollar-sign";
@@ -17,9 +19,7 @@ import Plus from "lucide-solid/icons/plus";
 import RotateClockwise from "lucide-solid/icons/rotate-cw";
 import ShoppingBag from "lucide-solid/icons/shopping-bag";
 import TrendingUp from "lucide-solid/icons/trending-up";
-import { LucideProps } from "node_modules/lucide-solid/dist/types/types";
 import { For, JSX, Show, Suspense } from "solid-js";
-import AddRideModal from "../../../../components/forms/AddRide";
 
 export const route = {
   preload: async () => {
