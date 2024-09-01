@@ -29,49 +29,44 @@ export default function Sidebar() {
           <nav class="flex flex-col w-full min-w-48 grow">
             <div class="flex flex-row xl:flex-col w-full grow items-center justify-between xl:justify-start gap-2">
               <NavLink
+                exact
                 href="/dashboard"
                 class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
-                activeClass="bg-neutral-200 dark:bg-neutral-700"
               >
                 <Home class="size-4" />
                 Dashboard
               </NavLink>
               <NavLink
-                href="/rides"
+                href="/dashboard/rides"
                 class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
-                activeClass="bg-neutral-200 dark:bg-neutral-700"
               >
                 <Car class="size-4" />
                 Rides
               </NavLink>
               <NavLink
-                href="/messages"
+                href="/dashboard/messages"
                 class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
-                activeClass="bg-neutral-200 dark:bg-neutral-700"
               >
                 <MessageSquare class="size-4" />
                 Messages
               </NavLink>
               <NavLink
-                href="/vehicles"
+                href="/dashboard/vehicles"
                 class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
-                activeClass="bg-neutral-200 dark:bg-neutral-700"
               >
                 <Truck class="size-4" />
                 Vehicles
               </NavLink>
               <NavLink
-                href="/regions"
+                href="/dashboard/regions"
                 class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
-                activeClass="bg-neutral-200 dark:bg-neutral-700"
               >
                 <Map class="size-4" />
                 Regions
               </NavLink>
               <NavLink
-                href="/organizations"
+                href="/dashboard/organizations"
                 class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
-                activeClass="bg-neutral-200 dark:bg-neutral-700"
               >
                 <Building2 class="size-4" />
                 Organizations
@@ -79,7 +74,6 @@ export default function Sidebar() {
               <NavLink
                 href="/settings"
                 class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
-                activeClass="bg-neutral-200 dark:bg-neutral-700"
               >
                 <Settings class="size-4" />
                 Settings
@@ -94,19 +88,23 @@ export default function Sidebar() {
                       <Home class="size-4" />
                       <span>Dashboard</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/rides">
+                    <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/rides">
                       <Car class="size-4" />
                       <span>Rides</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/messages">
+                    <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/messages">
                       <MessageSquare class="size-4" />
                       <span>Messages</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/vehicles">
+                    <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/vehicles">
                       <Truck class="size-4" />
                       <span>Vehicles</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/organizations">
+                    <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/regions">
+                      <Map class="size-4" />
+                      <span>Regions</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/organizations">
                       <Building2 class="size-4" />
                       <span>Organizations</span>
                     </DropdownMenuItem>

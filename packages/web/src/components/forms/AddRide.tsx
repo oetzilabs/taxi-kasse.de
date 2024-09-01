@@ -1,3 +1,5 @@
+import type { DialogTriggerProps } from "@kobalte/core/dialog";
+import type { Rides } from "@taxikassede/core/src/entities/rides";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,18 +19,20 @@ import {
   NumberFieldInput,
   NumberFieldLabel,
 } from "@/components/ui/number-field";
-import { getVehicleIds } from "@/lib/api/vehicle";
-import type { DialogTriggerProps } from "@kobalte/core/dialog";
-import { A, createAsync } from "@solidjs/router";
-import type { Rides } from "@taxikassede/core/src/entities/rides";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TextField, TextFieldErrorMessage, TextFieldLabel, TextFieldRoot } from "@/components/ui/textfield";
+import { addRide } from "@/lib/api/rides";
+import { getVehicleIds } from "@/lib/api/vehicles";
+import { A, createAsync, useAction, useSubmission } from "@solidjs/router";
 import dayjs from "dayjs";
+import Loader2 from "lucide-solid/icons/loader-2";
 import Plus from "lucide-solid/icons/plus";
-import { createSignal, Show } from "solid-js";
+import X from "lucide-solid/icons/x";
+import { createSignal, Match, Show, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
+import { toast } from "solid-sonner";
 import { date, maxValue, minValue, number, pipe, safeParse, string, transform } from "valibot";
 import Calendar from "../Calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { TextField, TextFieldErrorMessage, TextFieldLabel, TextFieldRoot } from "../ui/textfield";
 
 const MinuteNumberSchema = pipe(
   string("Please provide a number"),
@@ -69,6 +73,9 @@ const AddRideModal = () => {
     endedAtHour: "",
     endedAtMinute: "",
   });
+
+  const addRideAction = useAction(addRide);
+  const addRideStatus = useSubmission(addRide);
   return (
     <Dialog open={open()} onOpenChange={setOpen}>
       <DialogTrigger
@@ -96,7 +103,7 @@ const AddRideModal = () => {
                       <span class="text-sm text-muted-foreground ">No vehicles found</span>
                       <span class="text-sm text-neutral-500">
                         Please{" "}
-                        <A class="hover:underline" href="/vehicles/new">
+                        <A class="hover:underline" href="/dashboard/vehicles/new">
                           add a vehicle
                         </A>{" "}
                         first.
@@ -108,10 +115,13 @@ const AddRideModal = () => {
                     options={ids()}
                     value={newRide.vehicle_id}
                     onChange={(v) => {
+                      if (!v) return;
                       setNewRide("vehicle_id", v);
                     }}
                     placeholder="Select a vehicle"
                     itemComponent={(props) => <SelectItem item={props.item}>{props.item.rawValue}</SelectItem>}
+                    disallowEmptySelection
+                    disabled={addRideStatus.pending}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -278,15 +288,33 @@ const AddRideModal = () => {
             onClick={() => {
               setOpen(false);
             }}
+            class="flex flex-row items-center gap-2"
           >
+            <X class="size-4" />
             Cancel
           </Button>
           <Button
             onClick={() => {
-              setOpen(false);
+              toast.promise(addRideAction(newRide), {
+                loading: "Adding ride",
+                success: () => {
+                  setOpen(false);
+                  return "Ride added";
+                },
+                error: "Failed to add ride",
+              });
             }}
+            class="flex flex-row items-center gap-2"
           >
-            Add Ride
+            <Switch>
+              <Match when={addRideStatus.pending}>
+                <Loader2 class="size-4 animate-spin" />
+                Adding Ride
+              </Match>
+              <Match when={!addRideStatus.pending && addRideStatus.result === undefined}>Add Ride</Match>
+              <Match when={!addRideStatus.pending && addRideStatus.result !== undefined}>Added Ride</Match>
+              <Match when={addRideStatus.error}>Failed to add ride</Match>
+            </Switch>
           </Button>
         </DialogFooter>
       </DialogContent>

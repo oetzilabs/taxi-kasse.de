@@ -16,5 +16,5 @@ export type VehicleModelSelect = typeof vehicle_models.$inferSelect;
 export type VehicleModelInsert = typeof vehicle_models.$inferInsert;
 
 export const vehicle_model_relation = relations(vehicle_models, ({ one, many }) => ({
-  vehicle: many(vehicles),
+  vehicles: many(vehicles),
 }));

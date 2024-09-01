@@ -1,5 +1,9 @@
 import path from "node:path";
 import { defineConfig } from "@solidjs/start/config";
+/* @ts-ignore */
+import pkg from "@vinxi/plugin-mdx";
+
+const { default: mdx } = pkg;
 
 export default defineConfig({
   server: {
@@ -11,6 +15,7 @@ export default defineConfig({
       },
     },
   },
+  middleware: "./src/middleware.ts",
   vite: {
     ssr: {
       noExternal: ["@kobalte/core"],
@@ -29,5 +34,12 @@ export default defineConfig({
     build: {
       target: "esnext",
     },
+    plugins: [
+      mdx.withImports({})({
+        jsx: true,
+        jsxImportSource: "solid-js",
+        providerImportSource: "solid-mdx",
+      }),
+    ],
   },
 });

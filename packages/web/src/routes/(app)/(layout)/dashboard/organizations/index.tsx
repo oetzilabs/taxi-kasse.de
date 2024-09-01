@@ -25,7 +25,7 @@ export default function DashboardPage() {
                     <span class="text-sm">You currently have no organizations.</span>
                     <span class="text-sm">
                       Please{" "}
-                      <A href="/organizations/add" class="hover:underline text-blue-500 font-medium">
+                      <A href="/dashboard/organizations/add" class="hover:underline text-blue-500 font-medium">
                         create/join an organization
                       </A>{" "}
                       to view your list of organizations.

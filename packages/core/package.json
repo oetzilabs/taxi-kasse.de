@@ -8,6 +8,7 @@
     "typecheck": "tsc -noEmit",
     "generate": "sst shell 'drizzle-kit generate'",
     "migrate": "sst shell 'drizzle-kit migrate'",
+    "seed": "sst shell 'bun run src/entities/seed.ts'",
     "up": "sst shell 'drizzle-kit up'",
     "studio": "sst shell 'drizzle-kit studio'"
   },
@@ -16,7 +17,8 @@
     "@tsconfig/node22": "22.0.0",
     "@types/node": "22.4.2",
     "drizzle-kit": "0.24.0",
-    "vitest": "2.0.5"
+    "vitest": "2.0.5",
+    "tsx": "4.19.0"
   },
   "dependencies": {
     "@lucia-auth/adapter-drizzle": "^1.1.0",

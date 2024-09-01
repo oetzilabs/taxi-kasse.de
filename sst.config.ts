@@ -24,7 +24,7 @@ export default $config({
     const auth = await import("./stacks/Auth");
     const api = await import("./stacks/Api");
     const solidStart = await import("./stacks/SolidStart");
-    const { migrate, generate, studio } = await import("./stacks/Database");
+    const { migrate, generate, studio, seed } = await import("./stacks/Database");
 
     return {
       // storageArn: storage.bucket.arn,
@@ -34,6 +34,7 @@ export default $config({
       // websocket: websocket.ws.url,
       migrateUrn: migrate.urn,
       generateUrn: generate.urn,
+      seedUrn: seed.urn,
       dbStudioUrn: studio.urn,
       authUrl: auth.auth.authenticator.url,
       api: api.api.url,

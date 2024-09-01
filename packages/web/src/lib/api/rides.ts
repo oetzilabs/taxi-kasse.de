@@ -1,4 +1,4 @@
-import { cache, redirect } from "@solidjs/router";
+import { action, cache, redirect } from "@solidjs/router";
 import { Rides } from "@taxikassede/core/src/entities/rides";
 import { Users } from "@taxikassede/core/src/entities/users";
 import { getContext } from "../auth/context";
@@ -28,3 +28,25 @@ export const getRidesByUserId = cache(async (id: string) => {
   const rides = await Rides.findByUserId(user.id);
   return rides;
 }, "rides");
+
+export const addRide = action(async (data: Rides.CreateLegacy) => {
+  "use server";
+  const [ctx, event] = await getContext();
+  if (!ctx)
+    throw redirect("/auth/login", {
+      statusText: "Please login",
+      status: 401,
+    });
+  if (!ctx.session)
+    throw redirect("/auth/login", {
+      statusText: "Please login",
+      status: 401,
+    });
+  if (!ctx.user)
+    throw redirect("/auth/login", {
+      statusText: "Please login",
+      status: 401,
+    });
+  const ride = await Rides.create(data);
+  return ride;
+});

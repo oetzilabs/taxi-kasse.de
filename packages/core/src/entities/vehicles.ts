@@ -1,18 +1,23 @@
 import { eq } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-valibot";
-import { InferInput, omit, safeParse } from "valibot";
+import { array, date, InferInput, intersect, nullable, object, omit, safeParse, string } from "valibot";
 import { db } from "../drizzle/sql";
 import { vehicles } from "../drizzle/sql/schema";
 import { Validator } from "../validator";
+import { VehicleModels } from "./vehicle_models";
 
 export module Vehicles {
-  export const CreateSchema = createInsertSchema(vehicles);
-  export const UpdateSchema = omit(
-    createInsertSchema(vehicles, {
-      id: Validator.Cuid2Schema,
+  export const CreateSchema = array(
+    object({
+      owner_id: Validator.Cuid2Schema,
+      name: string(),
+      license_plate: string(),
+      model: nullable(string()),
+      inspection_date: date(),
+      mileage: string(),
     }),
-    ["createdAt", "updatedAt"],
   );
+  export const UpdateSchema = intersect([CreateSchema.item, object({ id: Validator.Cuid2Schema })]);
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.vehicles.findFirst>[0]>["with"];
   export const _with: WithOptions = {
@@ -65,7 +70,7 @@ export module Vehicles {
   };
 
   export const update = async (data: InferInput<typeof Vehicles.UpdateSchema>, tsx = db) => {
-    const isValid = safeParse(Vehicles.UpdateSchema, data.id);
+    const isValid = safeParse(Vehicles.UpdateSchema, data);
     if (!isValid.success) {
       throw isValid.issues;
     }
@@ -89,5 +94,46 @@ export module Vehicles {
       where: (fields, ops) => ops.eq(fields.owner_id, isValid.output),
       with: _with,
     });
+  };
+
+  export const importVehicleBrands = async (tsx = db) => {
+    // made by @k1muza from https://github.com/k1muza/car_models (date: 2021-01-22T10:48:03.000Z)
+    const url = "https://raw.githubusercontent.com/k1muza/car_models/main/vehicles.json";
+    const response = await fetch(url);
+
+    const RemoteVehicleSchema = array(
+      object({
+        id: string(),
+        name: string(),
+        models: array(
+          object({
+            id: string(),
+            name: string(),
+          }),
+        ),
+      }),
+    );
+
+    const json = await response.json();
+    const isValid = safeParse(RemoteVehicleSchema, json);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+
+    const models: InferInput<typeof VehicleModels.CreateSchema> = [];
+    for (let i = 0; i < isValid.output.length; i++) {
+      const remoteBrand = isValid.output[i];
+      for (let j = 0; j < remoteBrand.models.length; j++) {
+        const remoteModel = remoteBrand.models[j];
+        models.push({
+          name: remoteModel.name,
+          brand: remoteBrand.name,
+        });
+      }
+    }
+
+    const vehicle_models = await VehicleModels.upsert(models);
+
+    return vehicle_models;
   };
 }
