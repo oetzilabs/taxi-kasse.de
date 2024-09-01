@@ -160,7 +160,7 @@ export default function DashboardPage() {
                                   <div class="h-max w-full flex flex-col border-b border-neutral-200 dark:border-neutral-800">
                                     <div class="flex flex-row w-full p-2 items-center justify-between gap-2">
                                       <div class="">
-                                        <span class="font-bold text-black">{v.distance} km</span>
+                                        <span class="font-bold text-black">{v.distance} m</span>
                                       </div>
                                       <div class=""></div>
                                     </div>

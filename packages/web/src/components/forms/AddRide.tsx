@@ -1,5 +1,7 @@
+import type { CreateRide } from "@/lib/api/rides";
 import type { DialogTriggerProps } from "@kobalte/core/dialog";
 import type { Rides } from "@taxikassede/core/src/entities/rides";
+import type { InferInput } from "valibot";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,8 +24,9 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TextField, TextFieldErrorMessage, TextFieldLabel, TextFieldRoot } from "@/components/ui/textfield";
 import { addRide } from "@/lib/api/rides";
-import { getVehicleIds } from "@/lib/api/vehicles";
+import { getVehicleIds, getVehicles } from "@/lib/api/vehicles";
 import { A, createAsync, useAction, useSubmission } from "@solidjs/router";
+import { Vehicles } from "@taxikassede/core/src/entities/vehicles";
 import dayjs from "dayjs";
 import Loader2 from "lucide-solid/icons/loader-2";
 import Plus from "lucide-solid/icons/plus";
@@ -53,9 +56,9 @@ const HourNumberSchema = pipe(
 const AddRideModal = () => {
   const [open, setOpen] = createSignal(false);
 
-  const vehicle_ids = createAsync(() => getVehicleIds());
+  const vehicles = createAsync(() => getVehicles());
 
-  const [newRide, setNewRide] = createStore<Rides.CreateLegacy>({
+  const [newRide, setNewRide] = createStore<CreateRide>({
     distance: "0.000",
     added_by: "user:manual",
     income: "0.00",
@@ -94,10 +97,10 @@ const AddRideModal = () => {
         <div class="flex flex-col gap-4">
           <div class="w-full flex flex-col gap-1">
             <span class="text-sm font-bold">Vehicle</span>
-            <Show when={vehicle_ids()}>
-              {(ids) => (
+            <Show when={vehicles()}>
+              {(vs) => (
                 <Show
-                  when={ids().length > 0}
+                  when={vs().length > 0}
                   fallback={
                     <div class="p-3 border-dashed border border-neutral-300 dark:border-neutral-800 items-center justify-center rounded-md flex flex-col gap-1">
                       <span class="text-sm text-muted-foreground ">No vehicles found</span>
@@ -111,20 +114,47 @@ const AddRideModal = () => {
                     </div>
                   }
                 >
-                  <Select
-                    options={ids()}
-                    value={newRide.vehicle_id}
+                  <Select<Vehicles.Info, Vehicles.Info[]>
+                    options={vs()}
+                    value={vs().find((v) => v.id === newRide.vehicle_id)}
                     onChange={(v) => {
                       if (!v) return;
-                      setNewRide("vehicle_id", v);
+                      setNewRide("vehicle_id", v.id);
                     }}
+                    optionValue={(v) => v.id}
+                    optionTextValue={(v) => v.name}
                     placeholder="Select a vehicle"
-                    itemComponent={(props) => <SelectItem item={props.item}>{props.item.rawValue}</SelectItem>}
+                    itemComponent={(props) => (
+                      <SelectItem item={props.item} class="text-sm font-semibold">
+                        {props.item.rawValue.name}{" "}
+                        <Show when={props.item.rawValue.model} keyed>
+                          {(vM) => (
+                            <span class="text-xs text-muted-foreground">
+                              ({vM.name}, {vM.brand})
+                            </span>
+                          )}
+                        </Show>
+                      </SelectItem>
+                    )}
                     disallowEmptySelection
+                    required
                     disabled={addRideStatus.pending}
                   >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue<Vehicles.Info>>
+                        {(props) => (
+                          <span>
+                            {props.selectedOption().name}{" "}
+                            <Show when={props.selectedOption().model} keyed>
+                              {(vM) => (
+                                <span class="text-xs text-muted-foreground">
+                                  ({vM.name}, {vM.brand})
+                                </span>
+                              )}
+                            </Show>
+                          </span>
+                        )}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent />
                   </Select>

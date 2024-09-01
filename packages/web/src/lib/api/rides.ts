@@ -1,6 +1,7 @@
 import { action, cache, redirect } from "@solidjs/router";
 import { Rides } from "@taxikassede/core/src/entities/rides";
 import { Users } from "@taxikassede/core/src/entities/users";
+import { InferInput } from "valibot";
 import { getContext } from "../auth/context";
 
 export const getRides = cache(async () => {
@@ -29,7 +30,9 @@ export const getRidesByUserId = cache(async (id: string) => {
   return rides;
 }, "rides");
 
-export const addRide = action(async (data: Rides.CreateLegacy) => {
+export type CreateRide = Omit<InferInput<typeof Rides.CreateSchema.item>, "user_id" | "org_id">;
+
+export const addRide = action(async (data: CreateRide) => {
   "use server";
   const [ctx, event] = await getContext();
   if (!ctx)
@@ -47,6 +50,12 @@ export const addRide = action(async (data: Rides.CreateLegacy) => {
       statusText: "Please login",
       status: 401,
     });
-  const ride = await Rides.create(data);
+  if (!ctx.session.organization_id)
+    throw redirect("/dashboard/organizations/add", {
+      statusText: "Please add an organization",
+      status: 401,
+    });
+  const newR = { ...data, user_id: ctx.user.id, org_id: ctx.session.organization_id };
+  const ride = await Rides.create([newR]);
   return ride;
 });

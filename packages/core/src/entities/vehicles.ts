@@ -12,7 +12,7 @@ export module Vehicles {
       owner_id: Validator.Cuid2Schema,
       name: string(),
       license_plate: string(),
-      model: nullable(string()),
+      model_id: nullable(string()),
       inspection_date: date(),
       mileage: string(),
     }),

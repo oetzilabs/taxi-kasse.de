@@ -1,18 +1,26 @@
 import { count, eq, sum } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-valibot";
-import { InferInput, omit, safeParse } from "valibot";
+import { array, date, enum_, InferInput, intersect, object, omit, picklist, safeParse, string, union } from "valibot";
 import { db } from "../drizzle/sql";
-import { RideInsert, rides, RideSelect } from "../drizzle/sql/schemas/rides";
+import { ride_added_by, ride_status, RideInsert, rides, RideSelect } from "../drizzle/sql/schemas/rides";
 import { Validator } from "../validator";
 
 export module Rides {
-  export const CreateSchema = createInsertSchema(rides);
-  export const UpdateSchema = omit(
-    createInsertSchema(rides, {
-      id: Validator.Cuid2Schema,
+  export const CreateSchema = array(
+    object({
+      added_by: picklist(ride_added_by.enumValues),
+      user_id: Validator.Cuid2Schema,
+      org_id: Validator.Cuid2Schema,
+      income: string(),
+      distance: string(),
+      vehicle_id: Validator.Cuid2Schema,
+      rating: string(),
+      status: picklist(ride_status.enumValues),
+      startedAt: date(),
+      endedAt: date(),
     }),
-    ["createdAt", "updatedAt"],
   );
+  export const UpdateSchema = intersect([CreateSchema.item, object({ id: Validator.Cuid2Schema })]);
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.rides.findFirst>[0]>["with"];
   export const _with: WithOptions = {
@@ -43,7 +51,6 @@ export module Rides {
   };
 
   export type Create = InferInput<typeof CreateSchema>;
-  export type CreateLegacy = Omit<RideInsert, "user_id" | "org_id" | "createdAt" | "updatedAt" | "id" | "deletedAt">;
 
   export type Info = NonNullable<Awaited<ReturnType<typeof Rides.findById>>>;
 

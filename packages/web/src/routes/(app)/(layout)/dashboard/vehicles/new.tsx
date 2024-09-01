@@ -1,5 +1,4 @@
-import type { Vehicles } from "@taxikassede/core/src/entities/vehicles";
-import type { InferInput } from "valibot";
+import type { CreateVehicle } from "@/lib/api/vehicles";
 import { Button } from "@/components/ui/button";
 import { Combobox, ComboboxContent, ComboboxInput, ComboboxItem, ComboboxTrigger } from "@/components/ui/combobox";
 import {
@@ -28,16 +27,11 @@ import {
   NumberFieldLabel,
 } from "@/components/ui/number-field";
 import { TextField, TextFieldLabel, TextFieldRoot } from "@/components/ui/textfield";
-import { addVehicle, getVehicleModels } from "@/lib/api/vehicles";
+import { addVehicle, getVehicleIds, getVehicleModels, getVehicles } from "@/lib/api/vehicles";
 import { getAuthenticatedSession } from "@/lib/auth/util";
-import { SelectTriggerProps } from "@kobalte/core/select";
-import { createAsync, RouteDefinition, useAction, useSubmission } from "@solidjs/router";
-import { VehicleModels } from "@taxikassede/core/src/entities/vehicle_models";
-import { Badge } from "~/components/ui/badge";
+import { createAsync, revalidate, RouteDefinition, useAction, useSubmission } from "@solidjs/router";
 import dayjs from "dayjs";
-import Car from "lucide-solid/icons/car";
-import Check from "lucide-solid/icons/check";
-import { For, Index, Show } from "solid-js";
+import { Index, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { Portal } from "solid-js/web";
 import { toast } from "solid-sonner";
@@ -53,11 +47,10 @@ export const route = {
 export default function DashboardPage() {
   const session = createAsync(() => getAuthenticatedSession());
   const vehicleModels = createAsync(() => getVehicleModels(), { deferStream: true });
-  const [newVehicle, setNewVehicle] = createStore<InferInput<typeof Vehicles.CreateSchema.item>>({
-    owner_id: "",
+  const [newVehicle, setNewVehicle] = createStore<CreateVehicle>({
     name: "",
     license_plate: "",
-    model: null,
+    model_id: null,
     inspection_date: new Date(),
     mileage: "0.000",
   });
@@ -109,39 +102,39 @@ export default function DashboardPage() {
                   keyed
                 >
                   {(brands) => (
-                    <>
-                      <span class="text-sm font-bold">Choose one of {brands.length} brands :)</span>
-                      {/* <pre>{JSON.stringify(brands, null, 2)}</pre> */}
-                      <Combobox<(typeof brands)[number]["models"][number], (typeof brands)[number]>
-                        options={brands}
-                        onChange={(e) => {
-                          if (!e) return;
-                          setNewVehicle("model", e.value);
-                        }}
-                        sameWidth
-                        optionValue="value"
-                        optionLabel="label"
-                        optionTextValue="label"
-                        optionGroupChildren="models"
-                        virtualized
-                        itemComponent={(props) => (
-                          <Combobox.Item item={props.item}>
-                            <Combobox.ItemLabel>test</Combobox.ItemLabel>
-                            <Combobox.ItemIndicator>
-                              <Check />
-                            </Combobox.ItemIndicator>
-                          </Combobox.Item>
-                        )}
-                        sectionComponent={(props) => (
-                          <Combobox.Section>{props.section.rawValue.brandName}</Combobox.Section>
-                        )}
-                      >
-                        <ComboboxTrigger>
-                          <ComboboxInput />
-                        </ComboboxTrigger>
-                        <ComboboxContent />
-                      </Combobox>
-                    </>
+                    <Combobox<(typeof brands)[number]["models"][number], (typeof brands)[number]>
+                      options={brands}
+                      onChange={(e) => {
+                        if (!e) return;
+                        setNewVehicle("model_id", e.value);
+                      }}
+                      sameWidth
+                      value={brands
+                        .map((b) => b.models)
+                        .flat()
+                        .find((m) => m.value === newVehicle.model_id)}
+                      optionValue={(b) => b.value}
+                      optionLabel={(b) => b.label}
+                      optionTextValue={(b) => b.label}
+                      optionGroupChildren="models"
+                      // virtualized
+                      placeholder="Choose a Model"
+                      selectionBehavior="replace"
+                      modal
+                      itemComponent={(props) => (
+                        <ComboboxItem item={props.item}>
+                          <span class="text-sm font-semibold">{props.item.rawValue.label}</span>
+                        </ComboboxItem>
+                      )}
+                      sectionComponent={(props) => (
+                        <div class="text-xs font-bold text-muted-foreground">{props.section.rawValue.group}</div>
+                      )}
+                    >
+                      <ComboboxTrigger>
+                        <ComboboxInput />
+                      </ComboboxTrigger>
+                      <ComboboxContent class="max-h-40 overflow-y-auto" />
+                    </Combobox>
                   )}
                 </Show>
               </div>
@@ -294,18 +287,15 @@ export default function DashboardPage() {
                   </NumberFieldGroup>
                 </NumberField>
               </div>
-              <pre class="text-xs text-muted-foreground">{JSON.stringify(newVehicle, null, 2)}</pre>
               <Button
                 class="w-max"
-                onClick={() => {
-                  const x = Object.assign(newVehicle, {
-                    owner_id: s().user!.id,
+                onClick={async () => {
+                  toast.promise(addVehicleAction(newVehicle), {
+                    loading: "Adding vehicle...",
+                    success: "Vehicle added",
+                    error: (e) => "Could not add vehicle: " + e.message,
                   });
-                  toast.promise(addVehicleAction([x]), {
-                    loading: "Creating organization...",
-                    success: "Organization created",
-                    error: (e) => "Could not create organization: " + e.message,
-                  });
+                  await revalidate([getVehicles.key, getVehicleIds.key]);
                 }}
                 disabled={addVehicleStatus.pending}
               >

@@ -34,13 +34,16 @@ export const getVehicles = cache(async () => {
   return vehicles;
 }, "vehicles");
 
-export const addVehicle = action(async (data: InferInput<typeof Vehicles.CreateSchema>) => {
+export type CreateVehicle = Omit<InferInput<typeof Vehicles.CreateSchema.item>, "owner_id">;
+
+export const addVehicle = action(async (data: CreateVehicle) => {
   "use server";
   const [ctx, event] = await getContext();
   if (!ctx) throw redirect("/auth/login");
   if (!ctx.session) throw redirect("/auth/login");
   if (!ctx.user) throw redirect("/auth/login");
-  const vehicle = await Vehicles.create(data);
+  const newV = { ...data, owner_id: ctx.user.id };
+  const vehicle = await Vehicles.create([newV]);
   return vehicle;
 });
 
@@ -52,7 +55,7 @@ export const getVehicleModels = cache(async () => {
   if (!ctx.user) throw redirect("/auth/login");
   const models = await VehicleModels.all();
   const vehicleBrands: Array<{
-    brandName: string;
+    group: string;
     models: {
       value: string;
       label: string;
@@ -60,21 +63,21 @@ export const getVehicleModels = cache(async () => {
   }> = [];
   for (let i = 0; i < models.length; i++) {
     const model = models[i];
-    const vehicleBrand = vehicleBrands.find((brand) => brand.brandName === model.brand);
+    const vehicleBrand = vehicleBrands.find((brand) => brand.group === model.brand);
     if (!vehicleBrand) {
       vehicleBrands.push({
-        brandName: model.brand,
+        group: model.brand,
         models: [
           {
             value: model.id,
-            label: model.name,
+            label: `${model.name} (${model.brand})`,
           },
         ],
       });
     } else {
       vehicleBrand.models.push({
         value: model.id,
-        label: model.name,
+        label: `${model.name} (${model.brand})`,
       });
     }
   }

@@ -13,7 +13,7 @@ export const vehicles = commonTable(
       .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     license_plate: text("license_plate").notNull(),
-    model: text("model").references(() => vehicle_models.id, { onDelete: "set null" }),
+    model_id: text("model_id").references(() => vehicle_models.id, { onDelete: "set null" }),
     inspection_date: timestamp("inspection_date", {
       withTimezone: true,
       mode: "date",
@@ -33,7 +33,7 @@ export const vehicle_relation = relations(vehicles, ({ one, many }) => ({
     references: [users.id],
   }),
   model: one(vehicle_models, {
-    fields: [vehicles.model],
+    fields: [vehicles.model_id],
     references: [vehicle_models.id],
   }),
 }));
