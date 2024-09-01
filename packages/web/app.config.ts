@@ -14,13 +14,6 @@ export default defineConfig({
   vite: {
     ssr: {
       noExternal: ["@kobalte/core"],
-      external: [
-        "leaflet",
-        "leaflet/dist/leaflet.css",
-        "leaflet-routing-machine",
-        "@solid-primitives/devices",
-        "leaflet-rotate-map",
-      ],
     },
     resolve: {
       alias: {
