@@ -25,7 +25,7 @@ export module Vehicles {
       with: {
         org: {
           with: {
-            user: true,
+            owner: true,
             employees: {
               with: {
                 user: true,

@@ -24,7 +24,7 @@ export type OrganizationSelect = typeof organizations.$inferSelect;
 export type OrganizationInsert = typeof organizations.$inferInsert;
 
 export const organization_relation = relations(organizations, ({ one, many }) => ({
-  user: one(users, {
+  owner: one(users, {
     fields: [organizations.ownerId],
     references: [users.id],
   }),

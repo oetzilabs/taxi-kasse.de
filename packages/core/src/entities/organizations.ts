@@ -16,10 +16,7 @@ export module Organizations {
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.organizations.findFirst>[0]>["with"];
   export const _with: WithOptions = {
-    employees: {
-      with: {},
-    },
-    user: true,
+    owner: true,
   };
   export type Info = NonNullable<Awaited<ReturnType<typeof Organizations.findById>>>;
 
@@ -38,14 +35,31 @@ export module Organizations {
     if (!isValid) throw new Error("Invalid id");
     return tsx.query.organizations.findFirst({
       where: (fields, ops) => ops.eq(fields.id, id),
-      with: _with,
+      with: {
+        ...Organizations._with,
+        regions: {
+          with: {
+            region: true,
+          },
+        },
+      },
     });
   };
 
   export const findByName = async (name: string, tsx = db) => {
     return tsx.query.organizations.findFirst({
       where: (fields, ops) => ops.eq(fields.name, name),
-      with: _with,
+      with: {
+        ...Organizations._with,
+        regions: {
+          with: {
+            region: true,
+          },
+        },
+        employees: {
+          with: { user: true },
+        },
+      },
     });
   };
 
@@ -54,7 +68,17 @@ export module Organizations {
     if (!isValid.success) throw isValid.issues;
     return tsx.query.organizations.findMany({
       where: (fields, ops) => ops.eq(fields.ownerId, isValid.output),
-      with: _with,
+      with: {
+        ...Organizations._with,
+        regions: {
+          with: {
+            region: true,
+          },
+        },
+        employees: {
+          with: { user: true },
+        },
+      },
     });
   };
 
@@ -64,7 +88,17 @@ export module Organizations {
     return tsx.query.organizations.findFirst({
       where: (fields, ops) => ops.eq(fields.ownerId, isValid.output),
       orderBy: [desc(organizations.createdAt)],
-      with: _with,
+      with: {
+        ...Organizations._with,
+        regions: {
+          with: {
+            region: true,
+          },
+        },
+        employees: {
+          with: { user: true },
+        },
+      },
     });
   };
 

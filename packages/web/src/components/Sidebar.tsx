@@ -23,7 +23,7 @@ export default function Sidebar() {
   const session = createAsync(() => getAuthenticatedSession());
 
   return (
-    <div class="flex flex-col w-full xl:w-max grow">
+    <div class="flex flex-col w-full xl:w-max h-max sticky top-0 z-50 pt-4 bg-background">
       <Show when={session() && session()!.user !== null}>
         {(s) => (
           <nav class="flex flex-col w-full min-w-48 grow">

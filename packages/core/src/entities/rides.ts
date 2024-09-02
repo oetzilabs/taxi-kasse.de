@@ -21,7 +21,7 @@ export module Rides {
   );
   export const UpdateSchema = intersect([CreateSchema.item, object({ id: Validator.Cuid2Schema })]);
 
-  export type WithOptions = NonNullable<Parameters<typeof db.query.rides.findFirst>[0]>["with"];
+  export type WithOptions = NonNullable<NonNullable<Parameters<typeof db.query.rides.findFirst>[0]>["with"]>;
   export const _with: WithOptions = {
     user: {
       with: {
@@ -34,7 +34,7 @@ export module Rides {
     },
     org: {
       with: {
-        user: true,
+        owner: true,
         employees: {
           with: {
             user: true,
@@ -84,7 +84,23 @@ export module Rides {
     }
     return tsx.query.rides.findFirst({
       where: (fields, ops) => ops.eq(fields.id, isValid.output),
-      with: _with,
+      with: {
+        ...Rides._with,
+        routes: {
+          orderBy: (fields, ops) => ops.desc(fields.createdAt),
+          with: {
+            segments: {
+              with: {
+                points: true,
+              },
+              orderBy: (fields, ops) => ops.desc(fields.createdAt),
+            },
+            waypoints: {
+              orderBy: (fields, ops) => ops.desc(fields.createdAt),
+            },
+          },
+        },
+      },
     });
   };
 
@@ -95,10 +111,25 @@ export module Rides {
     }
     const rides = await tsx.query.rides.findMany({
       where: (fields, ops) => ops.eq(fields.user_id, isValid.output),
-      with: _with,
+      with: {
+        ...Rides._with,
+        routes: {
+          orderBy: (fields, ops) => ops.desc(fields.createdAt),
+          with: {
+            segments: {
+              with: {
+                points: true,
+              },
+              orderBy: (fields, ops) => ops.desc(fields.createdAt),
+            },
+            waypoints: {
+              orderBy: (fields, ops) => ops.desc(fields.createdAt),
+            },
+          },
+        },
+      },
       orderBy: (fields, ops) => ops.desc(fields.createdAt),
     });
-    type X = (typeof rides)[number]["routes"];
 
     return rides;
   };
