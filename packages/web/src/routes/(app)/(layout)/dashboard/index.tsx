@@ -59,7 +59,7 @@ const Statistic = (props: {
 }) => (
   <div
     class={cn(
-      "flex flex-col p-4 w-full gap-4 select-none border-t lg:border-l lg:border-t-0 first:border-l-0 first:border-t-0 border-neutral-300 dark:border-neutral-800",
+      "flex flex-col p-4 w-full gap-4 select-none border-t lg:border-l lg:border-t-0 first:border-l-0 first:border-t-0 border-neutral-200 dark:border-neutral-800",
     )}
   >
     <div class="flex flex-row items-center justify-between gap-4">
@@ -189,7 +189,7 @@ export default function DashboardPage() {
             when={s().organization}
             fallback={
               <div class="flex flex-col w-full pb-4 gap-4">
-                <div class="flex flex-col w-full items-center justify-center rounded-md px-4 py-20 gap-2 bg-neutral-300 dark:bg-neutral-800">
+                <div class="flex flex-col w-full items-center justify-center rounded-md px-4 py-20 gap-2 bg-neutral-200 dark:bg-neutral-800">
                   <span class="text-sm">You currently have no organizations.</span>
                   <span class="text-sm">
                     Please{" "}
@@ -204,14 +204,14 @@ export default function DashboardPage() {
           >
             {(o) => (
               <div class="flex flex-col w-full gap-0 grow">
-                <div class="flex flex-col w-full gap-1 sticky top-0 py-4 bg-background border-b border-neutral-300 dark:border-neutral-800 z-10">
+                <div class="flex flex-col w-full gap-1 sticky top-0 py-4 bg-background border-b border-neutral-200 dark:border-neutral-800 z-10">
                   <h2 class="text-lg font-bold">{o().name}</h2>
                   <span class="text-sm font-medium text-muted-foreground">
                     {o().email} ({o().phoneNumber})
                   </span>
                 </div>
                 <div class="flex flex-col w-full py-4 gap-4 grow">
-                  <div class="grid grid-cols-1 lg:grid-cols-4 gap-0 w-full border border-neutral-300 dark:border-neutral-800 rounded-lg">
+                  <div class="grid grid-cols-1 lg:grid-cols-4 gap-0 w-full border border-neutral-200 dark:border-neutral-800 rounded-lg">
                     <Show when={stats() && stats()}>
                       {(ss) => (
                         <For each={Object.entries(ss())}>
@@ -265,7 +265,7 @@ export default function DashboardPage() {
                             <AddRideModal />
                           </div>
                         </div>
-                        <div class="w-full border border-neutral-300 dark:border-neutral-800 rounded-lg flex flex-col overflow-clip">
+                        <div class="w-full border border-neutral-200 dark:border-neutral-800 rounded-lg flex flex-col overflow-clip">
                           <Show when={filteredRides(rides() ?? [])}>
                             {(rs) => (
                               <div class="h-max w-full flex flex-col">
@@ -278,11 +278,13 @@ export default function DashboardPage() {
                                   }
                                 >
                                   {(v) => (
-                                    <div class="h-max w-full flex flex-col border-b border-neutral-300 dark:border-neutral-800 last:border-b-0">
+                                    <div class="h-max w-full flex flex-col border-b border-neutral-200 dark:border-neutral-800 last:border-b-0">
                                       <div class="flex flex-row w-full p-4 items-center justify-between gap-2">
                                         <div class="flex items-center justify-center gap-2 select-none">
-                                          <Car class="size-4 text-muted-foreground" />
-                                          <Badge variant="outline">{v.status}</Badge>
+                                          <Badge variant="outline" class="flex flex-row items-center gap-2">
+                                            <Car class="size-4 text-muted-foreground" />
+                                            {v.status}
+                                          </Badge>
                                         </div>
                                         <div class="">
                                           <span class="font-bold">
@@ -403,7 +405,7 @@ export default function DashboardPage() {
                           </Suspense>
                         </div>
                       </div>
-                      <div class="flex flex-col h-full w-full border border-neutral-300 dark:border-neutral-800 rounded-lg min-h-40">
+                      <div class="flex flex-col h-full w-full border border-neutral-200 dark:border-neutral-800 rounded-lg min-h-40">
                         <div class="p-4 flex-col flex h-full w-full">
                           <span class="font-bold select-none">Weather</span>
                         </div>
