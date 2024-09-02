@@ -1,18 +1,14 @@
-import { desc, eq } from "drizzle-orm";
-import { createInsertSchema } from "drizzle-valibot";
-import { InferInput, omit, pipe, safeParse, string } from "valibot";
+import { eq } from "drizzle-orm";
+import { InferInput, intersect, object, omit, partial, pipe, safeParse, string } from "valibot";
 import { db } from "../drizzle/sql";
 import { regions } from "../drizzle/sql/schema";
 import { Validator } from "../validator";
 
 export module Regions {
-  export const CreateSchema = createInsertSchema(regions);
-  export const UpdateSchema = omit(
-    createInsertSchema(regions, {
-      id: Validator.Cuid2Schema,
-    }),
-    ["createdAt", "updatedAt"],
-  );
+  export const CreateSchema = object({
+    name: string(),
+  });
+  export const UpdateSchema = intersect([partial(Regions.CreateSchema), object({ id: Validator.Cuid2Schema })]);
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.regions.findFirst>[0]>["with"];
   export const _with: WithOptions = {

@@ -1,34 +1,21 @@
 import { eq } from "drizzle-orm";
-import { createInsertSchema } from "drizzle-valibot";
-import { InferInput, omit, safeParse } from "valibot";
+import { InferInput, intersect, nullable, object, omit, partial, safeParse, string } from "valibot";
 import { db } from "../drizzle/sql";
 import { routes } from "../drizzle/sql/schemas/routes";
 import { Validator } from "../validator";
 
 export module Routes {
-  export const CreateSchema = createInsertSchema(routes);
-  export const UpdateSchema = omit(
-    createInsertSchema(routes, {
-      id: Validator.Cuid2Schema,
-    }),
-    ["createdAt", "updatedAt"]
-  );
+  export const CreateSchema = object({
+    name: string(),
+    description: nullable(string()),
+    driver_id: Validator.Cuid2Schema,
+    ride_id: Validator.Cuid2Schema,
+  });
+
+  export const UpdateSchema = intersect([partial(Routes.CreateSchema), object({ id: Validator.Cuid2Schema })]);
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.routes.findFirst>[0]>["with"];
   export const _with: WithOptions = {
-    segments: {
-      with: {
-        points: {
-          with: {
-            route_segment: {
-              with: {
-                points: true,
-              },
-            },
-          },
-        },
-      },
-    },
     waypoints: true,
   };
 
@@ -51,7 +38,22 @@ export module Routes {
     }
     return tsx.query.routes.findFirst({
       where: (fields, ops) => ops.eq(fields.id, isValid.output),
-      with: _with,
+      with: {
+        ...Routes._with,
+        segments: {
+          with: {
+            points: {
+              with: {
+                route_segment: {
+                  with: {
+                    points: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
   };
 

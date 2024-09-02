@@ -1,23 +1,25 @@
 import { desc, eq } from "drizzle-orm";
-import { createInsertSchema } from "drizzle-valibot";
-import { InferInput, omit, pipe, safeParse, string } from "valibot";
+import { InferInput, intersect, nullable, object, optional, partial, pipe, safeParse, string } from "valibot";
 import { db } from "../drizzle/sql";
 import { organizations } from "../drizzle/sql/schema";
 import { Validator } from "../validator";
 
 export module Organizations {
-  export const CreateSchema = createInsertSchema(organizations);
-  export const UpdateSchema = omit(
-    createInsertSchema(organizations, {
-      id: Validator.Cuid2Schema,
-    }),
-    ["createdAt", "updatedAt"],
-  );
+  export const CreateSchema = object({
+    ownerId: Validator.Cuid2Schema,
+    name: string(),
+    image: optional(string()),
+    phoneNumber: nullable(string()),
+    email: string(),
+  });
+
+  export const UpdateSchema = intersect([partial(Organizations.CreateSchema), object({ id: Validator.Cuid2Schema })]);
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.organizations.findFirst>[0]>["with"];
   export const _with: WithOptions = {
     owner: true,
   };
+
   export type Info = NonNullable<Awaited<ReturnType<typeof Organizations.findById>>>;
 
   export const create = async (data: InferInput<typeof Organizations.CreateSchema>, tsx = db) => {
@@ -31,7 +33,7 @@ export module Organizations {
   };
 
   export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
-    const isValid = safeParse(pipe(string(), Validator.Cuid2Schema), id);
+    const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid) throw new Error("Invalid id");
     return tsx.query.organizations.findFirst({
       where: (fields, ops) => ops.eq(fields.id, id),

@@ -58,6 +58,7 @@ export const userRelation = relations(users, ({ many }) => ({
 
 export type UserSelect = typeof users.$inferSelect;
 export type UserInsert = typeof users.$inferInsert;
+
 export const UserUpdateSchema = createInsertSchema(users)
   .partial()
   .omit({ createdAt: true, updatedAt: true })

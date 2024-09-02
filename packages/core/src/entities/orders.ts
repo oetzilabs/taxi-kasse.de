@@ -1,20 +1,23 @@
-import { count, eq, sum } from "drizzle-orm";
-import { createInsertSchema } from "drizzle-valibot";
-import { array, InferInput, minLength, minSize, omit, pipe, safeParse } from "valibot";
+import { eq, sum } from "drizzle-orm";
+import { array, InferInput, intersect, minLength, object, partial, pipe, safeParse, string } from "valibot";
 import { db } from "../drizzle/sql";
 import { AddressSelect } from "../drizzle/sql/schema";
 import { orders } from "../drizzle/sql/schemas/orders";
+import { Helper } from "../helper-functions";
 import { Validator } from "../validator";
-import { Helper } from "../helper-functions"
 
 export module Orders {
-  export const CreateSchema = createInsertSchema(orders);
-  export const UpdateSchema = omit(
-    createInsertSchema(orders, {
-      id: Validator.Cuid2Schema,
-    }),
-    ["createdAt", "updatedAt"]
-  );
+  export const CreateSchema = object({
+    destination_id: Validator.Cuid2Schema,
+    origin_id: Validator.Cuid2Schema,
+    organization_id: Validator.Cuid2Schema,
+    estimated_cost: string(),
+    driver_id: Validator.Cuid2Schema,
+    region_id: Validator.Cuid2Schema,
+    customer_id: Validator.Cuid2Schema,
+  });
+
+  export const UpdateSchema = intersect([partial(Orders.CreateSchema), object({ id: Validator.Cuid2Schema })]);
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.orders.findFirst>[0]>["with"];
   export const _with: WithOptions = {
@@ -127,17 +130,17 @@ export module Orders {
         region_with_the_most_orders = region_id;
         continue;
       }
-      if(_orders.length < 5) continue; // we are skipping any region with less than 5 orders
+      if (_orders.length < 5) continue; // we are skipping any region with less than 5 orders
       if (orders_by_region.get(region_with_the_most_orders)!.length > orders_by_region.get(region_id)!.length) {
         region_with_the_most_orders = region_id;
       }
     }
 
-    if(!region_with_the_most_orders) return []
+    if (!region_with_the_most_orders) return [];
 
     const _orders2 = orders_by_region.get(region_with_the_most_orders);
 
-    if(!_orders2) return [];
+    if (!_orders2) return [];
 
     const origins: AddressSelect[] = [];
 
@@ -150,7 +153,7 @@ export module Orders {
     if (Number.isNaN(lat) || Number.isNaN(lng)) return [];
     const radius = 2; // km
 
-    const hs: Map<string, { lat: number, lng: number; address: string }> = new Map();
+    const hs: Map<string, { lat: number; lng: number; address: string }> = new Map();
 
     for (const origin of origins.slice(0, 5)) {
       hs.set(origin.id, {
@@ -159,8 +162,8 @@ export module Orders {
         lng: Number(origin.longitude),
       });
     }
-    const list_of_points =Array.from(hs.values());
-    const { lat:clat, lng:clng } = Helper.calculateCentroid(list_of_points);
+    const list_of_points = Array.from(hs.values());
+    const { lat: clat, lng: clng } = Helper.calculateCentroid(list_of_points);
     const valid_subsets = Helper.findValidSubsets(list_of_points, clat, clng, radius);
     // !TODO: We need to gather the address of the centerpoint of the hotspot
     return valid_subsets;

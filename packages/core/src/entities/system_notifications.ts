@@ -1,19 +1,31 @@
 import { eq } from "drizzle-orm";
-import { createInsertSchema } from "drizzle-valibot";
-import { InferInput, omit, safeParse } from "valibot";
+import { InferInput, intersect, literal, nullable, object, omit, partial, safeParse, string, variant } from "valibot";
 import { db } from "../drizzle/sql";
 import { user_hidden_system_notifications } from "../drizzle/sql/schema";
 import { system_notifications } from "../drizzle/sql/schemas/system_notifications";
 import { Validator } from "../validator";
 
 export module SystemNotifications {
-  export const CreateSchema = createInsertSchema(system_notifications);
-  export const UpdateSchema = omit(
-    createInsertSchema(system_notifications, {
-      id: Validator.Cuid2Schema,
-    }),
-    ["createdAt", "updatedAt"],
-  );
+  export const CreateSchema = object({
+    title: string(),
+    message: nullable(string()),
+    action: variant("type", [
+      object({
+        type: literal("hide"),
+        label: string(),
+      }),
+      object({
+        type: literal("open:link"),
+        label: string(),
+        href: string(),
+      }),
+    ]),
+  });
+
+  export const UpdateSchema = intersect([
+    partial(SystemNotifications.CreateSchema),
+    object({ id: Validator.Cuid2Schema }),
+  ]);
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.system_notifications.findFirst>[0]>["with"];
   export const _with: WithOptions = {};
@@ -70,7 +82,7 @@ export module SystemNotifications {
   export const userHidesById = async (
     system_notification_id: InferInput<typeof Validator.Cuid2Schema>,
     user_id: InferInput<typeof Validator.Cuid2Schema>,
-    tsx = db,
+    tsx = db
   ) => {
     const isValid = safeParse(Validator.Cuid2Schema, system_notification_id);
     if (!isValid.success) {

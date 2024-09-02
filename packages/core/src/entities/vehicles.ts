@@ -1,5 +1,4 @@
 import { eq } from "drizzle-orm";
-import { createInsertSchema } from "drizzle-valibot";
 import { array, date, InferInput, intersect, nullable, object, omit, safeParse, string } from "valibot";
 import { db } from "../drizzle/sql";
 import { vehicles } from "../drizzle/sql/schema";
