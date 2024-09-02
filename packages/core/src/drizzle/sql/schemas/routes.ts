@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { text } from "drizzle-orm/pg-core";
 import { commonTable } from "./entity";
+import { rides } from "./rides";
 import { route_segments } from "./route_segments";
 import { routes_waypoints } from "./route_waypoints";
 import { users } from "./users";
@@ -13,6 +14,9 @@ export const routes = commonTable(
     driver_id: text("driver_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    ride_id: text("ride_id")
+      .notNull()
+      .references(() => rides.id, { onDelete: "cascade" }),
   },
   "route",
 );
@@ -26,5 +30,9 @@ export const route_relations = relations(routes, ({ many, one }) => ({
   driver: one(users, {
     fields: [routes.driver_id],
     references: [users.id],
+  }),
+  ride: one(rides, {
+    fields: [routes.ride_id],
+    references: [rides.id],
   }),
 }));

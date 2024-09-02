@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import { decimal, text, timestamp } from "drizzle-orm/pg-core";
 import { commonTable } from "./entity";
 import { organizations } from "./organizations";
+import { routes } from "./routes";
 import { users } from "./users";
 import { schema } from "./utils";
 import { vehicles } from "./vehicles";
@@ -43,7 +44,7 @@ export const rides = commonTable(
 export type RideSelect = typeof rides.$inferSelect;
 export type RideInsert = typeof rides.$inferInsert;
 
-export const ride_relation = relations(rides, ({ one }) => ({
+export const ride_relation = relations(rides, ({ one, many }) => ({
   vehicle: one(vehicles, {
     fields: [rides.vehicle_id],
     references: [vehicles.id],
@@ -56,4 +57,5 @@ export const ride_relation = relations(rides, ({ one }) => ({
     fields: [rides.org_id],
     references: [organizations.id],
   }),
+  routes: many(routes),
 }));

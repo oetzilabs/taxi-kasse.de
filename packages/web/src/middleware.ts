@@ -9,7 +9,7 @@ export default createMiddleware({
     if (event.node.req.method !== "GET") {
       const originHeader = getHeader(event, "Origin") ?? null;
       const hostHeader = getHeader(event, "Host") ?? null;
-      console.log(originHeader, hostHeader);
+      // console.log(originHeader, hostHeader);
       if (
         !originHeader ||
         !hostHeader ||

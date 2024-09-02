@@ -1,8 +1,7 @@
 import { count, eq, sum } from "drizzle-orm";
-import { createInsertSchema } from "drizzle-valibot";
-import { array, date, enum_, InferInput, intersect, object, omit, picklist, safeParse, string, union } from "valibot";
+import { array, date, InferInput, intersect, object, picklist, safeParse, string } from "valibot";
 import { db } from "../drizzle/sql";
-import { ride_added_by, ride_status, RideInsert, rides, RideSelect } from "../drizzle/sql/schemas/rides";
+import { ride_added_by, ride_status, rides, RideSelect } from "../drizzle/sql/schemas/rides";
 import { Validator } from "../validator";
 
 export module Rides {
@@ -48,6 +47,20 @@ export module Rides {
         owner: true,
       },
     },
+    routes: {
+      orderBy: (fields, ops) => ops.desc(fields.createdAt),
+      with: {
+        segments: {
+          with: {
+            points: true,
+          },
+          orderBy: (fields, ops) => ops.desc(fields.createdAt),
+        },
+        waypoints: {
+          orderBy: (fields, ops) => ops.desc(fields.createdAt),
+        },
+      },
+    },
   };
 
   export type Create = InferInput<typeof CreateSchema>;
@@ -80,10 +93,14 @@ export module Rides {
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return tsx.query.rides.findMany({
+    const rides = await tsx.query.rides.findMany({
       where: (fields, ops) => ops.eq(fields.user_id, isValid.output),
       with: _with,
+      orderBy: (fields, ops) => ops.desc(fields.createdAt),
     });
+    type X = (typeof rides)[number]["routes"];
+
+    return rides;
   };
 
   export const update = async (data: InferInput<typeof Rides.UpdateSchema>, tsx = db) => {

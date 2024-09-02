@@ -5,7 +5,7 @@ import { Logo } from "./Logo";
 
 export function Footer() {
   return (
-    <footer class="bg-neutral-50 dark:bg-black flex flex-col border-t border-neutral-200 dark:border-neutral-800 w-full py-20 items-center">
+    <footer class="dark:bg-neutral-200 bg-neutral-900 flex flex-col border-t border-neutral-800 dark:border-neutral-300 w-full py-20 items-center text-white dark:text-black">
       <div class="container flex flex-row w-full items-center justify-between">
         <div class="flex flex-row justify-between w-full gap-10">
           <div class="w-max">

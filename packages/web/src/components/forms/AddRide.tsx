@@ -63,7 +63,7 @@ const AddRideModal = () => {
     added_by: "user:manual",
     income: "0.00",
     rating: "5.00",
-    status: "pending",
+    status: "accepted",
     vehicle_id: "",
     startedAt: dayjs().toDate(),
     endedAt: dayjs().toDate(),
@@ -176,6 +176,26 @@ const AddRideModal = () => {
                     step={10}
                   >
                     <NumberFieldLabel class="text-sm font-bold">Distance (meter)</NumberFieldLabel>
+                    <NumberFieldHiddenInput />
+                    <NumberFieldGroup>
+                      <NumberFieldDecrementTrigger aria-label="Decrement" />
+                      <NumberFieldInput />
+                      <NumberFieldIncrementTrigger aria-label="Increment" />
+                    </NumberFieldGroup>
+                  </NumberField>
+                  <NumberField
+                    changeOnWheel={false}
+                    minValue={0}
+                    defaultValue={Number(newRide.income)}
+                    onRawValueChange={(v) => {
+                      if (v === null) return;
+                      if (v < 0) return setNewRide("income", "0.000");
+                      const as_string = v.toString();
+                      setNewRide("income", as_string);
+                    }}
+                    format
+                  >
+                    <NumberFieldLabel class="text-sm font-bold">Income</NumberFieldLabel>
                     <NumberFieldHiddenInput />
                     <NumberFieldGroup>
                       <NumberFieldDecrementTrigger aria-label="Decrement" />

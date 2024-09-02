@@ -69,6 +69,8 @@
 @layer base {
   * {
     @apply border-border;
+
+    font-feature-settings: "liga" on, "dlig" on;
   }
   body {
     @apply bg-background text-foreground;

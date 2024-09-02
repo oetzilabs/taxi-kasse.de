@@ -12,6 +12,7 @@ import { createEffect, createSignal, onCleanup, Show } from "solid-js";
 import { Footer } from "../components/Footer";
 import { Badge } from "../components/ui/badge";
 import UsedByCompaniesSection from "../components/UsedByCompanies";
+import { cn } from "../utils/cn";
 
 dayjs.extend(relativeTime);
 dayjs.extend(advancedFormat);
@@ -26,7 +27,9 @@ export const route = {
 export default function Dashboard() {
   const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
   let bannerRef: HTMLDivElement;
+  let heroRef: HTMLDivElement;
   const [isVisible, setIsVisible] = createSignal(false);
+  const [showHero, setShowHero] = createSignal(false);
 
   createEffect(() => {
     const observer = new IntersectionObserver(
@@ -41,13 +44,31 @@ export default function Dashboard() {
       },
     );
 
+    const heroObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShowHero(true);
+          heroObserver.unobserve(entry.target);
+        }
+      },
+      {
+        threshold: 0.1, // Trigger when 10% of the banner is visible
+      },
+    );
+
     if (bannerRef) {
       observer.observe(bannerRef);
+    }
+    if (heroRef) {
+      heroObserver.observe(heroRef);
     }
 
     onCleanup(() => {
       if (bannerRef) {
         observer.unobserve(bannerRef);
+      }
+      if (heroRef) {
+        heroObserver.unobserve(heroRef);
       }
     });
   });
@@ -91,12 +112,24 @@ export default function Dashboard() {
           </Button>
         </div>
       </section>
-      <section class="flex flex-col gap-0 w-full">
+      <section class="flex flex-col gap-0 w-full" ref={heroRef!}>
         <div class="flex flex-col gap-2 w-full container mx-auto h-[300px] overflow-clip">
           <img
             src="/assets/images/hero.png"
             alt="Dashboard"
-            class="bg-neutral-900 dark:bg-neutral-100 rounded-t-xl w-full aspect-video  -z-10 border-x border-t border-neutral-800 dark:border-neutral-300"
+            class={cn(
+              "transition-all bg-neutral-900 dark:bg-neutral-100 rounded-t-xl w-full aspect-video -z-10 border-x border-t border-neutral-800 dark:border-neutral-300 opacity-0 translate-y-40 ease-in-out",
+              {
+                "opacity-100 translate-y-0": showHero(),
+              },
+            )}
+            style={{
+              "transform-origin": "top center",
+              "animation-duration": "1.5s",
+              "transition-duration": "1.5s",
+              "animation-delay": "0.6s",
+              "transition-delay": "0.6s",
+            }}
           />
         </div>
         <div class="flex flex-col gap-0 w-full border-t border-neutral-200 dark:border-neutral-800 z-0 bg-background h-max">
@@ -106,24 +139,31 @@ export default function Dashboard() {
         </div>
       </section>
       <Show when={session() && session()!.user === null}>
-        <section ref={bannerRef!} class="w-full py-40 bg-gradient-to-r from-sky-300 to-teal-300">
+        <section
+          ref={bannerRef!}
+          class="w-full py-40 bg-gradient-to-b from-black to-neutral-900 dark:from-white dark:to-neutral-200 "
+        >
           <div class="container mx-auto">
             <div class="flex flex-col gap-12">
               <div
-                class={`transition-all flex flex-col gap-4 duration-1000 ease-in-out ${isVisible() ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
+                class={cn("transition-all flex flex-col gap-4 duration-1000 ease-in-out opacity-0 translate-y-10", {
+                  "opacity-100 translate-y-0": isVisible(),
+                })}
               >
-                <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none text-white">
+                <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none text-white dark:text-black">
                   If you think you'll like it, try it out!
                 </h2>
-                <p class="text-sm font-bold text-white md:text-lg/relaxed lg:text-xl/relaxed xl:text-2xl/relaxed dark:text-white uppercase">
+                <p class="text-sm font-bold text-white md:text-lg/relaxed lg:text-xl/relaxed xl:text-2xl/relaxed dark:text-black uppercase">
                   It's Free for a week
                 </p>
               </div>
               <div
-                class={`transition-all duration-1000 ease-in-out delay-300 ${isVisible() ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
+                class={cn("transition-all duration-1000 ease-in-out delay-300 opacity-0 translate-y-10", {
+                  "opacity-100 translate-y-0": isVisible(),
+                })}
               >
                 <Button
-                  class="bg-white text-sky-700 hover:bg-neutral-100 hover:text-sky-800"
+                  class="bg-white text-black hover:bg-neutral-100 hover:text-black"
                   size="lg"
                   as={A}
                   href="/auth/login"

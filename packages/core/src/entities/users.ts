@@ -1,18 +1,20 @@
 import { eq } from "drizzle-orm";
-import { createInsertSchema } from "drizzle-valibot";
-import { email, InferInput, omit, pipe, safeParse, string } from "valibot";
+import { date, InferInput, intersect, nullable, object, partial, picklist, safeParse, string } from "valibot";
 import { db } from "../drizzle/sql";
+import { user_role } from "../drizzle/sql/schema";
 import { currency_code, users } from "../drizzle/sql/schemas/users";
 import { Validator } from "../validator";
 
 export module Users {
-  export const CreateSchema = createInsertSchema(users);
-  export const UpdateSchema = omit(
-    createInsertSchema(users, {
-      id: Validator.Cuid2Schema,
-    }),
-    ["createdAt", "updatedAt"],
-  );
+  export const CreateSchema = object({
+    name: string(),
+    email: Validator.EmailSchema,
+    image: nullable(string()),
+    verifiedAt: nullable(date()),
+    role: picklist(user_role.enumValues),
+    currency_code: picklist(currency_code.enumValues),
+  });
+  export const UpdateSchema = intersect([partial(Users.CreateSchema), object({ id: Validator.Cuid2Schema })]);
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.users.findFirst>[0]>["with"];
   export const _with: WithOptions = {
@@ -62,7 +64,7 @@ export module Users {
   };
 
   export const update = async (data: InferInput<typeof Users.UpdateSchema>, tsx = db) => {
-    const isValid = safeParse(Users.UpdateSchema, data.id);
+    const isValid = safeParse(Users.UpdateSchema, data);
     if (!isValid.success) {
       throw isValid.issues;
     }
