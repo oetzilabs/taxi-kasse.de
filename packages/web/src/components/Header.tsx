@@ -20,7 +20,7 @@ export function Header() {
 
   return (
     <header class="bg-background flex flex-row border-b border-neutral-200 dark:border-neutral-900 w-full py-4 items-center justify-between">
-      <div class="flex flex-row w-full items-center justify-between px-8">
+      <div class="flex flex-row w-full items-center justify-between px-8 container mx-auto">
         <div class="flex flex-row items-center justify-start w-max gap-2">
           <A href="/" class="flex flex-row gap-4 items-center justify-center">
             <Logo small />
