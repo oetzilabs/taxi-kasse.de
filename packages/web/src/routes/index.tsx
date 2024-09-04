@@ -153,12 +153,13 @@ export default function Dashboard() {
                   })}
                 >
                   <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none text-white dark:text-black">
-                    You love it, recommend it to your friends & colleagues!
+                    You love it? <br />
+                    Recommend it to your friends & colleagues!
                   </h2>
                   <p class="text-sm font-bold text-white md:text-lg/relaxed lg:text-xl/relaxed xl:text-2xl/relaxed dark:text-black uppercase">
                     It's Free for a week
                   </p>
-                  <p class="text-xs font-bold text-white md:text-lg/relaxed lg:text-xl/relaxed xl:text-2xl/relaxed dark:text-black uppercase">
+                  <p class="text-xs font-bold text-white/50 dark:text-black/50">
                     Information: We are working on a referral program
                   </p>
                 </div>
