@@ -1,90 +1,17 @@
+import type { SendEmail } from "@cloudflare/workers-types";
 import { EmailMessage } from "cloudflare:email";
 import { Hono } from "hono";
+import { createMimeMessage } from "mimetext/browser";
 import { Resource } from "sst";
 
-interface EmailOptions {
-  date?: string; // Optional date, if not provided, it will default to the current date.
-  messageId?: string; // Optional message ID, if not provided, a unique one can be generated.
-  mimeVersion?: string; // Optional MIME version, default is "1.0".
-  contentType?: string; // Optional content type, default is "multipart/mixed".
-  boundary?: string; // Optional boundary string, if not provided, a unique one can be generated.
-  from: string;
-  to: string;
-  subject: string;
-  text: string;
-  html: string;
-  attachments?: {
-    filename: string;
-    contentType: string;
-    content: string;
-    disposition?: string; // Optional content disposition, default is "attachment".
-    contentId?: string; // Optional content ID, required for inline images.
-  }[];
-}
+type Bindings = {
+  SEB: SendEmail;
+};
 
-function createEmail({
-  date = new Date().toUTCString(),
-  messageId,
-  mimeVersion = "1.0",
-  contentType = "multipart/mixed",
-  boundary,
-  from,
-  to,
-  subject,
-  text,
-  html,
-  attachments = [],
-}: EmailOptions): string {
-  const generatedBoundary = boundary || `----boundary${Math.random().toString(36).substring(2)}`;
-  const generatedMessageId = messageId || `<${Math.random().toString(36).substring(2)}@example.com>`;
-
-  let email = `
-Date: ${date}
-From: ${from}
-To: ${to}
-Message-ID: ${generatedMessageId}
-Subject: ${subject}
-MIME-Version: ${mimeVersion}
-Content-Type: ${contentType}; boundary=${generatedBoundary}
-
---${generatedBoundary}
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-${text}
-
---${generatedBoundary}
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-${html}
-`;
-
-  attachments.forEach(({ filename, contentType, content, disposition = "attachment", contentId }) => {
-    const attachmentBoundary = `--${generatedBoundary}`;
-    const contentIdLine = contentId ? `Content-ID: <${contentId}>\n` : "";
-
-    email += `
-${attachmentBoundary}
-Content-Type: ${contentType}; name="${filename}"
-Content-Transfer-Encoding: base64
-Content-Disposition: ${disposition}; filename="${filename}"
-${contentIdLine}
-${content}
-`;
-  });
-
-  email += `--${generatedBoundary}--`;
-
-  return email.trim();
-}
-
-const app = new Hono();
+const app = new Hono<{ Bindings: Bindings }>();
 
 app.post("/", async (c) => {
   console.log("Sending email");
-
-  const b = await c.req.raw;
 
   const body = await c.req.json();
 
@@ -98,13 +25,14 @@ app.post("/", async (c) => {
     return c.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  const x = createEmail({
-    from: `info@${Resource.MainEmail.sender}`,
-    to: recipient_email,
-    subject,
-    text,
-    html,
-  });
+  const m = createMimeMessage();
+  m.setSubject(subject);
+  m.setSender(`info@${Resource.MainEmail.sender}`);
+  m.setTo(recipient_email);
+  m.addMessage({ contentType: "text/plain", data: text });
+  m.addMessage({ contentType: "text/html", data: html });
+
+  const x = m.asRaw();
 
   if (!x) {
     return c.json({ error: "Failed to parse email" }, { status: 400 });
@@ -113,8 +41,10 @@ app.post("/", async (c) => {
   const msg = new EmailMessage(`info@${Resource.MainEmail.sender}`, recipient_email, x);
 
   try {
-    // @ts-ignore
-    await env.SEB.send(msg);
+    if (!c.env.SEB) {
+      return c.json({ error: "SEB not configured" }, { status: 400 });
+    }
+    await c.env.SEB.send(msg);
   } catch (e: any) {
     return c.json({ error: e.message }, { status: 400 });
   }

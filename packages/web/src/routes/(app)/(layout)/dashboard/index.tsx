@@ -305,7 +305,11 @@ export default function DashboardPage() {
                             <div class="h-max w-full flex flex-col">
                               <For
                                 each={Object.entries(groupByMonth(rs()))}
-                                fallback={<Skeleton class="w-full h-full" />}
+                                fallback={
+                                  <div class="h-40 w-full flex flex-col items-center justify-center select-none bg-neutral-50 dark:bg-neutral-900">
+                                    <span class="text-muted-foreground">There are currently no rides</span>
+                                  </div>
+                                }
                               >
                                 {([month, rides], i) => (
                                   <div class="flex flex-col gap-0 w-full">
@@ -327,7 +331,6 @@ export default function DashboardPage() {
                                         <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
                                       </div>
                                     </div>
-
                                     <div class="w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl flex flex-col overflow-clip">
                                       <For
                                         each={rides}

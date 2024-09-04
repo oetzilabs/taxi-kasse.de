@@ -21,6 +21,7 @@
     "dayjs": "1.11.13",
     "http-status-codes": "2.3.0",
     "emailjs": "4.0.3",
+    "mimetext": "3.0.24",
     "node-fetch": "3.3.2",
     "uuid": "10.0.0",
     "zod": "3.23.8"
