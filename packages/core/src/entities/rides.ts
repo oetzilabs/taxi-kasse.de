@@ -1,4 +1,5 @@
-import { count, eq, sum } from "drizzle-orm";
+import dayjs from "dayjs";
+import { and, asc, count, desc, eq, gte, lte, sum } from "drizzle-orm";
 import { array, date, InferInput, intersect, object, picklist, safeParse, string } from "valibot";
 import { db } from "../drizzle/sql";
 import { ride_added_by, ride_status, rides, RideSelect } from "../drizzle/sql/schemas/rides";
@@ -176,6 +177,31 @@ export module Rides {
       .select({ sum: sum(rides[field]) })
       .from(rides)
       .where(eq(rides.user_id, isValid.output));
+
+    const _sum = result[0].sum;
+    if (_sum === null) return 0;
+    const __sum = Number(_sum);
+    if (Number.isNaN(__sum)) return 0;
+    return __sum;
+  };
+
+  export const sumByUserIdForThisMonth = async (
+    id: InferInput<typeof Validator.Cuid2Schema>,
+    field: keyof RideSelect,
+    tsx = db,
+  ) => {
+    const isValid = safeParse(Validator.Cuid2Schema, id);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+    const startDate = dayjs().startOf("month").toDate();
+    const endDate = dayjs().endOf("month").toDate();
+    const result = await tsx
+      .select({ sum: sum(rides[field]) })
+      .from(rides)
+      .where(and(eq(rides.user_id, isValid.output), gte(rides.startedAt, startDate), lte(rides.endedAt, endDate)));
+
+    if (result.length === 0) return 0;
 
     const _sum = result[0].sum;
     if (_sum === null) return 0;

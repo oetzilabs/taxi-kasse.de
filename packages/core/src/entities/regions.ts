@@ -12,10 +12,11 @@ export module Regions {
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.regions.findFirst>[0]>["with"];
   export const _with: WithOptions = {
-    employees: {
-      with: {},
+    organizations: {
+      with: {
+        organization: true,
+      },
     },
-    user: true,
   };
   export type Info = NonNullable<Awaited<ReturnType<typeof Regions.findById>>>;
 
@@ -60,5 +61,11 @@ export module Regions {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;
     return db.delete(regions).where(eq(regions.id, isValid.output)).returning();
+  };
+
+  export const all = async (tsx = db) => {
+    return tsx.query.regions.findMany({
+      with: _with,
+    });
   };
 }

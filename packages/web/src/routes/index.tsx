@@ -138,12 +138,48 @@ export default function Dashboard() {
           <TestimonialSection />
         </div>
       </section>
-      <Show when={session() && session()!.user === null}>
-        <section
-          ref={bannerRef!}
-          class="w-full py-40 bg-gradient-to-b from-black to-neutral-900 dark:from-white dark:to-neutral-200 "
-        >
-          <div class="container mx-auto">
+      <section
+        ref={bannerRef!}
+        class="w-full py-40 bg-gradient-to-b from-black to-neutral-900 dark:from-white dark:to-neutral-200 "
+      >
+        <div class="container mx-auto">
+          <Show
+            when={session() && session()!.user === null}
+            fallback={
+              <div class="flex flex-col gap-12">
+                <div
+                  class={cn("transition-all flex flex-col gap-4 duration-1000 ease-in-out opacity-0 translate-y-10", {
+                    "opacity-100 translate-y-0": isVisible(),
+                  })}
+                >
+                  <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none text-white dark:text-black">
+                    You love it, recommend it to your friends & colleagues!
+                  </h2>
+                  <p class="text-sm font-bold text-white md:text-lg/relaxed lg:text-xl/relaxed xl:text-2xl/relaxed dark:text-black uppercase">
+                    It's Free for a week
+                  </p>
+                  <p class="text-xs font-bold text-white md:text-lg/relaxed lg:text-xl/relaxed xl:text-2xl/relaxed dark:text-black uppercase">
+                    Information: We are working on a referral program
+                  </p>
+                </div>
+                <div
+                  class={cn("transition-all duration-1000 ease-in-out delay-300 opacity-0 translate-y-10", {
+                    "opacity-100 translate-y-0": isVisible(),
+                  })}
+                >
+                  <Button
+                    class="bg-white text-black hover:bg-neutral-100 hover:text-black"
+                    size="lg"
+                    as={A}
+                    href="/auth/login"
+                  >
+                    Start Your Free Trial
+                    <ArrowRight class="ml-2 h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            }
+          >
             <div class="flex flex-col gap-12">
               <div
                 class={cn("transition-all flex flex-col gap-4 duration-1000 ease-in-out opacity-0 translate-y-10", {
@@ -173,9 +209,9 @@ export default function Dashboard() {
                 </Button>
               </div>
             </div>
-          </div>
-        </section>
-      </Show>
+          </Show>
+        </div>
+      </section>
       <Footer />
     </main>
   );

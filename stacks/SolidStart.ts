@@ -2,6 +2,7 @@ import { api } from "./Api";
 import { auth } from "./Auth";
 import { cf, domain } from "./Domain";
 import { allSecrets } from "./Secrets";
+
 // import { bucket } from "./Storage";
 // import { ws } from "./Websocket";
 
@@ -21,6 +22,7 @@ export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
     VITE_API_URL: api.url,
     VITE_APP_URL: main_app_url,
     VITE_AUTH_URL: auth.authenticator.url,
+    VITE_LOGIN_REDIRECT_URI: `${main_app_url}/api/auth/callback`,
     // VITE_WS_LINK: ws.url,
   },
   domain: {

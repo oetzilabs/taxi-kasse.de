@@ -17,11 +17,7 @@ const generateAuthUrl = (provider: string) => {
   url.searchParams.set("provider", provider);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("client_id", provider);
-  url.searchParams.set(
-    "redirect_uri",
-    (import.meta.env.NODE_ENV === "production" ? "https://taxi-kasse.de" : "http://localhost:3000") +
-      "/api/auth/callback",
-  );
+  url.searchParams.set("redirect_uri", import.meta.env.VITE_LOGIN_REDIRECT_URI);
   return url.toString();
 };
 

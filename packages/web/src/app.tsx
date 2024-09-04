@@ -24,6 +24,8 @@ import "@fontsource-variable/plus-jakarta-sans";
 export default function App() {
   const authLink = import.meta.env.VITE_AUTH_URL;
   if (!authLink) return <div>No Auth Link in Environtment</div>;
+  const loginRedirectUri = import.meta.env.VITE_LOGIN_REDIRECT_URI;
+  if (!loginRedirectUri) return <div>No Login Redirect URI in Environtment</div>;
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
