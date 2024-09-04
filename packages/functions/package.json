@@ -15,11 +15,12 @@
     "vitest": "2.0.5"
   },
   "dependencies": {
-    "hono": "4.5.8",
-    "@aws-sdk/client-s3": "3.635.0",
-    "@aws-sdk/s3-request-presigner": "3.635.0",
+    "hono": "4.5.11",
+    "@aws-sdk/client-s3": "3.637.0",
+    "@aws-sdk/s3-request-presigner": "3.637.0",
     "dayjs": "1.11.13",
     "http-status-codes": "2.3.0",
+    "emailjs": "4.0.3",
     "node-fetch": "3.3.2",
     "uuid": "10.0.0",
     "zod": "3.23.8"

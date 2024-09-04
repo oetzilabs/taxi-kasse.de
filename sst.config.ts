@@ -25,6 +25,7 @@ export default $config({
     const api = await import("./stacks/Api");
     const solidStart = await import("./stacks/SolidStart");
     const { migrate, generate, studio, seed } = await import("./stacks/Database");
+    const { mainEmailWorker, mainEmail } = await import("./stacks/Email");
 
     return {
       // storageArn: storage.bucket.arn,
@@ -32,12 +33,20 @@ export default $config({
       // notificationArn: notification.notifications.arn,
       // notificationUrn: notification.notifications.urn,
       // websocket: websocket.ws.url,
+      mainEmailWorker: mainEmailWorker.url,
+      mainEmailWorkerUrn: mainEmailWorker.urn,
+
+      mainEmailUrn: mainEmail.urn,
+      mainEmailSender: mainEmail.sender,
+
       migrateUrn: migrate.urn,
       generateUrn: generate.urn,
       seedUrn: seed.urn,
       dbStudioUrn: studio.urn,
+
       authUrl: auth.auth.authenticator.url,
       api: api.api.url,
+
       solidStartUrl: $dev ? "http://localhost:3000" : solidStart.solidStartApp.url,
     };
   },

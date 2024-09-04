@@ -32,6 +32,14 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "MainEmail": {
+      "sender": string
+      "type": "sst.aws.Email"
+    }
+    "MainEmailWorker": {
+      "type": "sst.cloudflare.Worker"
+      "url": string
+    }
     "SolidStartApp": {
       "type": "sst.aws.SolidStart"
       "url": string
