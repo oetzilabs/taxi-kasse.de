@@ -62,7 +62,7 @@ export default function DashboardPage() {
     <div class="w-full grow flex flex-col">
       <Show when={session() && session()!.user !== null && session()}>
         {(s) => (
-          <div class="flex flex-col w-full pb-4 gap-8 max-w-2xl">
+          <div class="flex flex-col w-full py-4 gap-8 max-w-2xl">
             <div class="flex flex-col w-full gap-2">
               <h2 class="text-lg font-bold">Add a new Vehicle</h2>
               <span class="text-sm text-muted-foreground">Add a new vehicle to your list of vehicles</span>

@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { array, date, InferInput, intersect, nullable, object, omit, safeParse, string } from "valibot";
+import { array, date, InferInput, intersect, nullable, object, omit, partial, safeParse, string } from "valibot";
 import { db } from "../drizzle/sql";
 import { vehicles } from "../drizzle/sql/schema";
 import { Validator } from "../validator";
@@ -12,11 +12,11 @@ export module Vehicles {
       name: string(),
       license_plate: string(),
       model_id: nullable(string()),
-      inspection_date: date(),
+      inspection_date: nullable(date()),
       mileage: string(),
     }),
   );
-  export const UpdateSchema = intersect([CreateSchema.item, object({ id: Validator.Cuid2Schema })]);
+  export const UpdateSchema = intersect([partial(CreateSchema.item), object({ id: Validator.Cuid2Schema })]);
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.vehicles.findFirst>[0]>["with"];
   export const _with: WithOptions = {
@@ -43,6 +43,8 @@ export module Vehicles {
         },
       },
     },
+    owner: true,
+    model: true,
   };
 
   export type Info = NonNullable<Awaited<ReturnType<typeof Vehicles.findById>>>;

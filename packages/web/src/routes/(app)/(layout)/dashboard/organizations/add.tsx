@@ -29,7 +29,7 @@ export default function DashboardPage() {
     <div class="w-full grow flex flex-col">
       <Show when={session()}>
         {(s) => (
-          <div class="flex flex-col w-full pb-4 gap-4">
+          <div class="flex flex-col w-full py-4 gap-4">
             <h2 class="text-lg font-bold">Organization Management</h2>
             <span class="text-sm text-muted-foreground">Create or join an organization</span>
             <div>

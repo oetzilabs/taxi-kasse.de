@@ -93,3 +93,23 @@ export const importVehicles = action(async () => {
   const vehicles = await Vehicles.importVehicleBrands();
   return vehicles;
 });
+
+export const getVehicleById = cache(async (id: string) => {
+  "use server";
+  const [ctx, event] = await getContext();
+  if (!ctx) throw redirect("/auth/login");
+  if (!ctx.session) throw redirect("/auth/login");
+  if (!ctx.user) throw redirect("/auth/login");
+  const vehicle = await Vehicles.findById(id);
+  return vehicle;
+}, "vehicle-by-id");
+
+export const updateVehicle = action(async (data: InferInput<typeof Vehicles.UpdateSchema>) => {
+  "use server";
+  const [ctx, event] = await getContext();
+  if (!ctx) throw redirect("/auth/login");
+  if (!ctx.session) throw redirect("/auth/login");
+  if (!ctx.user) throw redirect("/auth/login");
+  const vehicle = await Vehicles.update(data);
+  return vehicle;
+});
