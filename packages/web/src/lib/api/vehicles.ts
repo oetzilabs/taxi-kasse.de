@@ -113,3 +113,17 @@ export const updateVehicle = action(async (data: InferInput<typeof Vehicles.Upda
   const vehicle = await Vehicles.update(data);
   return vehicle;
 });
+
+export const deleteVehicle = action(async (id: string) => {
+  "use server";
+  const [ctx, event] = await getContext();
+  if (!ctx) throw redirect("/auth/login");
+  if (!ctx.session) throw redirect("/auth/login");
+  if (!ctx.user) throw redirect("/auth/login");
+
+  const v = await Vehicles.findById(id);
+  if (!v) throw new Error("Vehicle not found");
+
+  const vehicle = await Vehicles.remove(id);
+  return vehicle;
+});

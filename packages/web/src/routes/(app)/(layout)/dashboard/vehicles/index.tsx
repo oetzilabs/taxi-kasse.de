@@ -5,14 +5,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getVehicles } from "@/lib/api/vehicles";
+import { deleteVehicle, getVehicles } from "@/lib/api/vehicles";
 import { getAuthenticatedSession } from "@/lib/auth/util";
-import { A, createAsync, RouteDefinition } from "@solidjs/router";
+import { A, createAsync, RouteDefinition, useAction, useSubmission } from "@solidjs/router";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import MoreHorizontal from "lucide-solid/icons/more-horizontal";
 import Pencil from "lucide-solid/icons/pencil";
 import Plus from "lucide-solid/icons/plus";
 import Trash from "lucide-solid/icons/trash";
-import { For, Show } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
+import { toast } from "solid-sonner";
 
 export const route = {
   preload: async () => {
@@ -26,6 +36,10 @@ export default function DashboardPage() {
   const session = createAsync(() => getAuthenticatedSession());
 
   const vehicles = createAsync(() => getVehicles());
+  const deleteVehicleAction = useAction(deleteVehicle);
+  const deleteVehicleState = useSubmission(deleteVehicle);
+
+  const [openDeleteDialog, setOpenDeleteDialog] = createSignal(false);
 
   return (
     <div class="w-full grow flex flex-col">
@@ -94,10 +108,42 @@ export default function DashboardPage() {
                                     <Pencil class="size-4" />
                                     <span>Edit</span>
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem class="flex flex-row items-center gap-2">
-                                    <Trash class="size-4" />
-                                    <span>Delete</span>
-                                  </DropdownMenuItem>
+                                  <Dialog open={openDeleteDialog()} onOpenChange={setOpenDeleteDialog}>
+                                    <DialogTrigger
+                                      as={DropdownMenuItem}
+                                      class="flex flex-row items-center gap-2"
+                                      closeOnSelect={false}
+                                    >
+                                      <Trash class="size-4" />
+                                      <span>Delete</span>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle>Are you sure absolutely sure?</DialogTitle>
+                                        <DialogDescription>
+                                          This action cannot be undone. This will permanently delete your account and
+                                          remove your data from our servers.
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <DialogFooter>
+                                        <Button variant="secondary" onClick={() => setOpenDeleteDialog(false)}>
+                                          No, Cancel!
+                                        </Button>
+                                        <Button
+                                          variant="destructive"
+                                          onClick={() => {
+                                            toast.promise(deleteVehicleAction(vehicle.id), {
+                                              loading: "Deleting vehicle...",
+                                              success: "Vehicle deleted successfully!",
+                                              error: "Something went wrong while deleting the vehicle.",
+                                            });
+                                          }}
+                                        >
+                                          Yes, Delete!
+                                        </Button>
+                                      </DialogFooter>
+                                    </DialogContent>
+                                  </Dialog>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>

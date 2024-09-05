@@ -11,7 +11,7 @@ import {
 import { TextField, TextFieldLabel, TextFieldRoot } from "@/components/ui/textfield";
 import { getVehicleById, updateVehicle } from "@/lib/api/vehicles";
 import { getAuthenticatedSession } from "@/lib/auth/util";
-import { A, createAsync, redirect, RouteDefinition, useAction, useParams, useSubmission } from "@solidjs/router";
+import { A, createAsync, redirect, RouteDefinition, RouteSectionProps, useAction, useParams, useSubmission } from "@solidjs/router";
 import Loader2 from "lucide-solid/icons/loader-2";
 import { createSignal, Match, Show, Suspense, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
@@ -87,11 +87,10 @@ const VehicleForm = (props: { vehicle: Vehicles.Info }) => {
   );
 };
 
-export default function DashboardEditPage() {
+export default function DashboardEditPage(props: RouteSectionProps) {
   const session = createAsync(() => getAuthenticatedSession());
-  const params = useParams();
 
-  const vehicle = createAsync(() => getVehicleById(params.vid));
+  const vehicle = createAsync(() => getVehicleById(props.params.vid));
 
   return (
     <div class="w-full grow flex flex-col">
