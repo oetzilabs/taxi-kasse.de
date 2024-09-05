@@ -113,7 +113,7 @@ export default function DashboardPage() {
                                 style: "unit",
                                 unit: "kilometer",
                                 unitDisplay: "narrow",
-                              }).format(Number(vehicle.mileage))}
+                              }).format(Number(vehicle.mileage) * 1000)}
                             </div>
                           </div>
                         </div>

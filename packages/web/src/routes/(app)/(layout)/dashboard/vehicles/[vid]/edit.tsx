@@ -12,7 +12,8 @@ import { TextField, TextFieldLabel, TextFieldRoot } from "@/components/ui/textfi
 import { getVehicleById, updateVehicle } from "@/lib/api/vehicles";
 import { getAuthenticatedSession } from "@/lib/auth/util";
 import { A, createAsync, redirect, RouteDefinition, useAction, useParams, useSubmission } from "@solidjs/router";
-import { createSignal, Match, Show, Switch } from "solid-js";
+import Loader2 from "lucide-solid/icons/loader-2";
+import { createSignal, Match, Show, Suspense, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
 import { toast } from "solid-sonner";
 
@@ -62,10 +63,15 @@ const VehicleForm = (props: { vehicle: Vehicles.Info }) => {
             class="w-max"
             disabled={updateVehicleState.pending}
             onClick={() => {
+              if (!v.id) {
+                toast.error("Failed to save! Please fill out all fields.");
+                return;
+              }
+
               toast.promise(updateVehicleAction(v), {
                 loading: "Saving...",
                 success: "Saved!",
-                error: "Failed to save!",
+                error: (e) => `Failed to save! ${e.message}`,
               });
             }}
           >
@@ -93,25 +99,33 @@ export default function DashboardEditPage() {
         {(s) => (
           <div class="flex flex-col w-full py-4 gap-6">
             <div class="flex flex-col w-full items-center justify-center gap-6">
-              <Show
-                when={vehicle()}
+              <Suspense
                 fallback={
-                  <div class="flex flex-col w-full pb-4 gap-4">
-                    <div class="flex flex-col w-full items-center justify-center rounded-md px-4 py-20 gap-2 bg-neutral-200 dark:bg-neutral-800">
-                      <span class="text-sm">You currently have no vehicles.</span>
-                      <span class="text-sm">
-                        Please{" "}
-                        <A href="/dashboard/vehicles/new" class="hover:underline text-blue-500 font-medium">
-                          create/join a vehicle
-                        </A>{" "}
-                        to view your list of vehicles.
-                      </span>
-                    </div>
+                  <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
+                    <Loader2 class="size-4 animate-spin" />
                   </div>
                 }
               >
-                {(vehicle) => <VehicleForm vehicle={vehicle()} />}
-              </Show>
+                <Show
+                  when={vehicle() && vehicle()}
+                  fallback={
+                    <div class="flex flex-col w-full pb-4 gap-4">
+                      <div class="flex flex-col w-full items-center justify-center rounded-md px-4 py-20 gap-2 bg-neutral-200 dark:bg-neutral-800">
+                        <span class="text-sm">You currently have no vehicles.</span>
+                        <span class="text-sm">
+                          Please{" "}
+                          <A href="/dashboard/vehicles/new" class="hover:underline text-blue-500 font-medium">
+                            create/join a vehicle
+                          </A>{" "}
+                          to view your list of vehicles.
+                        </span>
+                      </div>
+                    </div>
+                  }
+                >
+                  {(vehicle) => <VehicleForm vehicle={vehicle()} />}
+                </Show>
+              </Suspense>
             </div>
           </div>
         )}
