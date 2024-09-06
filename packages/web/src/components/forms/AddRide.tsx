@@ -1,7 +1,5 @@
 import type { CreateRide } from "@/lib/api/rides";
 import type { DialogTriggerProps } from "@kobalte/core/dialog";
-import type { Rides } from "@taxikassede/core/src/entities/rides";
-import type { InferInput } from "valibot";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,30 +10,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  NumberField,
-  NumberFieldDecrementTrigger,
-  NumberFieldGroup,
-  NumberFieldHiddenInput,
-  NumberFieldIncrementTrigger,
-  NumberFieldInput,
-  NumberFieldLabel,
-} from "@/components/ui/number-field";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TextField, TextFieldErrorMessage, TextFieldLabel, TextFieldRoot } from "@/components/ui/textfield";
+import { NumberField, NumberFieldInput } from "@/components/ui/number-field";
+import { TextField, TextFieldRoot } from "@/components/ui/textfield";
 import { addRide } from "@/lib/api/rides";
-import { getVehicleIds, getVehicles } from "@/lib/api/vehicles";
+import { getVehicles } from "@/lib/api/vehicles";
 import { A, createAsync, useAction, useSubmission } from "@solidjs/router";
-import { Vehicles } from "@taxikassede/core/src/entities/vehicles";
+import { cn, parseLocaleNumber } from "~/lib/utils";
 import dayjs from "dayjs";
 import Loader2 from "lucide-solid/icons/loader-2";
 import Plus from "lucide-solid/icons/plus";
 import X from "lucide-solid/icons/x";
-import { createSignal, Match, Show, Switch } from "solid-js";
+import { createSignal, For, Match, Show, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
 import { toast } from "solid-sonner";
-import { date, maxValue, minValue, number, pipe, safeParse, string, transform } from "valibot";
-import Calendar from "../Calendar";
+import { maxValue, minValue, number, pipe, string, transform } from "valibot";
+import { language } from "../stores/Language";
+import { Checkbox, CheckboxControl, CheckboxDescription, CheckboxLabel } from "../ui/checkbox";
 
 const MinuteNumberSchema = pipe(
   string("Please provide a number"),
@@ -80,7 +70,22 @@ const AddRideModal = () => {
   const addRideAction = useAction(addRide);
   const addRideStatus = useSubmission(addRide);
   return (
-    <Dialog open={open()} onOpenChange={setOpen}>
+    <Dialog
+      open={open()}
+      onOpenChange={(state) => {
+        if (!state) {
+          setNewRide("vehicle_id", "");
+          setNewRide("distance", "0.000");
+          setNewRide("income", "0.00");
+          setNewRide("rating", "5.00");
+          setNewRide("status", "accepted");
+          setNewRide("startedAt", dayjs().toDate());
+          setNewRide("endedAt", dayjs().toDate());
+          addRideStatus.clear();
+        }
+        setOpen(state);
+      }}
+    >
       <DialogTrigger
         as={(props: DialogTriggerProps) => (
           <Button size="sm" {...props} class="flex flex-row items-center gap-2">
@@ -95,8 +100,7 @@ const AddRideModal = () => {
           <DialogDescription>Please enter the details of your ride.</DialogDescription>
         </DialogHeader>
         <div class="flex flex-col gap-4">
-          <div class="w-full flex flex-col gap-1">
-            <span class="text-sm font-bold">Vehicle</span>
+          <div class="w-full flex flex-col gap-4">
             <Show when={vehicles()}>
               {(vs) => (
                 <Show
@@ -114,96 +118,98 @@ const AddRideModal = () => {
                     </div>
                   }
                 >
-                  <Select<Vehicles.Info, Vehicles.Info[]>
-                    options={vs()}
-                    value={vs().find((v) => v.id === newRide.vehicle_id)}
-                    onChange={(v) => {
-                      if (!v) return;
-                      setNewRide("vehicle_id", v.id);
-                    }}
-                    optionValue={(v) => v.id}
-                    optionTextValue={(v) => v.name}
-                    placeholder="Select a vehicle"
-                    itemComponent={(props) => (
-                      <SelectItem item={props.item} class="text-sm font-semibold">
-                        {props.item.rawValue.name}{" "}
-                        <Show when={props.item.rawValue.model} keyed>
-                          {(vM) => (
-                            <span class="text-xs text-muted-foreground">
-                              ({vM.name}, {vM.brand})
-                            </span>
+                  <div class="grid gric-cols-1 md:grid-cols-2 border border-neutral-300 dark:border-neutral-800 rounded-md overflow-clip shadow-sm">
+                    <For each={vs()}>
+                      {(vehicle) => (
+                        <div
+                          class={cn(
+                            "flex items-center gap-2 flex-col w-full border-b md:border-b-0 md:border-r border-neutral-300 dark:border-neutral-800 last:border-0 p-6 hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer",
+                            {
+                              "bg-black text-white dark:bg-white dark:text-black hover:bg-neutral-900 dark:hover:bg-neutral-100":
+                                vehicle.id === newRide.vehicle_id,
+                            },
                           )}
-                        </Show>
-                      </SelectItem>
-                    )}
-                    disallowEmptySelection
-                    required
-                    disabled={addRideStatus.pending}
-                  >
-                    <SelectTrigger>
-                      <SelectValue<Vehicles.Info>>
-                        {(props) => (
-                          <span>
-                            {props.selectedOption().name}{" "}
-                            <Show when={props.selectedOption().model} keyed>
-                              {(vM) => (
-                                <span class="text-xs text-muted-foreground">
-                                  ({vM.name}, {vM.brand})
+                          onClick={() => {
+                            setNewRide("vehicle_id", vehicle.id);
+                          }}
+                        >
+                          <div class="flex flex-row items-center gap-2 text-sm font-bold w-full">
+                            <span>{vehicle.name}</span>
+                            <Show when={vehicle.model} keyed>
+                              {(model) => (
+                                <span>
+                                  ({model.name} - {model.brand})
                                 </span>
                               )}
                             </Show>
-                          </span>
-                        )}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent />
-                  </Select>
-                  <NumberField
-                    changeOnWheel={false}
-                    minValue={0}
-                    defaultValue={Number(newRide.distance)}
-                    onRawValueChange={(v) => {
-                      if (v === null) return;
-                      if (v < 0) return setNewRide("distance", "0.000");
-                      const as_string = v.toString();
-                      setNewRide("distance", as_string);
-                    }}
-                    formatOptions={{
-                      unit: "meter",
-                      unitDisplay: "long",
-                    }}
-                    format
-                    step={10}
-                  >
-                    <NumberFieldLabel class="text-sm font-bold">Distance (meter)</NumberFieldLabel>
-                    <NumberFieldHiddenInput />
-                    <NumberFieldGroup>
-                      <NumberFieldDecrementTrigger aria-label="Decrement" />
-                      <NumberFieldInput />
-                      <NumberFieldIncrementTrigger aria-label="Increment" />
-                    </NumberFieldGroup>
-                  </NumberField>
-                  <NumberField
-                    changeOnWheel={false}
-                    minValue={0}
-                    defaultValue={Number(newRide.income)}
-                    onRawValueChange={(v) => {
-                      if (v === null) return;
-                      if (v < 0) return setNewRide("income", "0.000");
-                      const as_string = v.toString();
-                      setNewRide("income", as_string);
-                    }}
-                    format
-                  >
-                    <NumberFieldLabel class="text-sm font-bold">Income</NumberFieldLabel>
-                    <NumberFieldHiddenInput />
-                    <NumberFieldGroup>
-                      <NumberFieldDecrementTrigger aria-label="Decrement" />
-                      <NumberFieldInput />
-                      <NumberFieldIncrementTrigger aria-label="Increment" />
-                    </NumberFieldGroup>
-                  </NumberField>
-                  <div class="w-full flex flex-col gap-1">
+                          </div>
+                          <div
+                            class={cn("text-xs text-neutral-500 w-full font-medium", {
+                              "text-blue-500": vehicle.id === newRide.vehicle_id,
+                            })}
+                          >
+                            <Show when={vehicle.id === newRide.vehicle_id} fallback={"Click to Select"}>
+                              Selected
+                            </Show>
+                          </div>
+                        </div>
+                      )}
+                    </For>
+                  </div>
+                  <div class="w-full flex flex-col gap-2 p-4 border border-neutral-300 dark:border-neutral-800 rounded-md">
+                    <div class="w-full flex flex-col gap-2 items-end">
+                      <Checkbox
+                        class="flex items-start space-x-2 w-full"
+                        disabled={addRideStatus.pending || newRide.vehicle_id === ""}
+                      >
+                        <div class="grid gap-1.5 leading-none w-full">
+                          <CheckboxLabel class="text-sm font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-20">
+                            Save for next ride
+                          </CheckboxLabel>
+                          <CheckboxDescription class="text-xs text-muted-foreground">
+                            This vehicle will be used for the next ride
+                          </CheckboxDescription>
+                        </div>
+                        <CheckboxControl />
+                      </Checkbox>
+                    </div>
+                  </div>
+                  <div class="w-full flex flex-col gap-2">
+                    <div class="flex flex-row items-center gap-2 justify-between  w-full">
+                      <span class="text-sm font-bold">Distance (km)</span>
+                      <span class="text-sm font-bold">Income</span>
+                    </div>
+                    <div class="flex flex-row w-full border border-neutral-300 dark:border-neutral-800 rounded-md overflow-clip shadow-sm">
+                      <NumberField
+                        class="w-full border-0 "
+                        value={newRide.distance}
+                        minValue={0}
+                        onChange={(v) => {
+                          if (v === null) return;
+                          if (v === "") v = "0";
+                          if (Number(v) < 0) v = "0";
+                          setNewRide("distance", v);
+                        }}
+                      >
+                        <NumberFieldInput class="max-w-full w-full border-0 focus-visible:ring-0 shadow-none text-left px-3" />
+                      </NumberField>
+                      <div class="h-full bg-neutral-300 dark:bg-neutral-800 w-px" />
+                      <NumberField
+                        class="w-max border-0 "
+                        value={newRide.income}
+                        minValue={0}
+                        onChange={(v) => {
+                          if (v === null) return;
+                          if (v === "") v = "0";
+                          if (Number(v) < 0) v = "0";
+                          setNewRide("income", v);
+                        }}
+                      >
+                        <NumberFieldInput class="w-full border-0 focus-visible:ring-0 shadow-none text-right px-3" />
+                      </NumberField>
+                    </div>
+                  </div>
+                  {/* <div class="w-full flex flex-col gap-1">
                     <span class="text-sm font-bold">Start Time</span>
                     <Calendar
                       value={newRide.startedAt}
@@ -262,69 +268,48 @@ const AddRideModal = () => {
                     </div>
                   </div>
                   <div class="w-full flex flex-col gap-1">
-                    <span class="text-sm font-bold">End Time</span>
-                    <Calendar
-                      value={newRide.endedAt}
-                      onChange={(v) => {
-                        const MinDateSchema = pipe(
-                          date("Please provide a date"),
-                          minValue(newRide.startedAt!, "The end date must be after the start date"),
-                        );
-                        const isValid = safeParse(MinDateSchema, v);
-                        if (!isValid.success) {
-                          setError(isValid.issues[0].message);
-                          console.log(isValid.issues[0].message);
-                          return;
-                        } else {
-                          setError(undefined);
-                        }
-                        setNewRide("endedAt", isValid.output);
-                      }}
-                      min={newRide.startedAt}
-                    />
+                    <span class="text-sm font-bold">Duration</span>
                     <div class="w-full flex flex-row items-center justify-between gap-2">
-                      <TextFieldRoot
-                        value={dayjs(newRide.endedAt).format("HH")}
+                      <NumberField
+                        changeOnWheel={false}
+                        minValue={0}
+                        maxValue={23}
+                        value={Number(dayjs(newRide.endedAt).format("HH"))}
                         onChange={(v) => {
-                          const isValid = safeParse(HourNumberSchema, v);
-                          if (!isValid.success) {
-                            setErrors("endedAtHour", isValid.issues[0].message);
-                            return;
-                          }
-                          setNewRide("endedAt", dayjs(newRide.endedAt).set("hour", Number(v)).toDate());
+                          if (v === null) return;
+                          if (Number(v) < 0) v = "0";
+                          setNewRide("endedAt", dayjs(newRide.startedAt).add(Number(v), "hours").toDate());
                         }}
-                        class="w-full"
                       >
-                        <TextFieldLabel>
-                          <span class="text-sm  font-bold">Time (hour)</span>
-                          <TextField class="w-full" />
-                        </TextFieldLabel>
-                        <Show when={errors.endedAtHour.length > 0}>
-                          <TextFieldErrorMessage>{errors.endedAtHour}</TextFieldErrorMessage>
-                        </Show>
-                      </TextFieldRoot>
-                      <TextFieldRoot
-                        value={dayjs(newRide.endedAt).format("mm")}
+                        <NumberFieldLabel class="text-sm font-bold">Hour</NumberFieldLabel>
+                        <NumberFieldHiddenInput />
+                        <NumberFieldGroup>
+                          <NumberFieldDecrementTrigger aria-label="Decrement" />
+                          <NumberFieldInput />
+                          <NumberFieldIncrementTrigger aria-label="Increment" />
+                        </NumberFieldGroup>
+                      </NumberField>
+                      <NumberField
+                        changeOnWheel={false}
+                        minValue={0}
+                        maxValue={59}
+                        value={Number(dayjs(newRide.endedAt).format("mm"))}
                         onChange={(v) => {
-                          const isValid = safeParse(MinuteNumberSchema, v);
-                          if (!isValid.success) {
-                            setErrors("endedAtMinute", isValid.issues[0].message);
-                            return;
-                          }
-                          setNewRide("endedAt", dayjs(newRide.endedAt).set("minute", Number(v)).toDate());
+                          if (v === null) return;
+                          if (Number(v) < 0) v = "0";
+                          setNewRide("endedAt", dayjs(newRide.startedAt).add(Number(v), "minutes").toDate());
                         }}
-                        class="w-full"
                       >
-                        <TextFieldLabel>
-                          <span class="text-sm  font-bold">Time (minute)</span>
-                          <TextField class="w-full" />
-                        </TextFieldLabel>
-                        <Show when={errors.endedAtMinute.length > 0}>
-                          <TextFieldErrorMessage>{errors.endedAtMinute}</TextFieldErrorMessage>
-                        </Show>
-                      </TextFieldRoot>
+                        <NumberFieldLabel class="text-sm font-bold text-right">Minutes</NumberFieldLabel>
+                        <NumberFieldHiddenInput />
+                        <NumberFieldGroup>
+                          <NumberFieldDecrementTrigger aria-label="Decrement" />
+                          <NumberFieldInput />
+                          <NumberFieldIncrementTrigger aria-label="Increment" />
+                        </NumberFieldGroup>
+                      </NumberField>
                     </div>
-                  </div>
+                  </div> */}
                   <Show when={error()}>{(e) => <div class="text-sm text-red-500">{e()}</div>}</Show>
                   <div class=""></div>
                 </Show>
@@ -336,6 +321,14 @@ const AddRideModal = () => {
           <Button
             variant="secondary"
             onClick={() => {
+              setNewRide("vehicle_id", "");
+              setNewRide("distance", "0.000");
+              setNewRide("income", "0.00");
+              setNewRide("rating", "5.00");
+              setNewRide("status", "accepted");
+              setNewRide("startedAt", dayjs().toDate());
+              setNewRide("endedAt", dayjs().toDate());
+              addRideStatus.clear();
               setOpen(false);
             }}
             class="flex flex-row items-center gap-2"
@@ -345,10 +338,47 @@ const AddRideModal = () => {
           </Button>
           <Button
             onClick={() => {
-              toast.promise(addRideAction(newRide), {
+              const r = Object.assign({}, newRide);
+
+              let lang = "";
+              if (typeof language === "string") {
+                lang = language;
+              } else {
+                lang = language();
+              }
+              r.income = String(parseLocaleNumber(lang, r.income));
+              r.distance = String(parseLocaleNumber(lang, r.distance) * 1000);
+              r.rating = String(parseLocaleNumber(lang, r.rating));
+
+              if (!r.vehicle_id || r.vehicle_id === "") {
+                toast.error("Please select a vehicle");
+                return;
+              }
+              if (!r.startedAt) {
+                toast.error("Please select a start date");
+                return;
+              }
+              if (!r.endedAt) {
+                toast.error("Please select an end date");
+                return;
+              }
+              if (r.startedAt > r.endedAt) {
+                toast.error("The end date must be after the start date");
+                return;
+              }
+              if (r.distance === "0.000") {
+                toast.error("Please enter a distance");
+                return;
+              }
+              if (r.income === "0.00") {
+                toast.error("Please enter an income");
+                return;
+              }
+              toast.promise(addRideAction(r), {
                 loading: "Adding ride",
                 success: () => {
                   setOpen(false);
+                  addRideStatus.clear();
                   return "Ride added";
                 },
                 error: "Failed to add ride",

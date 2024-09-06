@@ -9,6 +9,9 @@
     "color": "neutral",
     "prefix": ""
   },
+  "aliases": {
+    "cn": "@/libs/cn"
+  },
   "alias": {
     "component": "@/components",
     "cn": "@/libs/cn"

@@ -6,6 +6,7 @@ import { language } from "@/components/stores/Language";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TextField, TextFieldRoot } from "@/components/ui/textfield";
 import { getLanguage } from "@/lib/api/application";
 import { getHotspot } from "@/lib/api/orders";
 import { getRides } from "@/lib/api/rides";
@@ -14,18 +15,21 @@ import { getAuthenticatedSession } from "@/lib/auth/util";
 import { cn } from "@/lib/utils";
 import { createScrollPosition } from "@solid-primitives/scroll";
 import { A, createAsync, revalidate, RouteDefinition, useSearchParams } from "@solidjs/router";
+import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { getSystemNotifications } from "~/lib/api/system_notifications";
 import dayjs from "dayjs";
 import Box from "lucide-solid/icons/box";
 import Car from "lucide-solid/icons/car";
+import Check from "lucide-solid/icons/check";
+import CheckCircle from "lucide-solid/icons/check-circle";
 import DollarSign from "lucide-solid/icons/dollar-sign";
 import Loader2 from "lucide-solid/icons/loader-2";
 import RotateClockwise from "lucide-solid/icons/rotate-cw";
 import ShoppingBag from "lucide-solid/icons/shopping-bag";
 import SquareArrowOutUpRight from "lucide-solid/icons/square-arrow-out-up-right";
 import TrendingUp from "lucide-solid/icons/trending-up";
-import { createEffect, createSignal, For, JSX, Show, Suspense } from "solid-js";
-import { TextField, TextFieldRoot } from "../../../../components/ui/textfield";
+import X from "lucide-solid/icons/x";
+import { createEffect, createSignal, For, JSX, Match, Show, Suspense, Switch } from "solid-js";
 
 export const route = {
   preload: async () => {
@@ -61,7 +65,7 @@ const Statistic = (props: {
 }) => (
   <div
     class={cn(
-      "flex flex-col  w-full gap-0 select-none border-t lg:border-l lg:border-t-0 first:border-l-0 first:border-t-0 border-neutral-200 dark:border-neutral-800 relative overflow-clip group",
+      "flex flex-col  w-full gap-0 select-none border-t lg:border-l lg:border-t-0 first:border-l-0 first:border-t-0 border-neutral-200 dark:border-neutral-800 relative overflow-clip group"
     )}
   >
     <div class="flex flex-row items-center justify-between gap-4 px-6 pb-4 pt-6">
@@ -98,7 +102,7 @@ const Statistic = (props: {
         "transition-all w-full border-b border-neutral-200 dark:border-neutral-800 py-4 px-6 leading-none text-muted-foreground absolute -top-full group-hover:top-0 left-0 right-0 backdrop-blur ",
         {
           "bg-neutral-950/10 dark:bg-neutral-100/10 text-black dark:text-white": props.priority === 1,
-        },
+        }
       )}
     >
       <span class="text-xs">{props.description}</span>
@@ -306,7 +310,7 @@ export default function DashboardPage() {
                               <For
                                 each={Object.entries(groupByMonth(rs()))}
                                 fallback={
-                                  <div class="h-40 w-full flex flex-col items-center justify-center select-none bg-neutral-50 dark:bg-neutral-900">
+                                  <div class="h-40 w-full flex flex-col items-center justify-center select-none bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl">
                                     <span class="text-muted-foreground">There are currently no rides</span>
                                   </div>
                                 }
@@ -335,7 +339,7 @@ export default function DashboardPage() {
                                       <For
                                         each={rides}
                                         fallback={
-                                          <div class="h-40 w-full flex flex-col items-center justify-center select-none bg-neutral-50 dark:bg-neutral-900">
+                                          <div class="h-40 w-full flex flex-col items-center justify-center select-none bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl">
                                             <span class="text-muted-foreground">There are currently no rides</span>
                                           </div>
                                         }
@@ -344,9 +348,27 @@ export default function DashboardPage() {
                                           <div class="h-max w-full flex flex-col border-b border-neutral-200 dark:border-neutral-800 last:border-b-0">
                                             <div class="flex flex-row w-full px-6 pt-6 pb-4 items-center justify-between gap-2">
                                               <div class="flex items-center justify-center gap-2 select-none">
+                                                <Tooltip>
+                                                  <TooltipTrigger>
+                                                    <div class="size-5 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-800">
+                                                      <Switch>
+                                                        <Match when={v.status === "accepted"}>
+                                                          <Check class="size-3 text-muted-foreground" />
+                                                        </Match>
+                                                        <Match when={v.status === "pending"}>
+                                                          <Loader2 class="size-3 animate-spin" />
+                                                        </Match>
+                                                        <Match when={v.status === "rejected"}>
+                                                          <X class="size-3 text-red-500" />
+                                                        </Match>
+                                                      </Switch>
+                                                    </div>
+                                                  </TooltipTrigger>
+                                                  <TooltipContent class="uppercase font-bold">{v.status}</TooltipContent>
+                                                </Tooltip>
                                                 <Badge variant="outline" class="flex flex-row items-center gap-2">
                                                   <Car class="size-4 text-muted-foreground" />
-                                                  {v.status}
+                                                  {v.vehicle.name}
                                                 </Badge>
                                               </div>
                                               <div class="">

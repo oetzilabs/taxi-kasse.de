@@ -5,9 +5,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { deleteVehicle, getVehicles } from "@/lib/api/vehicles";
+import { deleteVehicle, getVehicleById, getVehicles } from "@/lib/api/vehicles";
 import { getAuthenticatedSession } from "@/lib/auth/util";
-import { A, createAsync, RouteDefinition, useAction, useSubmission } from "@solidjs/router";
+import { A, createAsync, revalidate, RouteDefinition, useAction, useSubmission } from "@solidjs/router";
 import {
   Dialog,
   DialogContent,
@@ -121,7 +121,7 @@ export default function DashboardPage() {
                                       <DialogHeader>
                                         <DialogTitle>Are you sure absolutely sure?</DialogTitle>
                                         <DialogDescription>
-                                          This action cannot be undone. This will permanently delete your account and
+                                          This action cannot be undone. This will permanently delete your vehicle and
                                           remove your data from our servers.
                                         </DialogDescription>
                                       </DialogHeader>
@@ -131,12 +131,13 @@ export default function DashboardPage() {
                                         </Button>
                                         <Button
                                           variant="destructive"
-                                          onClick={() => {
+                                          onClick={async () => {
                                             toast.promise(deleteVehicleAction(vehicle.id), {
                                               loading: "Deleting vehicle...",
                                               success: "Vehicle deleted successfully!",
                                               error: "Something went wrong while deleting the vehicle.",
                                             });
+                                            await revalidate([getVehicles.key, getVehicleById.keyFor(vehicle.id)]);
                                           }}
                                         >
                                           Yes, Delete!
@@ -159,7 +160,7 @@ export default function DashboardPage() {
                                 style: "unit",
                                 unit: "kilometer",
                                 unitDisplay: "narrow",
-                              }).format(Number(vehicle.mileage) * 1000)}
+                              }).format(Number(vehicle.mileage))}
                             </div>
                           </div>
                         </div>

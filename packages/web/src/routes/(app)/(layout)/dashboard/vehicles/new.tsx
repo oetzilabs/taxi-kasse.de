@@ -35,6 +35,8 @@ import { Index, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { Portal } from "solid-js/web";
 import { toast } from "solid-sonner";
+import { language } from "~/components/stores/Language";
+import { parseLocaleNumber } from "~/lib/utils";
 
 export const route = {
   preload: async () => {
@@ -274,7 +276,10 @@ export default function DashboardPage() {
               <div class="w-full">
                 <NumberField
                   value={newVehicle.mileage}
-                  onChange={(value) => setNewVehicle("mileage", value)}
+                  onChange={(value) => {
+                    const pN = parseLocaleNumber(language(), value);
+                    setNewVehicle("mileage", String(pN))
+                  }}
                   minValue={0}
                 >
                   <NumberFieldLabel>
@@ -290,6 +295,10 @@ export default function DashboardPage() {
               <Button
                 class="w-max"
                 onClick={async () => {
+                  if (!newVehicle.name || !newVehicle.license_plate || !newVehicle.model_id || !newVehicle.inspection_date || !newVehicle.mileage) {
+                    toast.error("Please fill out all fields.");
+                    return;
+                  }
                   toast.promise(addVehicleAction(newVehicle), {
                     loading: "Adding vehicle...",
                     success: "Vehicle added",

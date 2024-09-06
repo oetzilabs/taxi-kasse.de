@@ -11,11 +11,22 @@ import {
 import { TextField, TextFieldLabel, TextFieldRoot } from "@/components/ui/textfield";
 import { getVehicleById, updateVehicle } from "@/lib/api/vehicles";
 import { getAuthenticatedSession } from "@/lib/auth/util";
-import { A, createAsync, redirect, RouteDefinition, RouteSectionProps, useAction, useParams, useSubmission } from "@solidjs/router";
+import {
+  A,
+  createAsync,
+  redirect,
+  RouteDefinition,
+  RouteSectionProps,
+  useAction,
+  useParams,
+  useSubmission,
+} from "@solidjs/router";
+import { language } from "~/components/stores/Language";
 import Loader2 from "lucide-solid/icons/loader-2";
 import { createSignal, Match, Show, Suspense, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
 import { toast } from "solid-sonner";
+import { parseLocaleNumber } from "~/lib/utils";
 
 export const route = {
   preload: async (props) => {
@@ -47,7 +58,15 @@ const VehicleForm = (props: { vehicle: Vehicles.Info }) => {
           <NumberField
             defaultValue={props.vehicle.mileage}
             name="mileage"
-            onChange={(value) => setV("mileage", value)}
+            formatOptions={{
+              style: "decimal",
+              unit: "kilometer",
+              unitDisplay: "narrow",
+            }}
+            onChange={(value) => {
+              const pN = parseLocaleNumber(language(), value);
+              setV("mileage", String(pN));
+            }}
             disabled={updateVehicleState.pending}
           >
             <NumberFieldLabel class="font-bold">Mileage (km)</NumberFieldLabel>
