@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { date, InferInput, intersect, nullable, object, partial, picklist, safeParse, string } from "valibot";
+import { date, InferInput, intersect, nullable, object, optional, partial, picklist, safeParse, string } from "valibot";
 import { db } from "../drizzle/sql";
 import { user_role } from "../drizzle/sql/schema";
 import { currency_code, users } from "../drizzle/sql/schemas/users";
@@ -9,10 +9,10 @@ export module Users {
   export const CreateSchema = object({
     name: string(),
     email: Validator.EmailSchema,
-    image: nullable(string()),
-    verifiedAt: nullable(date()),
-    role: picklist(user_role.enumValues),
-    currency_code: picklist(currency_code.enumValues),
+    image: optional(nullable(string())),
+    verifiedAt: optional(nullable(date())),
+    role: optional(picklist(user_role.enumValues)),
+    currency_code: optional(picklist(currency_code.enumValues)),
   });
   export const UpdateSchema = intersect([partial(Users.CreateSchema), object({ id: Validator.Cuid2Schema })]);
 

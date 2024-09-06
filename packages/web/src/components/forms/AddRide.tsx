@@ -340,12 +340,7 @@ const AddRideModal = () => {
             onClick={() => {
               const r = Object.assign({}, newRide);
 
-              let lang = "";
-              if (typeof language === "string") {
-                lang = language;
-              } else {
-                lang = language();
-              }
+              const lang = language();
               r.income = String(parseLocaleNumber(lang, r.income));
               r.distance = String(parseLocaleNumber(lang, r.distance) * 1000);
               r.rating = String(parseLocaleNumber(lang, r.rating));
