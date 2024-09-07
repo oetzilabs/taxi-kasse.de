@@ -46,7 +46,7 @@ export default function UserMenu(props: { user: UserSession["user"] }) {
             <User class="size-4" />
             <span>Profile</span>
           </DropdownMenuItem>
-          <DropdownMenuItem as={A} class="cursor-pointer" href="/profile/settings">
+          <DropdownMenuItem as={A} class="cursor-pointer" href="/settings">
             <Settings class="size-4" />
             <span>Settings</span>
           </DropdownMenuItem>

@@ -43,7 +43,7 @@ const HourNumberSchema = pipe(
   maxValue(23, "The time must be less than 23"),
 );
 
-const AddRideModal = () => {
+const AddRideModal = (props: { vehicle_id_used_last_time: string | null; vehicle_id_saved: string | null }) => {
   const [open, setOpen] = createSignal(false);
 
   const vehicles = createAsync(() => getVehicles());
@@ -54,10 +54,12 @@ const AddRideModal = () => {
     income: "0.00",
     rating: "5.00",
     status: "accepted",
-    vehicle_id: "",
+    vehicle_id: props.vehicle_id_saved ?? "",
     startedAt: dayjs().toDate(),
     endedAt: dayjs().toDate(),
   });
+
+  const [checkSavedVehicleId, setCheckSavedVehicleId] = createSignal(props.vehicle_id_saved ?? "");
 
   const [error, setError] = createSignal<string | undefined>();
   const [errors, setErrors] = createStore({
@@ -118,19 +120,63 @@ const AddRideModal = () => {
                     </div>
                   }
                 >
-                  <div class="grid gric-cols-1 md:grid-cols-2 border border-neutral-300 dark:border-neutral-800 rounded-md overflow-clip shadow-sm">
-                    <For each={vs()}>
+                  <div class="grid gric-cols-1 md:grid-cols-2 gap-2 ">
+                    <Show
+                      when={vs().length === 1 && vs()[0]}
+                      keyed
+                      fallback={
+                        <For each={vs()}>
+                          {(vehicle) => (
+                            <div
+                              class={cn(
+                                "flex items-center gap-2 flex-col w-full border border-neutral-300 dark:border-neutral-800 p-4 hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer h-full rounded-lg select-none",
+                                {
+                                  "bg-black text-white dark:bg-white dark:text-black hover:bg-neutral-900 dark:hover:bg-neutral-100":
+                                    vehicle.id === newRide.vehicle_id,
+                                },
+                              )}
+                              onClick={() => {
+                                if (vehicle.id === newRide.vehicle_id) {
+                                  setNewRide("vehicle_id", "");
+                                  setCheckSavedVehicleId("");
+                                  return;
+                                } else {
+                                  setNewRide("vehicle_id", vehicle.id);
+                                }
+                              }}
+                            >
+                              <div class="flex flex-row items-baseline gap-2 text-sm font-bold w-full">
+                                <span class="w-max">{vehicle.name}</span>
+                                <Show when={vehicle.model} keyed>
+                                  {(model) => (
+                                    <span class="text-xs text-neutral-500 w-max font-medium">
+                                      ({model.name} - {model.brand})
+                                    </span>
+                                  )}
+                                </Show>
+                              </div>
+                            </div>
+                          )}
+                        </For>
+                      }
+                    >
                       {(vehicle) => (
                         <div
                           class={cn(
-                            "flex items-center gap-2 flex-col w-full border-b md:border-b-0 md:border-r border-neutral-300 dark:border-neutral-800 last:border-0 p-6 hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer",
+                            "col-span-full flex items-center gap-2 flex-col w-full border-b md:border-b-0 md:border-r border-neutral-300 dark:border-neutral-800 last:border-0 p-6 hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer",
                             {
                               "bg-black text-white dark:bg-white dark:text-black hover:bg-neutral-900 dark:hover:bg-neutral-100":
                                 vehicle.id === newRide.vehicle_id,
                             },
                           )}
                           onClick={() => {
-                            setNewRide("vehicle_id", vehicle.id);
+                            if (vehicle.id === newRide.vehicle_id) {
+                              setNewRide("vehicle_id", "");
+                              setCheckSavedVehicleId("");
+                              return;
+                            } else {
+                              setNewRide("vehicle_id", vehicle.id);
+                            }
                           }}
                         >
                           <div class="flex flex-row items-center gap-2 text-sm font-bold w-full">
@@ -154,20 +200,36 @@ const AddRideModal = () => {
                           </div>
                         </div>
                       )}
-                    </For>
+                    </Show>
                   </div>
-                  <div class="w-full flex flex-col gap-2 p-4 border border-neutral-300 dark:border-neutral-800 rounded-md">
+                  <div
+                    class={cn(
+                      "w-full flex flex-col gap-2 p-4 border border-neutral-300 dark:border-neutral-800 rounded-md bg-neutral-100 dark:bg-neutral-900 opacity-50",
+                      {
+                        "opacity-100": newRide.vehicle_id !== "",
+                      },
+                    )}
+                  >
                     <div class="w-full flex flex-col gap-2 items-end">
                       <Checkbox
                         class="flex items-start space-x-2 w-full"
                         disabled={addRideStatus.pending || newRide.vehicle_id === ""}
+                        checked={checkSavedVehicleId().length > 0}
+                        onChange={(v) => {
+                          if (v) {
+                            setCheckSavedVehicleId(newRide.vehicle_id);
+                          } else {
+                            setCheckSavedVehicleId("");
+                          }
+                        }}
                       >
                         <div class="grid gap-1.5 leading-none w-full">
                           <CheckboxLabel class="text-sm font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-20">
                             Save for next ride
                           </CheckboxLabel>
                           <CheckboxDescription class="text-xs text-muted-foreground">
-                            This vehicle will be used for the next ride
+                            This vehicle will {checkSavedVehicleId().length > 0 ? "be used" : "not be used"} for the
+                            next ride
                           </CheckboxDescription>
                         </div>
                         <CheckboxControl />
@@ -349,27 +411,7 @@ const AddRideModal = () => {
                 toast.error("Please select a vehicle");
                 return;
               }
-              if (!r.startedAt) {
-                toast.error("Please select a start date");
-                return;
-              }
-              if (!r.endedAt) {
-                toast.error("Please select an end date");
-                return;
-              }
-              if (r.startedAt > r.endedAt) {
-                toast.error("The end date must be after the start date");
-                return;
-              }
-              if (r.distance === "0.000") {
-                toast.error("Please enter a distance");
-                return;
-              }
-              if (r.income === "0.00") {
-                toast.error("Please enter an income");
-                return;
-              }
-              toast.promise(addRideAction(r), {
+              toast.promise(addRideAction(r, checkSavedVehicleId()), {
                 loading: "Adding ride",
                 success: () => {
                   setOpen(false);

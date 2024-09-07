@@ -141,6 +141,13 @@
       "when": 1725262795231,
       "tag": "0019_goofy_black_cat",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1725694715159,
+      "tag": "0020_sleepy_blue_shield",
+      "breakpoints": true
     }
   ]
 }

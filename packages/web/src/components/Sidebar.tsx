@@ -31,49 +31,49 @@ export default function Sidebar() {
               <NavLink
                 exact
                 href="/dashboard"
-                class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
+                class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 text-sm"
               >
                 <Home class="size-4" />
                 Dashboard
               </NavLink>
               <NavLink
                 href="/dashboard/rides"
-                class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
+                class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 text-sm"
               >
                 <Car class="size-4" />
                 Rides
               </NavLink>
               <NavLink
                 href="/dashboard/messages"
-                class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
+                class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 text-sm"
               >
                 <MessageSquare class="size-4" />
                 Messages
               </NavLink>
               <NavLink
                 href="/dashboard/vehicles"
-                class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
+                class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 text-sm"
               >
                 <Truck class="size-4" />
                 Vehicles
               </NavLink>
               <NavLink
                 href="/dashboard/regions"
-                class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
+                class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 text-sm"
               >
                 <Map class="size-4" />
                 Regions
               </NavLink>
               <NavLink
                 href="/dashboard/organizations"
-                class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
+                class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 text-sm"
               >
                 <Building2 class="size-4" />
                 Organizations
               </NavLink>
               <NavLink
                 href="/settings"
-                class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm"
+                class="flex items-center gap-4 py-3 px-4 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 text-sm"
               >
                 <Settings class="size-4" />
                 Settings

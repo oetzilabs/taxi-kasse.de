@@ -32,7 +32,7 @@ export const getRidesByUserId = cache(async (id: string) => {
 
 export type CreateRide = Omit<InferInput<typeof Rides.CreateSchema.item>, "user_id" | "org_id">;
 
-export const addRide = action(async (data: CreateRide) => {
+export const addRide = action(async (data: CreateRide, lastSavedVehicleId: string | null) => {
   "use server";
   const [ctx, event] = await getContext();
   if (!ctx)
@@ -57,5 +57,6 @@ export const addRide = action(async (data: CreateRide) => {
     });
   const newR = { ...data, user_id: ctx.user.id, org_id: ctx.session.organization_id };
   const ride = await Rides.create([newR]);
+  // TODO: set lastSavedVehicleId somewhere...
   return ride;
 });

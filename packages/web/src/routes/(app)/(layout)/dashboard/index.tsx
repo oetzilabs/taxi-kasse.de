@@ -65,7 +65,7 @@ const Statistic = (props: {
 }) => (
   <div
     class={cn(
-      "flex flex-col  w-full gap-0 select-none border-t lg:border-l lg:border-t-0 first:border-l-0 first:border-t-0 border-neutral-200 dark:border-neutral-800 relative overflow-clip group"
+      "flex flex-col  w-full gap-0 select-none border-t lg:border-l lg:border-t-0 first:border-l-0 first:border-t-0 border-neutral-200 dark:border-neutral-800 relative overflow-clip group",
     )}
   >
     <div class="flex flex-row items-center justify-between gap-4 px-6 pb-4 pt-6">
@@ -102,7 +102,7 @@ const Statistic = (props: {
         "transition-all w-full border-b border-neutral-200 dark:border-neutral-800 py-4 px-6 leading-none text-muted-foreground absolute -top-full group-hover:top-0 left-0 right-0 backdrop-blur ",
         {
           "bg-neutral-950/10 dark:bg-neutral-100/10 text-black dark:text-white": props.priority === 1,
-        }
+        },
       )}
     >
       <span class="text-xs">{props.description}</span>
@@ -225,7 +225,7 @@ export default function DashboardPage() {
           <Show
             when={s().organization}
             fallback={
-              <div class="flex flex-col w-full pb-4 gap-4">
+              <div class="flex flex-col w-full py-4 gap-4">
                 <div class="flex flex-col w-full items-center justify-center rounded-md px-4 py-20 gap-2 bg-neutral-200 dark:bg-neutral-800">
                   <span class="text-sm">You currently have no organizations.</span>
                   <span class="text-sm">
@@ -301,7 +301,7 @@ export default function DashboardPage() {
                               <span>Refresh</span>
                               <RotateClockwise class="size-4" />
                             </Button>
-                            <AddRideModal />
+                            <AddRideModal vehicle_id_saved={null} vehicle_id_used_last_time={null} />
                           </div>
                         </div>
                         <Show when={filteredRides(rides() ?? [])}>
@@ -364,7 +364,9 @@ export default function DashboardPage() {
                                                       </Switch>
                                                     </div>
                                                   </TooltipTrigger>
-                                                  <TooltipContent class="uppercase font-bold">{v.status}</TooltipContent>
+                                                  <TooltipContent class="uppercase font-bold">
+                                                    {v.status}
+                                                  </TooltipContent>
                                                 </Tooltip>
                                                 <Badge variant="outline" class="flex flex-row items-center gap-2">
                                                   <Car class="size-4 text-muted-foreground" />

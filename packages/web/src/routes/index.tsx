@@ -28,10 +28,24 @@ export default function Dashboard() {
   const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
   let bannerRef: HTMLDivElement;
   let heroRef: HTMLDivElement;
+  let titleRef: HTMLDivElement;
   const [isVisible, setIsVisible] = createSignal(false);
+  const [titleVisible, setTitleVisible] = createSignal(false);
   const [showHero, setShowHero] = createSignal(false);
 
   createEffect(() => {
+    const titleObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setTitleVisible(true);
+          titleObserver.unobserve(entry.target);
+        }
+      },
+      {
+        threshold: 0.1, // Trigger when 10% of the banner is visible
+      },
+    );
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -62,6 +76,9 @@ export default function Dashboard() {
     if (heroRef) {
       heroObserver.observe(heroRef);
     }
+    if (titleRef) {
+      titleObserver.observe(titleRef);
+    }
 
     onCleanup(() => {
       if (bannerRef) {
@@ -70,46 +87,81 @@ export default function Dashboard() {
       if (heroRef) {
         heroObserver.unobserve(heroRef);
       }
+      if (titleRef) {
+        titleObserver.unobserve(titleRef);
+      }
     });
   });
   return (
     <main class="w-full flex flex-col gap-0">
       {/* <div class="absolute w-full h-full bg-gradient-to-r from-sky-500 via-teal-400 to-orange-500 -z-10 blur-[400px] opacity-5" /> */}
       <section class="flex flex-col gap-8 py-20 container mx-auto h-max">
-        <div class="flex flex-col gap-6">
-          <h2 class="text-8xl font-bold text-gray-800 dark:text-white">
-            Cab Driving{" "}
-            <span class="text-gradient-primary-to-secondary-from-bottom bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-300 relative">
-              Magic
-              <div class="absolute top-0 right-0 flex flex-row gap-2 items-center transform translate-x-full translate-y-5">
-                <div class="flex flex-row gap-2 items-center px-2 py-1 text-white dark:text-black rounded-lg text-xs bg-gradient-to-r from-blue-400 to-teal-300 font-medium">
-                  <Sparkles class="size-3" />
-                  Beta
-                </div>
-              </div>
-            </span>
-          </h2>
-          <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl">
-            Taxi-Kasse.de transforms your taxi business for the digital age — streamlined, intuitive, and designed with
-            your needs in mind.
-          </p>
-        </div>
-        <div class="flex flex-row gap-3 w-full relative">
-          <Show
-            when={session() && session()!.user !== null}
-            fallback={
-              <Button as={A} href="/auth/login">
-                Register Now!
-              </Button>
-            }
+        <div class="flex flex-col gap-6 ">
+          <div
+            class={cn("transition-all flex flex-col gap-4 duration-1000 ease-in-out opacity-0 translate-y-10", {
+              "opacity-100 translate-y-0": titleVisible(),
+            })}
           >
-            <Button as={A} href="/dashboard">
-              Go to Dashboard!
+            <h2 class="text-8xl font-bold text-gray-800 dark:text-white " ref={titleRef!}>
+              Cab Driving{" "}
+              <span class="text-gradient-primary-to-secondary-from-bottom bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-300 relative">
+                Magic
+                <div class="absolute top-0 right-0 flex flex-row gap-2 items-center transform translate-x-full translate-y-5">
+                  <div class="flex flex-row gap-2 items-center px-2 py-1 text-white dark:text-black rounded-lg text-xs bg-gradient-to-r from-blue-400 to-teal-300 font-medium">
+                    <Sparkles class="size-3" />
+                    Beta
+                  </div>
+                </div>
+              </span>
+            </h2>
+          </div>
+          <div
+            class={cn("transition-all flex flex-col gap-4 duration-1000 ease-in-out opacity-0 translate-y-10", {
+              "opacity-100 translate-y-0": titleVisible(),
+            })}
+            style={{
+              "transform-origin": "top center",
+              "animation-duration": "1s",
+              "transition-duration": "1s",
+              "animation-delay": "0.2s",
+              "transition-delay": "0.2s",
+            }}
+          >
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl">
+              Taxi-Kasse.de transforms your taxi business for the digital age — streamlined, intuitive, and designed
+              with your needs in mind.
+            </p>
+          </div>
+        </div>
+        <div
+          class={cn("transition-all flex flex-col gap-4 duration-1000 ease-in-out opacity-0 translate-y-10", {
+            "opacity-100 translate-y-0": titleVisible(),
+          })}
+          style={{
+            "transform-origin": "top center",
+            "animation-duration": "1s",
+            "transition-duration": "1s",
+            "animation-delay": "0.4s",
+            "transition-delay": "0.4s",
+          }}
+        >
+          <div class="flex flex-row gap-3 w-full relative">
+            <Show
+              when={session() && session()!.user !== null}
+              fallback={
+                <Button as={A} href="/auth/login">
+                  Register Now!
+                </Button>
+              }
+            >
+              <Button as={A} href="/dashboard">
+                Go to Dashboard!
+              </Button>
+            </Show>
+            <Button as={A} href="/about" variant="secondary">
+              Learn More
             </Button>
-          </Show>
-          <Button as={A} href="/about" variant="secondary">
-            Learn More
-          </Button>
+          </div>
         </div>
       </section>
       <section class="flex flex-col gap-0 w-full" ref={heroRef!}>
@@ -118,7 +170,7 @@ export default function Dashboard() {
             src="/assets/images/hero.png"
             alt="Dashboard"
             class={cn(
-              "transition-all bg-neutral-900 dark:bg-neutral-100 rounded-t-xl w-full aspect-video -z-10 border-x border-t border-neutral-800 dark:border-neutral-300 opacity-0 translate-y-40 ease-in-out",
+              "transition-all bg-white dark:bg-neutral-900 rounded-t-xl w-full aspect-video -z-10 border-x border-t border-neutral-300 dark:border-neutral-800 opacity-0 translate-y-40 ease-in-out",
               {
                 "opacity-100 translate-y-0": showHero(),
               },

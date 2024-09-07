@@ -13,7 +13,8 @@ export const organizations = commonTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
-    image: text("image").notNull().default("/images/default-profile.png"),
+    image: text("image").notNull().default("/images/default-organization-profile.png"),
+    banner: text("banner").notNull().default("/images/default-organization-banner.png"),
     phoneNumber: text("phone_number"),
     email: text("email").notNull(),
   },

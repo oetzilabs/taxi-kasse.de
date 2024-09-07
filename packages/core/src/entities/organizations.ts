@@ -8,9 +8,9 @@ export module Organizations {
   export const CreateSchema = object({
     ownerId: Validator.Cuid2Schema,
     name: string(),
-    image: optional(string()),
-    phoneNumber: nullable(string()),
     email: string(),
+    phoneNumber: optional(nullable(string())),
+    image: optional(string()),
   });
 
   export const UpdateSchema = intersect([partial(Organizations.CreateSchema), object({ id: Validator.Cuid2Schema })]);
@@ -43,6 +43,9 @@ export module Organizations {
           with: {
             region: true,
           },
+        },
+        employees: {
+          with: { user: true },
         },
       },
     });

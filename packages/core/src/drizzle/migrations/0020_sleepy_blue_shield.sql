@@ -1,0 +1,2 @@
+ALTER TABLE "taxikassede"."organizations" ALTER COLUMN "image" SET DEFAULT '/images/default-organization-profile.png';--> statement-breakpoint
+ALTER TABLE "taxikassede"."organizations" ADD COLUMN "banner" text DEFAULT '/images/default-organization-banner.png' NOT NULL;

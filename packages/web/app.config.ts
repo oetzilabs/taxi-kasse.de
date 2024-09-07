@@ -2,6 +2,7 @@ import path from "node:path";
 import { defineConfig } from "@solidjs/start/config";
 /* @ts-ignore */
 import pkg from "@vinxi/plugin-mdx";
+import devtools from "solid-devtools/vite";
 
 const { default: mdx } = pkg;
 
@@ -35,6 +36,10 @@ export default defineConfig({
       target: "esnext",
     },
     plugins: [
+      devtools({
+        /* features options - all disabled by default */
+        autoname: true, // e.g. enable autoname
+      }),
       mdx.withImports({})({
         jsx: true,
         jsxImportSource: "solid-js",
