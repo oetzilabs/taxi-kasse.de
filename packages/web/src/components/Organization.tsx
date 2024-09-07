@@ -68,7 +68,7 @@ export const Organization = (props: { user: UserSession["user"]; org: Organizati
           <div class="flex flex-col gap-0.5 w-full">
             <div class="flex flex-row items-baseline gap-1">
               <span class="font-bold">{props.org.name}</span>
-              <span class="text-xs font-medium text-muted-foreground">by {props.org.owner.name}</span>
+              <span class="text-xs font-medium text-muted-foreground">by {props.org.owner?.name}</span>
             </div>
             <div class="text-sm">{props.org.email}</div>
             <div class="text-sm">{props.org.phoneNumber}</div>
@@ -88,7 +88,7 @@ export const Organization = (props: { user: UserSession["user"]; org: Organizati
                   <Pencil class="size-4" />
                   <span>Edit</span>
                 </DropdownMenuItem>
-                <Show when={props.org.owner.id === props.user?.id}>
+                <Show when={props.org.owner?.id === props.user?.id}>
                   <DropdownMenuSeparator />
                   <Dialog open={openDeleteModal()} onOpenChange={setOpenDeleteModal}>
                     <DialogTrigger
@@ -117,9 +117,10 @@ export const Organization = (props: { user: UserSession["user"]; org: Organizati
                         </Button>
                         <Button
                           variant="destructive"
+                          disabled={removeOrganizationStatus.pending}
                           onClick={() => {
                             if (props.org.id === null) return;
-                            if (!props.user) return;
+                            if (!props.user || !props.org.owner) return;
                             if (props.user.id === null) return;
                             if (props.user.id !== props.org.owner.id) {
                               toast.error("You are not the owner of this organization");

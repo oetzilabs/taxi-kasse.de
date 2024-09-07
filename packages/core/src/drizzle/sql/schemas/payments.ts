@@ -16,9 +16,7 @@ export type Intervals = `1 ${IntervalSingular}` | `${NotOne<number>} ${IntervalP
 export const payments = commonTable(
   "payments",
   {
-    owner_id: text("owner_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+    owner_id: text("owner_id").references(() => users.id, { onDelete: "set null" }),
     name: text("name").notNull(),
     reoccuring: json("reoccuring").$type<{
       startsAt: Date;
@@ -26,7 +24,7 @@ export const payments = commonTable(
       interval: Intervals;
     }>(),
   },
-  "payment"
+  "payment",
 );
 
 export type PaymentSelect = typeof payments.$inferSelect;

@@ -74,7 +74,7 @@ export const removeOrganization = action(async (id: InferInput<typeof Validator.
     throw new Error("Organization not found");
   }
 
-  if (org.owner.id !== ctx.user.id) {
+  if (org.owner?.id !== ctx.user.id) {
     throw new Error("You are not the owner of this organization");
   }
 

@@ -17,11 +17,12 @@ export const orders = commonTable(
       .notNull()
       .references(() => addresses.id, { onDelete: "cascade" }),
 
-    organization_id: text("organization_id").references(() => organizations.id, { onDelete: "cascade" }),
     estimated_cost: decimal("estimated_cost", { scale: 2 }),
-    driver_id: text("driver_id").references(() => users.id, { onDelete: "cascade" }),
+
+    organization_id: text("organization_id").references(() => organizations.id, { onDelete: "set null" }),
+    driver_id: text("driver_id").references(() => users.id, { onDelete: "set null" }),
     region_id: text("region_id").references(() => regions.id, { onDelete: "set null" }),
-    customer_id: text("customer_id").references(() => users.id, { onDelete: "cascade" }),
+    customer_id: text("customer_id").references(() => users.id, { onDelete: "set null" }),
   },
   "order",
 );

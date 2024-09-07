@@ -11,14 +11,12 @@ export const user_organizations = schema.table(
     user_id: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    organization_id: text("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
+    organization_id: text("organization_id").references(() => organizations.id, { onDelete: "set null" }),
     role: org_role("role").default("employee").notNull(),
   },
   (table) => ({
     primarKeys: [table.user_id, table.organization_id],
-  })
+  }),
 );
 
 export type UserOrganizationSelect = typeof user_organizations.$inferSelect;

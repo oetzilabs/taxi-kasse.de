@@ -83,6 +83,7 @@ const AddRideModal = (props: { vehicle_id_used_last_time: string | null; vehicle
           setNewRide("status", "accepted");
           setNewRide("startedAt", dayjs().toDate());
           setNewRide("endedAt", dayjs().toDate());
+          setCheckSavedVehicleId("");
           addRideStatus.clear();
         }
         setOpen(state);
@@ -390,6 +391,7 @@ const AddRideModal = (props: { vehicle_id_used_last_time: string | null; vehicle
               setNewRide("status", "accepted");
               setNewRide("startedAt", dayjs().toDate());
               setNewRide("endedAt", dayjs().toDate());
+              setCheckSavedVehicleId("");
               addRideStatus.clear();
               setOpen(false);
             }}
