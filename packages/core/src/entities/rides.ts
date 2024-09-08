@@ -28,12 +28,12 @@ export module Rides {
       with: {
         orgs: {
           with: {
-            organization: true,
+            user: true,
           },
         },
       },
     },
-    org: {
+    company: {
       with: {
         owner: true,
         employees: {

@@ -1,6 +1,6 @@
 {
-  "id": "b0661f38-e9d4-483e-a237-43643941a2e4",
-  "prevId": "2a251ecb-cc6d-47bf-b168-0b3bfef6e2d1",
+  "id": "0445e9f9-38aa-48ed-875f-66a97df1d121",
+  "prevId": "93a21d4f-976d-4722-a4a3-7398b5219f18",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -47,7 +47,13 @@
         },
         "organization_id": {
           "name": "organization_id",
-          "type": "varchar",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "company_id": {
+          "name": "company_id",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         }
@@ -108,6 +114,14 @@
           "notNull": true,
           "default": "'member'"
         },
+        "currency_code": {
+          "name": "currency_code",
+          "type": "currency_code",
+          "typeSchema": "taxikassede",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'USD'"
+        },
         "id": {
           "name": "id",
           "type": "varchar",
@@ -161,11 +175,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "model": {
-          "name": "model",
+        "model_id": {
+          "name": "model_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "inspection_date": {
           "name": "inspection_date",
@@ -221,8 +235,69 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
+        },
+        "vehicles_model_id_vehicle_models_id_fk": {
+          "name": "vehicles_model_id_vehicle_models_id_fk",
+          "tableFrom": "vehicles",
+          "tableTo": "vehicle_models",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "model_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "taxikassede.vehicle_models": {
+      "name": "vehicle_models",
+      "schema": "taxikassede",
+      "columns": {
+        "brand": {
+          "name": "brand",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
@@ -236,11 +311,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "org_id": {
-          "name": "org_id",
+        "company_id": {
+          "name": "company_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "income": {
           "name": "income",
@@ -276,6 +351,26 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'pending'"
+        },
+        "added_by": {
+          "name": "added_by",
+          "type": "ride_added",
+          "typeSchema": "taxikassede",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'system:auto'"
+        },
+        "startedAt": {
+          "name": "startedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "endedAt": {
+          "name": "endedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
         },
         "id": {
           "name": "id",
@@ -319,18 +414,18 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "rides_org_id_organizations_id_fk": {
-          "name": "rides_org_id_organizations_id_fk",
+        "rides_company_id_companies_id_fk": {
+          "name": "rides_company_id_companies_id_fk",
           "tableFrom": "rides",
-          "tableTo": "organizations",
+          "tableTo": "companies",
           "schemaTo": "taxikassede",
           "columnsFrom": [
-            "org_id"
+            "company_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "set null",
           "onUpdate": "no action"
         },
         "rides_vehicle_id_vehicles_id_fk": {
@@ -345,6 +440,344 @@
             "id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "taxikassede.routes": {
+      "name": "routes",
+      "schema": "taxikassede",
+      "columns": {
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "driver_id": {
+          "name": "driver_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ride_id": {
+          "name": "ride_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "routes_driver_id_users_id_fk": {
+          "name": "routes_driver_id_users_id_fk",
+          "tableFrom": "routes",
+          "tableTo": "users",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "driver_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "routes_ride_id_rides_id_fk": {
+          "name": "routes_ride_id_rides_id_fk",
+          "tableFrom": "routes",
+          "tableTo": "rides",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "ride_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "taxikassede.route_segments": {
+      "name": "route_segments",
+      "schema": "taxikassede",
+      "columns": {
+        "route_id": {
+          "name": "route_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sequence": {
+          "name": "sequence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "direction": {
+          "name": "direction",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "distance": {
+          "name": "distance",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "route_segments_route_id_routes_id_fk": {
+          "name": "route_segments_route_id_routes_id_fk",
+          "tableFrom": "route_segments",
+          "tableTo": "routes",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "route_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "taxikassede.routes_waypoints": {
+      "name": "routes_waypoints",
+      "schema": "taxikassede",
+      "columns": {
+        "route_id": {
+          "name": "route_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "latitude": {
+          "name": "latitude",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "routes_waypoints_route_id_routes_id_fk": {
+          "name": "routes_waypoints_route_id_routes_id_fk",
+          "tableFrom": "routes_waypoints",
+          "tableTo": "routes",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "route_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "taxikassede.segment_points": {
+      "name": "segment_points",
+      "schema": "taxikassede",
+      "columns": {
+        "route_segment_id": {
+          "name": "route_segment_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "latitude": {
+          "name": "latitude",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "direction": {
+          "name": "direction",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "elevation": {
+          "name": "elevation",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "point_type": {
+          "name": "point_type",
+          "type": "segment_point_type",
+          "typeSchema": "taxikassede",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'unknown'"
+        },
+        "previous_segment_point_id": {
+          "name": "previous_segment_point_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "segment_points_route_segment_id_route_segments_id_fk": {
+          "name": "segment_points_route_segment_id_route_segments_id_fk",
+          "tableFrom": "segment_points",
+          "tableTo": "route_segments",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "route_segment_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "segment_points_previous_segment_point_id_segment_points_id_fk": {
+          "name": "segment_points_previous_segment_point_id_segment_points_id_fk",
+          "tableFrom": "segment_points",
+          "tableTo": "segment_points",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "previous_segment_point_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
@@ -421,15 +854,56 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "taxikassede.organizations": {
-      "name": "organizations",
+    "taxikassede.regions": {
+      "name": "regions",
+      "schema": "taxikassede",
+      "columns": {
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "taxikassede.companies": {
+      "name": "companies",
       "schema": "taxikassede",
       "columns": {
         "user_id": {
           "name": "user_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "name": {
           "name": "name",
@@ -442,7 +916,279 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "'/images/default-profile.png'"
+          "default": "'/images/default-company-profile.png'"
+        },
+        "banner": {
+          "name": "banner",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'/images/default-company-banner.png'"
+        },
+        "phone_number": {
+          "name": "phone_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "companies_user_id_users_id_fk": {
+          "name": "companies_user_id_users_id_fk",
+          "tableFrom": "companies",
+          "tableTo": "users",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "taxikassede.user_companies": {
+      "name": "user_companies",
+      "schema": "taxikassede",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "company_id": {
+          "name": "company_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "role": {
+          "name": "role",
+          "type": "comp_role",
+          "typeSchema": "taxikassede",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'employee'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_companies_user_id_users_id_fk": {
+          "name": "user_companies_user_id_users_id_fk",
+          "tableFrom": "user_companies",
+          "tableTo": "users",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "user_companies_company_id_companies_id_fk": {
+          "name": "user_companies_company_id_companies_id_fk",
+          "tableFrom": "user_companies",
+          "tableTo": "companies",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "company_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "taxikassede.company_regions": {
+      "name": "company_regions",
+      "schema": "taxikassede",
+      "columns": {
+        "company_id": {
+          "name": "company_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "region_id": {
+          "name": "region_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "company_regions_company_id_companies_id_fk": {
+          "name": "company_regions_company_id_companies_id_fk",
+          "tableFrom": "company_regions",
+          "tableTo": "companies",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "company_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "company_regions_region_id_regions_id_fk": {
+          "name": "company_regions_region_id_regions_id_fk",
+          "tableFrom": "company_regions",
+          "tableTo": "regions",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "region_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "company_regions_company_id_region_id_pk": {
+          "name": "company_regions_company_id_region_id_pk",
+          "columns": [
+            "company_id",
+            "region_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "taxikassede.organization_companies": {
+      "name": "organization_companies",
+      "schema": "taxikassede",
+      "columns": {
+        "company_id": {
+          "name": "company_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "role": {
+          "name": "role",
+          "type": "org_roles",
+          "typeSchema": "taxikassede",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'employee'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "organization_companies_company_id_users_id_fk": {
+          "name": "organization_companies_company_id_users_id_fk",
+          "tableFrom": "organization_companies",
+          "tableTo": "users",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "company_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "organization_companies_organization_id_companies_id_fk": {
+          "name": "organization_companies_organization_id_companies_id_fk",
+          "tableFrom": "organization_companies",
+          "tableTo": "companies",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "taxikassede.organizations": {
+      "name": "organizations",
+      "schema": "taxikassede",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'/images/default-organization-profile.png'"
+        },
+        "banner": {
+          "name": "banner",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'/images/default-organization-banner.png'"
         },
         "phone_number": {
           "name": "phone_number",
@@ -495,7 +1241,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -516,7 +1262,7 @@
           "name": "organization_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "role": {
           "name": "role",
@@ -554,26 +1300,85 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "taxikassede.destinations": {
-      "name": "destinations",
+    "taxikassede.organization_regions": {
+      "name": "organization_regions",
       "schema": "taxikassede",
       "columns": {
-        "lat": {
-          "name": "lat",
+        "organization_id": {
+          "name": "organization_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "lng": {
-          "name": "lng",
+        "region_id": {
+          "name": "region_id",
           "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "organization_regions_organization_id_companies_id_fk": {
+          "name": "organization_regions_organization_id_companies_id_fk",
+          "tableFrom": "organization_regions",
+          "tableTo": "companies",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "organization_regions_region_id_regions_id_fk": {
+          "name": "organization_regions_region_id_regions_id_fk",
+          "tableFrom": "organization_regions",
+          "tableTo": "regions",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "region_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "organization_regions_organization_id_region_id_pk": {
+          "name": "organization_regions_organization_id_region_id_pk",
+          "columns": [
+            "organization_id",
+            "region_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "taxikassede.addresses": {
+      "name": "addresses",
+      "schema": "taxikassede",
+      "columns": {
+        "latitude": {
+          "name": "latitude",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "numeric",
           "primaryKey": false,
           "notNull": true
         },
@@ -636,8 +1441,38 @@
           "primaryKey": false,
           "notNull": true
         },
+        "origin_id": {
+          "name": "origin_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "estimated_cost": {
+          "name": "estimated_cost",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
         "organization_id": {
           "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "driver_id": {
+          "name": "driver_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "region_id": {
+          "name": "region_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "customer_id": {
+          "name": "customer_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -670,10 +1505,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "orders_destination_id_destinations_id_fk": {
-          "name": "orders_destination_id_destinations_id_fk",
+        "orders_destination_id_addresses_id_fk": {
+          "name": "orders_destination_id_addresses_id_fk",
           "tableFrom": "orders",
-          "tableTo": "destinations",
+          "tableTo": "addresses",
           "schemaTo": "taxikassede",
           "columnsFrom": [
             "destination_id"
@@ -684,10 +1519,24 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "orders_organization_id_organizations_id_fk": {
-          "name": "orders_organization_id_organizations_id_fk",
+        "orders_origin_id_addresses_id_fk": {
+          "name": "orders_origin_id_addresses_id_fk",
           "tableFrom": "orders",
-          "tableTo": "organizations",
+          "tableTo": "addresses",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "origin_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "orders_organization_id_companies_id_fk": {
+          "name": "orders_organization_id_companies_id_fk",
+          "tableFrom": "orders",
+          "tableTo": "companies",
           "schemaTo": "taxikassede",
           "columnsFrom": [
             "organization_id"
@@ -695,7 +1544,49 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "orders_driver_id_users_id_fk": {
+          "name": "orders_driver_id_users_id_fk",
+          "tableFrom": "orders",
+          "tableTo": "users",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "driver_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "orders_region_id_regions_id_fk": {
+          "name": "orders_region_id_regions_id_fk",
+          "tableFrom": "orders",
+          "tableTo": "regions",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "region_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "orders_customer_id_users_id_fk": {
+          "name": "orders_customer_id_users_id_fk",
+          "tableFrom": "orders",
+          "tableTo": "users",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "customer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -706,25 +1597,24 @@
       "name": "system_notifications",
       "schema": "taxikassede",
       "columns": {
-        "message": {
-          "name": "message",
+        "title": {
+          "name": "title",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "bg_color": {
-          "name": "bg_color",
+        "message": {
+          "name": "message",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'#000000'"
+          "notNull": false
         },
-        "text_color": {
-          "name": "text_color",
-          "type": "text",
+        "action": {
+          "name": "action",
+          "type": "json",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'#FFFFFF'"
+          "notNull": false,
+          "default": "'{\"type\":\"hide\",\"label\":\"Close\"}'::json"
         },
         "id": {
           "name": "id",
@@ -756,9 +1646,91 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
+    },
+    "taxikassede.user_hidden_system_notifications": {
+      "name": "user_hidden_system_notifications",
+      "schema": "taxikassede",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "system_notification_id": {
+          "name": "system_notification_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_hidden_system_notifications_user_id_users_id_fk": {
+          "name": "user_hidden_system_notifications_user_id_users_id_fk",
+          "tableFrom": "user_hidden_system_notifications",
+          "tableTo": "users",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "user_hidden_system_notifications_system_notification_id_system_notifications_id_fk": {
+          "name": "user_hidden_system_notifications_system_notification_id_system_notifications_id_fk",
+          "tableFrom": "user_hidden_system_notifications",
+          "tableTo": "system_notifications",
+          "schemaTo": "taxikassede",
+          "columnsFrom": [
+            "system_notification_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "user_hidden_system_notifications_user_id_system_notification_id_pk": {
+          "name": "user_hidden_system_notifications_user_id_system_notification_id_pk",
+          "columns": [
+            "user_id",
+            "system_notification_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
     }
   },
   "enums": {
+    "taxikassede.currency_code": {
+      "name": "currency_code",
+      "schema": "taxikassede",
+      "values": [
+        "USD",
+        "EUR",
+        "GBP",
+        "CHF",
+        "JPY",
+        "AUD",
+        "CAD",
+        "NZD"
+      ]
+    },
+    "taxikassede.ride_added": {
+      "name": "ride_added",
+      "schema": "taxikassede",
+      "values": [
+        "user:manual",
+        "system:auto",
+        "admin:manual"
+      ]
+    },
     "taxikassede.ride_status": {
       "name": "ride_status",
       "schema": "taxikassede",
@@ -771,6 +1743,48 @@
         "archived"
       ]
     },
+    "taxikassede.segment_point_type": {
+      "name": "segment_point_type",
+      "schema": "taxikassede",
+      "values": [
+        "start",
+        "waypoint",
+        "u_turn",
+        "merge",
+        "exit",
+        "fork",
+        "bridge",
+        "tunnel",
+        "crosswalk",
+        "turn",
+        "straight",
+        "end",
+        "junction",
+        "roundabout",
+        "pedestrian_crossing",
+        "rest_area",
+        "toll_booth",
+        "service_area",
+        "ferry_crossing",
+        "switchback",
+        "scenic_viewpoint",
+        "speed_bump",
+        "dead_end",
+        "overpass",
+        "underpass",
+        "railway_crossing",
+        "hazard_zone",
+        "yield_point",
+        "parking_lot_entrance",
+        "parking_lot_exit",
+        "controlled_intersection",
+        "shared_road",
+        "one_way",
+        "restricted_area",
+        "other",
+        "unknown"
+      ]
+    },
     "taxikassede.verification_status": {
       "name": "verification_status",
       "schema": "taxikassede",
@@ -778,6 +1792,14 @@
         "pending",
         "verified",
         "rejected"
+      ]
+    },
+    "taxikassede.comp_role": {
+      "name": "comp_role",
+      "schema": "taxikassede",
+      "values": [
+        "owner",
+        "employee"
       ]
     },
     "taxikassede.org_roles": {

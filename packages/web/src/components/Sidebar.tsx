@@ -72,6 +72,13 @@ export default function Sidebar() {
                 Organizations
               </NavLink>
               <NavLink
+                href="/dashboard/companies"
+                class="flex items-center gap-4 py-3 px-5 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-800 text-sm"
+              >
+                <Building2 class="size-4" />
+                Companies
+              </NavLink>
+              <NavLink
                 href="/settings"
                 class="flex items-center gap-4 py-3 px-5 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-800 text-sm"
               >

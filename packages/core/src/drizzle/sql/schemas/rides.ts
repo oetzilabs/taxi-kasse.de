@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { decimal, text, timestamp } from "drizzle-orm/pg-core";
+import { companies } from "./companies";
 import { commonTable } from "./entity";
-import { organizations } from "./organizations";
 import { routes } from "./routes";
 import { users } from "./users";
 import { schema } from "./utils";
@@ -24,7 +24,7 @@ export const rides = commonTable(
     user_id: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    org_id: text("org_id").references(() => organizations.id, { onDelete: "set null" }),
+    company_id: text("company_id").references(() => companies.id, { onDelete: "set null" }),
     income: decimal("income", { scale: 2 }).notNull().default("0.00"),
     distance: decimal("distance", { scale: 3 }).notNull().default("0.000"),
     vehicle_id: text("vehicle_id")
@@ -51,9 +51,9 @@ export const ride_relation = relations(rides, ({ one, many }) => ({
     fields: [rides.user_id],
     references: [users.id],
   }),
-  org: one(organizations, {
-    fields: [rides.org_id],
-    references: [organizations.id],
+  company: one(companies, {
+    fields: [rides.company_id],
+    references: [companies.id],
   }),
   routes: many(routes),
 }));

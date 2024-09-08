@@ -4,6 +4,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { Validator } from "../../../validator";
 import { commonTable } from "./entity";
 import { user_role } from "./roles";
+import { user_companies } from "./user_companies";
 import { user_organizations } from "./user_organizations";
 import { schema } from "./utils";
 
@@ -48,12 +49,14 @@ export const sessions = schema.table("session", {
     mode: "date",
   }).notNull(),
   access_token: text("access_token"),
-  organization_id: varchar("organization_id"),
+  organization_id: text("organization_id"),
+  company_id: text("company_id"),
 });
 
 export const userRelation = relations(users, ({ many }) => ({
   sessions: many(sessions),
   orgs: many(user_organizations),
+  companies: many(user_companies),
 }));
 
 export type UserSelect = typeof users.$inferSelect;

@@ -1,8 +1,8 @@
 import { relations } from "drizzle-orm";
 import { decimal, text } from "drizzle-orm/pg-core";
 import { addresses } from "./addresses";
+import { companies } from "./companies";
 import { commonTable } from "./entity";
-import { organizations } from "./organizations";
 import { regions } from "./regions";
 import { users } from "./users";
 
@@ -19,7 +19,7 @@ export const orders = commonTable(
 
     estimated_cost: decimal("estimated_cost", { scale: 2 }),
 
-    organization_id: text("organization_id").references(() => organizations.id, { onDelete: "set null" }),
+    organization_id: text("organization_id").references(() => companies.id, { onDelete: "set null" }),
     driver_id: text("driver_id").references(() => users.id, { onDelete: "set null" }),
     region_id: text("region_id").references(() => regions.id, { onDelete: "set null" }),
     customer_id: text("customer_id").references(() => users.id, { onDelete: "set null" }),
@@ -39,9 +39,9 @@ export const order_relation = relations(orders, ({ one }) => ({
     fields: [orders.origin_id],
     references: [addresses.id],
   }),
-  org: one(organizations, {
+  org: one(companies, {
     fields: [orders.organization_id],
-    references: [organizations.id],
+    references: [companies.id],
   }),
   region: one(regions, {
     fields: [orders.region_id],

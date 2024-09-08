@@ -20,9 +20,11 @@ export module Users {
   export const _with: WithOptions = {
     orgs: {
       with: {
-        organization: {
-          with: {},
-        },
+        user: true,
+      },
+    },
+    companies: {
+      with: {
         user: true,
       },
     },

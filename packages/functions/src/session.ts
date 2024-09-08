@@ -1,4 +1,5 @@
 import { Organizations } from "@taxikassede/core/src/entities/organizations";
+import { Companies } from "@taxikassede/core/src/entities/companies";
 import { StatusCodes } from "http-status-codes";
 import { ApiHandler, error, getUser, json } from "./utils";
 
@@ -14,10 +15,12 @@ export const handler = ApiHandler(async (_event) => {
   }
 
   const org = await Organizations.lastCreatedByUserId(user.id);
+  const company = await Companies.lastCreatedByUserId(user.id);
 
   return json({
     email: user.email,
     id: user.id,
     organization_id: org?.id ?? null,
+    company_id: company?.id ?? null,
   });
 });

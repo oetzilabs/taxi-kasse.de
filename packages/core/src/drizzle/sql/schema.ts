@@ -11,12 +11,19 @@ export * from "./schemas/route_waypoints";
 export * from "./schemas/segment_points";
 
 export * from "./schemas/verifications";
-export * from "./schemas/organizations";
 export * from "./schemas/regions";
+
+export * from "./schemas/companies";
+export * from "./schemas/user_companies";
+export * from "./schemas/company_regions";
+
+export * from "./schemas/organization_companies";
+
+export * from "./schemas/organizations";
+export * from "./schemas/user_organizations";
 export * from "./schemas/organization_regions";
 
 export * from "./schemas/roles";
-export * from "./schemas/user_organizations";
 
 export * from "./schemas/addresses";
 export * from "./schemas/orders";

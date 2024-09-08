@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import { text } from "drizzle-orm/pg-core";
+import { companies } from "./companies";
 import { organizations } from "./organizations";
 import { org_role } from "./roles";
 import { users } from "./users";

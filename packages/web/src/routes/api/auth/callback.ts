@@ -1,5 +1,5 @@
-import { lucia } from "@/lib/auth";
 import type { APIEvent } from "@solidjs/start/server";
+import { lucia } from "@/lib/auth";
 import { Users } from "@taxikassede/core/src/entities/users";
 import { appendHeader, sendRedirect } from "vinxi/http";
 
@@ -34,7 +34,7 @@ export async function GET(e: APIEvent) {
     },
   }).then((r) => r.json());
 
-  const { id, organization_id } = sessionResponse;
+  const { id, organization_id, company_id } = sessionResponse;
 
   if (!id) {
     return sendRedirect(event, "/auth/error?error=missing_user", 303);
@@ -43,6 +43,7 @@ export async function GET(e: APIEvent) {
   const session = await lucia.createSession(id, {
     access_token: response.access_token,
     organization_id: organization_id ?? null,
+    company_id: company_id ?? null,
     createdAt: new Date(),
   });
 

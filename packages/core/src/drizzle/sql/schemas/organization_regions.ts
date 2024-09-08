@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import { primaryKey, text } from "drizzle-orm/pg-core";
+import { companies } from "./companies";
 import { organizations } from "./organizations";
 import { regions } from "./regions";
 import { schema } from "./utils";
@@ -9,7 +10,7 @@ export const organization_regions = schema.table(
   {
     organization_id: text("organization_id")
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
+      .references(() => companies.id, { onDelete: "cascade" }),
     region_id: text("region_id")
       .notNull()
       .references(() => regions.id, { onDelete: "cascade" }),

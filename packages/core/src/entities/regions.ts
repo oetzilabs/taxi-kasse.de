@@ -14,7 +14,7 @@ export module Regions {
   export const _with: WithOptions = {
     organizations: {
       with: {
-        organization: true,
+        company: true,
       },
     },
   };

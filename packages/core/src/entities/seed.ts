@@ -1,4 +1,3 @@
-// this is a seed file for the database
 import { Vehicles } from "./vehicles";
 
 process.on("unhandledRejection", (reason, p) => {
@@ -10,10 +9,7 @@ const main = async () => {
 
   console.log(`${brands_vehicles.length} brands and models imported`);
 
-  process.exit(0)
+  process.exit(0);
 };
 
 await main();
-
-
-
