@@ -29,6 +29,13 @@ export module Rides {
         orgs: {
           with: {
             user: true,
+            organization: {
+              with: {
+                owner: true,
+                employees: true,
+                regions: true,
+              },
+            },
           },
         },
       },

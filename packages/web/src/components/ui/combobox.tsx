@@ -5,16 +5,17 @@ import type {
   ComboboxTriggerProps,
 } from "@kobalte/core/combobox";
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
-import type { ParentProps, ValidComponent, VoidProps } from "solid-js";
+import type { JSX, ParentProps, ValidComponent, VoidProps } from "solid-js";
 import { cn } from "@/libs/cn";
 import { Combobox as ComboboxPrimitive } from "@kobalte/core/combobox";
-import { splitProps } from "solid-js";
+import { For, Show, splitProps } from "solid-js";
 
 export const Combobox = ComboboxPrimitive;
 export const ComboboxDescription = ComboboxPrimitive.Description;
 export const ComboboxErrorMessage = ComboboxPrimitive.ErrorMessage;
 export const ComboboxItemDescription = ComboboxPrimitive.ItemDescription;
 export const ComboboxHiddenSelect = ComboboxPrimitive.HiddenSelect;
+export const ComboboxListbox = ComboboxPrimitive.Listbox;
 
 type comboboxInputProps<T extends ValidComponent = "input"> = VoidProps<
   ComboboxInputProps<T> & {

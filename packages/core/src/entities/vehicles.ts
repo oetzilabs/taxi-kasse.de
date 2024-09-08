@@ -22,7 +22,7 @@ export module Vehicles {
   export const _with: WithOptions = {
     rides: {
       with: {
-        org: {
+        company: {
           with: {
             owner: true,
             employees: {

@@ -1,6 +1,6 @@
 import type { CreateVehicle } from "@/lib/api/vehicles";
+import { SelectBrandModel } from "@/components/SelectBrandModel";
 import { Button } from "@/components/ui/button";
-import { Combobox, ComboboxContent, ComboboxInput, ComboboxItem, ComboboxTrigger } from "@/components/ui/combobox";
 import {
   DatePicker,
   DatePickerContent,
@@ -30,13 +30,14 @@ import { TextField, TextFieldLabel, TextFieldRoot } from "@/components/ui/textfi
 import { addVehicle, getVehicleIds, getVehicleModels, getVehicles } from "@/lib/api/vehicles";
 import { getAuthenticatedSession } from "@/lib/auth/util";
 import { createAsync, revalidate, RouteDefinition, useAction, useSubmission } from "@solidjs/router";
+import { language } from "~/components/stores/Language";
+import { parseLocaleNumber } from "~/lib/utils";
 import dayjs from "dayjs";
-import { Index, Show } from "solid-js";
+import { Index, Show, Suspense } from "solid-js";
 import { createStore } from "solid-js/store";
 import { Portal } from "solid-js/web";
 import { toast } from "solid-sonner";
-import { language } from "~/components/stores/Language";
-import { parseLocaleNumber } from "~/lib/utils";
+import { Skeleton } from "../../../../../components/ui/skeleton";
 
 export const route = {
   preload: async () => {
@@ -48,7 +49,7 @@ export const route = {
 
 export default function DashboardPage() {
   const session = createAsync(() => getAuthenticatedSession());
-  const vehicleModels = createAsync(() => getVehicleModels(), { deferStream: true });
+  const vehicleBrands = createAsync(() => getVehicleModels(), { deferStream: true });
   const [newVehicle, setNewVehicle] = createStore<CreateVehicle>({
     name: "",
     license_plate: "",
@@ -59,7 +60,6 @@ export default function DashboardPage() {
 
   const addVehicleAction = useAction(addVehicle);
   const addVehicleStatus = useSubmission(addVehicle);
-
   return (
     <div class="w-full grow flex flex-col">
       <Show when={session() && session()!.user !== null && session()}>
@@ -94,51 +94,24 @@ export default function DashboardPage() {
                   <span class="text-sm font-bold">Model </span>
                   <span class="text-xs text-muted-foreground">(list last updated: 22nd Jan 2021)</span>
                 </div>
-                <Show
-                  when={vehicleModels() && vehicleModels()!.length > 0 && vehicleModels()}
-                  fallback={
-                    <div class="text-sm text-muted-foreground p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg min-w-[200px] items-center justify-center flex select-none">
-                      No models available at this moment
-                    </div>
-                  }
-                  keyed
-                >
-                  {(brands) => (
-                    <Combobox<(typeof brands)[number]["models"][number], (typeof brands)[number]>
-                      options={brands}
-                      onChange={(e) => {
-                        if (!e) return;
-                        setNewVehicle("model_id", e.value);
-                      }}
-                      sameWidth
-                      value={brands
-                        .map((b) => b.models)
-                        .flat()
-                        .find((m) => m.value === newVehicle.model_id)}
-                      optionValue={(b) => b.value}
-                      optionLabel={(b) => b.label}
-                      optionTextValue={(b) => b.label}
-                      optionGroupChildren="models"
-                      // virtualized
-                      placeholder="Choose a Model"
-                      selectionBehavior="replace"
-                      modal
-                      itemComponent={(props) => (
-                        <ComboboxItem item={props.item}>
-                          <span class="text-sm font-semibold">{props.item.rawValue.label}</span>
-                        </ComboboxItem>
-                      )}
-                      sectionComponent={(props) => (
-                        <div class="text-xs font-bold text-muted-foreground">{props.section.rawValue.group}</div>
-                      )}
-                    >
-                      <ComboboxTrigger>
-                        <ComboboxInput />
-                      </ComboboxTrigger>
-                      <ComboboxContent class="max-h-40 overflow-y-auto" />
-                    </Combobox>
-                  )}
-                </Show>
+                <Suspense fallback={<Skeleton class="w-full h-40"></Skeleton>}>
+                  <Show when={vehicleBrands()}>
+                    {(brands) => (
+                      <SelectBrandModel
+                        value={newVehicle.model_id}
+                        onChange={(value) => {
+                          if (value === "") {
+                            setNewVehicle("model_id", "");
+                            return;
+                          } else {
+                            setNewVehicle("model_id", value);
+                          }
+                        }}
+                        brands={brands()}
+                      />
+                    )}
+                  </Show>
+                </Suspense>
               </div>
               <div class="w-full">
                 <span class="text-sm font-bold">When was the last Inspection Date? (MFK Date)</span>
@@ -278,7 +251,7 @@ export default function DashboardPage() {
                   value={newVehicle.mileage}
                   onChange={(value) => {
                     const pN = parseLocaleNumber(language(), value);
-                    setNewVehicle("mileage", String(pN))
+                    setNewVehicle("mileage", String(pN));
                   }}
                   minValue={0}
                 >
@@ -295,7 +268,13 @@ export default function DashboardPage() {
               <Button
                 class="w-max"
                 onClick={async () => {
-                  if (!newVehicle.name || !newVehicle.license_plate || !newVehicle.model_id || !newVehicle.inspection_date || !newVehicle.mileage) {
+                  if (
+                    !newVehicle.name ||
+                    !newVehicle.license_plate ||
+                    !newVehicle.model_id ||
+                    !newVehicle.inspection_date ||
+                    !newVehicle.mileage
+                  ) {
                     toast.error("Please fill out all fields.");
                     return;
                   }

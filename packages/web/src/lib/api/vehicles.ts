@@ -70,14 +70,14 @@ export const getVehicleModels = cache(async () => {
         models: [
           {
             value: model.id,
-            label: `${model.name} (${model.brand})`,
+            label: `${model.name}`,
           },
         ],
       });
     } else {
       vehicleBrand.models.push({
         value: model.id,
-        label: `${model.name} (${model.brand})`,
+        label: `${model.name}`,
       });
     }
   }
