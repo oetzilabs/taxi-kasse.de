@@ -70,14 +70,18 @@ export const SelectBrandModel = (props: SelectBrandModelProps) => {
     return sortedByGroup;
   });
 
+  const estimateSize = (i: number) => {
+    const models = filterModelsAndBrands()[i].models;
+    if (models.length === 0) return 0;
+    return (
+      (Math.floor(models.length / 3) + (models.length % 3 > 0 ? 1 : 0)) * 130 + 25
+    );
+  };
+
   const virtualizer = createVirtualizer({
     count: filterModelsAndBrands().length,
     getScrollElement: () => scrollElement!,
-    estimateSize: (i) =>
-      (Math.floor(filterModelsAndBrands()[i].models.length / 3) +
-        (filterModelsAndBrands()[i].models.length % 3 > 0 ? 1 : 0)) *
-        130 +
-      25,
+    estimateSize,
     overscan: 5,
   });
 
