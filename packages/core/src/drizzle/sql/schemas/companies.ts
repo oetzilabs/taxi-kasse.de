@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import { text } from "drizzle-orm/pg-core";
+import { company_discounts } from "./company_discounts";
 import { company_regions } from "./company_regions";
 import { commonTable } from "./entity";
 import { user_companies } from "./user_companies";
@@ -33,4 +34,5 @@ export const company_relation = relations(companies, ({ one, many }) => ({
   }),
   employees: many(user_companies),
   regions: many(company_regions),
+  discounts: many(company_discounts),
 }));

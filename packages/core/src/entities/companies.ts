@@ -52,6 +52,11 @@ export module Companies {
         employees: {
           with: { user: true },
         },
+        discounts: {
+          with: {
+            deal: true,
+          },
+        },
       },
     });
   };
@@ -68,6 +73,11 @@ export module Companies {
         },
         employees: {
           with: { user: true },
+        },
+        discounts: {
+          with: {
+            deal: true,
+          },
         },
       },
     });
@@ -88,6 +98,11 @@ export module Companies {
         employees: {
           with: { user: true },
         },
+        discounts: {
+          with: {
+            deal: true,
+          },
+        },
       },
     });
   };
@@ -107,6 +122,11 @@ export module Companies {
         },
         employees: {
           with: { user: true },
+        },
+        discounts: {
+          with: {
+            deal: true,
+          },
         },
       },
     });

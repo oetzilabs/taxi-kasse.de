@@ -47,6 +47,11 @@ export module Organizations {
         employees: {
           with: { user: true },
         },
+        discounts: {
+          with: {
+            deal: true,
+          },
+        },
       },
     });
   };
@@ -63,6 +68,11 @@ export module Organizations {
         },
         employees: {
           with: { user: true },
+        },
+        discounts: {
+          with: {
+            deal: true,
+          },
         },
       },
     });
@@ -83,6 +93,11 @@ export module Organizations {
         employees: {
           with: { user: true },
         },
+        discounts: {
+          with: {
+            deal: true,
+          },
+        },
       },
     });
   };
@@ -102,6 +117,11 @@ export module Organizations {
         },
         employees: {
           with: { user: true },
+        },
+        discounts: {
+          with: {
+            deal: true,
+          },
         },
       },
     });
