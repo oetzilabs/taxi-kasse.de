@@ -9,15 +9,15 @@ import { Show } from "solid-js";
 export const route = {
   preload: async (props) => {
     const session = await getAuthenticatedSession();
-    const org = await getOrganizationById(props.params.cid);
+    const org = await getOrganizationById(props.params.oid);
     const allRegions = await getAllRegions();
-    return { session, org };
+    return { session, org, allRegions };
   },
   load: async (props) => {
     const session = await getAuthenticatedSession();
-    const org = await getOrganizationById(props.params.cid);
+    const org = await getOrganizationById(props.params.oid);
     const allRegions = await getAllRegions();
-    return { session, org };
+    return { session, org, allRegions };
   },
 } satisfies RouteDefinition;
 
