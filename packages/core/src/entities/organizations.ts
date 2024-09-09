@@ -49,7 +49,7 @@ export module Organizations {
         },
         discounts: {
           with: {
-            deal: true,
+            discount: true,
           },
         },
       },
@@ -71,7 +71,7 @@ export module Organizations {
         },
         discounts: {
           with: {
-            deal: true,
+            discount: true,
           },
         },
       },
@@ -95,7 +95,7 @@ export module Organizations {
         },
         discounts: {
           with: {
-            deal: true,
+            discount: true,
           },
         },
       },
@@ -120,11 +120,24 @@ export module Organizations {
         },
         discounts: {
           with: {
-            deal: true,
+            discount: true,
           },
         },
       },
     });
+  };
+
+  export const discounts = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+    const isValid = safeParse(Validator.Cuid2Schema, id);
+    if (!isValid.success) throw isValid.issues;
+    const entries = await tsx.query.organization_discounts.findMany({
+      where: (fields, ops) => ops.eq(fields.organization_id, isValid.output),
+      with: {
+        discount: true,
+      },
+    });
+
+    return entries.map((org) => org.discount);
   };
 
   export const update = async (data: InferInput<typeof UpdateSchema>, tsx = db) => {

@@ -8,23 +8,23 @@ export const company_discounts = schema.table(
   "company_discounts",
   {
     company_id: text("company_id").references(() => companies.id, { onDelete: "cascade" }),
-    deal_id: text("deal_id").references(() => discounts.id, { onDelete: "cascade" }),
+    discount_id: text("discount_id").references(() => discounts.id, { onDelete: "cascade" }),
   },
   (table) => ({
-    pK: primaryKey({ columns: [table.company_id, table.deal_id] }),
+    pK: primaryKey({ columns: [table.company_id, table.discount_id] }),
   }),
 );
 
 export type CompanyDealSelect = typeof company_discounts.$inferSelect;
 export type CompanyDealInsert = typeof company_discounts.$inferInsert;
 
-export const company_deal_relation = relations(company_discounts, ({ one, many }) => ({
+export const company_discount_relation = relations(company_discounts, ({ one, many }) => ({
   company: one(companies, {
     fields: [company_discounts.company_id],
     references: [companies.id],
   }),
-  deal: one(discounts, {
-    fields: [company_discounts.deal_id],
+  discount: one(discounts, {
+    fields: [company_discounts.discount_id],
     references: [discounts.id],
   }),
 }));

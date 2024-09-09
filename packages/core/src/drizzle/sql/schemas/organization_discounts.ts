@@ -8,10 +8,10 @@ export const organization_discounts = schema.table(
   "organization_discounts",
   {
     organization_id: text("organization_id").references(() => organizations.id, { onDelete: "cascade" }),
-    deal_id: text("deal_id").references(() => discounts.id, { onDelete: "cascade" }),
+    discount_id: text("discount_id").references(() => discounts.id, { onDelete: "cascade" }),
   },
   (table) => ({
-    pK: primaryKey({ columns: [table.organization_id, table.deal_id] }),
+    pK: primaryKey({ columns: [table.organization_id, table.discount_id] }),
   }),
 );
 
@@ -23,8 +23,8 @@ export const organization_deal_relation = relations(organization_discounts, ({ o
     fields: [organization_discounts.organization_id],
     references: [organizations.id],
   }),
-  deal: one(discounts, {
-    fields: [organization_discounts.deal_id],
+  discount: one(discounts, {
+    fields: [organization_discounts.discount_id],
     references: [discounts.id],
   }),
 }));
