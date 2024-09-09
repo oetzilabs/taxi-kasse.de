@@ -11,7 +11,7 @@ export default function NavLink(props: AnchorProps & { exact?: boolean }) {
       {...props}
       // class={props.class ? props.class + " hover:bg-neutral-700" : "hover:bg-neutral-700"}
       class={cn(props.class, "xl:!flex w-full select-none", {
-        // hidden: !isActive(),
+        hidden: !isActive(),
         "bg-black dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-100": isActive(),
       })}
       href={props.href}

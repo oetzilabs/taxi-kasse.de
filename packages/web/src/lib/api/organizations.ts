@@ -109,3 +109,45 @@ export const removeOrganization = action(async (id: InferInput<typeof Validator.
     revalidate: [getAuthenticatedSession.key],
   });
 });
+
+export const getOrganizationById = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+  "use server";
+  if (!id) return undefined;
+  const [ctx, event] = await getContext();
+  if (!ctx) throw redirect("/auth/login");
+  if (!ctx.session) throw redirect("/auth/login");
+  if (!ctx.user) throw redirect("/auth/login");
+
+  const org = await Organizations.findById(id);
+
+  if (!org) {
+    throw redirect("/404", { status: 404 });
+  }
+  return org;
+};
+
+export const updateOrganization = action(async (data: InferInput<typeof Organizations.UpdateSchema>) => {
+  "use server";
+  const [ctx, event] = await getContext();
+  if (!ctx) throw redirect("/auth/login");
+  if (!ctx.session) throw redirect("/auth/login");
+  if (!ctx.user) throw redirect("/auth/login");
+
+  const org = await Organizations.findById(data.id);
+
+  if (!org) {
+    throw new Error("Organization not found");
+  }
+
+  if (org.owner?.id !== ctx.user.id) {
+    throw new Error("You are not the owner of this organization");
+  }
+
+  const updated = await Organizations.update(data);
+
+  if (!updated) {
+    throw new Error("Failed to update organization");
+  }
+
+  return updated;
+});

@@ -37,6 +37,11 @@ export const route = {
     const rides = await getRides();
     return { rides, session };
   },
+  load: async () => {
+    const session = await getAuthenticatedSession();
+    const rides = await getRides();
+    return { rides, session };
+  },
 } satisfies RouteDefinition;
 
 export default function DashboardPage() {

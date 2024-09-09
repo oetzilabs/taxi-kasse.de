@@ -1,13 +1,13 @@
+import type { Organizations } from "@taxikassede/core/src/entities/organizations";
+import type { UserSession } from "../lib/auth/util";
 import { removeOrganization } from "@/lib/api/organizations";
 import { A, useAction, useSubmission } from "@solidjs/router";
-import type { Organizations } from "@taxikassede/core/src/entities/organizations";
 import ChevronDown from "lucide-solid/icons/chevron-down";
 import Feather from "lucide-solid/icons/feather";
 import ImagePlus from "lucide-solid/icons/image-plus";
 import Pencil from "lucide-solid/icons/pencil";
 import Plus from "lucide-solid/icons/plus";
 import Trash from "lucide-solid/icons/trash";
-import type { UserSession } from "../lib/auth/util";
 // import SkipForward from "lucide-solid/icons/skip-forward";
 import { createSignal, For, Show } from "solid-js";
 import { toast } from "solid-sonner";
@@ -37,7 +37,7 @@ export const Organization = (props: { user: UserSession["user"]; org: Organizati
               </span>
               <div class="w-max flex flex-row items-center gap-3">
                 <Button size="sm" class="flex items-center gap-2">
-                  <span>Add Banner</span>
+                  <span>Upload Banner</span>
                   <ImagePlus class="size-4" />
                 </Button>
                 <span class="text-sm text-muted-foreground">or</span>
@@ -79,14 +79,12 @@ export const Organization = (props: { user: UserSession["user"]; org: Organizati
                 <ChevronDown class="size-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem
-                  class="flex flex-row items-center gap-2"
-                  as={A}
-                  href={`/dashboard/organizations/${props.org.id}/edit`}
-                >
-                  <Pencil class="size-4" />
-                  <span>Edit</span>
-                </DropdownMenuItem>
+                <A href={`/dashboard/organizations/${props.org.id}/edit`}>
+                  <DropdownMenuItem class="flex flex-row items-center gap-2">
+                    <Pencil class="size-4" />
+                    <span>Edit</span>
+                  </DropdownMenuItem>
+                </A>
                 <Show when={props.org.owner?.id === props.user?.id}>
                   <DropdownMenuSeparator />
                   <Dialog open={openDeleteModal()} onOpenChange={setOpenDeleteModal}>

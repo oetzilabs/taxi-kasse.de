@@ -10,10 +10,15 @@ export const companies = commonTable(
   {
     ownerId: text("user_id").references(() => users.id, { onDelete: "set null" }),
     name: text("name").notNull(),
+
     image: text("image").notNull().default("/images/default-company-profile.png"),
     banner: text("banner").notNull().default("/images/default-company-banner.png"),
+
     phoneNumber: text("phone_number"),
+    website: text("website"),
     email: text("email").notNull(),
+
+    uid: text("uid").notNull().default(""),
   },
   "company",
 );

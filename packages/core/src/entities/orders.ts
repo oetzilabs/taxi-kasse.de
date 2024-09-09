@@ -60,7 +60,7 @@ export module Orders {
   };
 
   export const update = async (data: InferInput<typeof Orders.UpdateSchema>, tsx = db) => {
-    const isValid = safeParse(Orders.UpdateSchema, data.id);
+    const isValid = safeParse(Orders.UpdateSchema, data);
     if (!isValid.success) {
       throw isValid.issues;
     }

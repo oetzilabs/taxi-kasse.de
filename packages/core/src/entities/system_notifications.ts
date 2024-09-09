@@ -60,7 +60,7 @@ export module SystemNotifications {
   };
 
   export const update = async (data: InferInput<typeof SystemNotifications.UpdateSchema>, tsx = db) => {
-    const isValid = safeParse(SystemNotifications.UpdateSchema, data.id);
+    const isValid = safeParse(SystemNotifications.UpdateSchema, data);
     if (!isValid.success) {
       throw isValid.issues;
     }
@@ -82,7 +82,7 @@ export module SystemNotifications {
   export const userHidesById = async (
     system_notification_id: InferInput<typeof Validator.Cuid2Schema>,
     user_id: InferInput<typeof Validator.Cuid2Schema>,
-    tsx = db
+    tsx = db,
   ) => {
     const isValid = safeParse(Validator.Cuid2Schema, system_notification_id);
     if (!isValid.success) {

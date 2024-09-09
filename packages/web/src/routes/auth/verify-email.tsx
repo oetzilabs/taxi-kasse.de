@@ -11,6 +11,11 @@ export const route = {
     const verified = await checkVerification();
     return { session, verified };
   },
+  load: async () => {
+    const session = await getAuthenticatedSession();
+    const verified = await checkVerification();
+    return { session, verified };
+  },
 };
 
 export default function VerifyEmailPage() {

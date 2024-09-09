@@ -6,7 +6,7 @@ import { Validator } from "../validator";
 
 export module Organizations {
   export const CreateSchema = object({
-    ownerId: Validator.Cuid2Schema,
+    ownerId: optional(nullable(Validator.Cuid2Schema)),
     name: string(),
     email: string(),
     phoneNumber: optional(nullable(string())),
@@ -108,7 +108,7 @@ export module Organizations {
   };
 
   export const update = async (data: InferInput<typeof UpdateSchema>, tsx = db) => {
-    const isValid = safeParse(Organizations.UpdateSchema, data.id);
+    const isValid = safeParse(Organizations.UpdateSchema, data);
     if (!isValid.success) throw isValid.issues;
     return tsx.update(organizations).set(isValid.output).where(eq(organizations.id, isValid.output.id)).returning();
   };

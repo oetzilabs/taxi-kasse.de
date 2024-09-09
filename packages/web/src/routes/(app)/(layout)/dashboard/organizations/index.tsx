@@ -11,6 +11,11 @@ export const route = {
     const regions = await getAllRegions();
     return { session, regions };
   },
+  load: async () => {
+    const session = await getAuthenticatedSession();
+    const regions = await getAllRegions();
+    return { session, regions };
+  },
 } satisfies RouteDefinition;
 
 export default function DashboardPage() {

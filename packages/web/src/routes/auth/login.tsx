@@ -10,6 +10,10 @@ export const route = {
     const session = await getAuthenticatedSession();
     return { session };
   },
+  load: async () => {
+    const session = await getAuthenticatedSession();
+    return { session };
+  },
 };
 
 const generateAuthUrl = (provider: string) => {

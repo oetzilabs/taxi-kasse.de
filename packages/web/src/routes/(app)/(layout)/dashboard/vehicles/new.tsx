@@ -45,6 +45,11 @@ export const route = {
     const models = await getVehicleModels();
     return { session, models };
   },
+  load: async () => {
+    const session = await getAuthenticatedSession();
+    const models = await getVehicleModels();
+    return { session, models };
+  },
 } satisfies RouteDefinition;
 
 export default function DashboardPage() {

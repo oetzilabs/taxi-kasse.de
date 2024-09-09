@@ -111,6 +111,10 @@ export default function Sidebar() {
                       <Map class="size-4" />
                       <span>Regions</span>
                     </DropdownMenuItem>
+                    <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/companies">
+                      <Building2 class="size-4" />
+                      <span>Companies</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/organizations">
                       <Building2 class="size-4" />
                       <span>Organizations</span>

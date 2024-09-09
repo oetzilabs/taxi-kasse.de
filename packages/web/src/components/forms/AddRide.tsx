@@ -164,7 +164,7 @@ const AddRideModal = (props: { vehicle_id_used_last_time: string | null; vehicle
                       {(vehicle) => (
                         <div
                           class={cn(
-                            "col-span-full flex items-center gap-2 flex-col w-full border-b md:border-b-0 md:border-r border-neutral-300 dark:border-neutral-800 last:border-0 p-6 hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer",
+                            "col-span-full flex items-center gap-2 flex-col w-full border border-neutral-300 dark:border-neutral-800 p-6 hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer rounded-lg",
                             {
                               "bg-black text-white dark:bg-white dark:text-black hover:bg-neutral-900 dark:hover:bg-neutral-100":
                                 vehicle.id === newRide.vehicle_id,

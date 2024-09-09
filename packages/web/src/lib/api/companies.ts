@@ -1,20 +1,22 @@
 import type { Validator } from "@taxikassede/core/src/validator";
 import type { InferInput } from "valibot";
-import { action, redirect } from "@solidjs/router";
+import { action, cache, redirect } from "@solidjs/router";
 import { Companies } from "@taxikassede/core/src/entities/companies";
 import { appendHeader } from "vinxi/http";
 import { lucia } from "../auth";
 import { getContext } from "../auth/context";
 import { getAuthenticatedSession } from "../auth/util";
 
-export const createCompany = action(async (name: string, phoneNumber: string, email: string) => {
+export const createCompany = action(async (data: InferInput<typeof Companies.CreateWithoutOwnerSchema>) => {
   "use server";
   const [ctx, event] = await getContext();
   if (!ctx) throw redirect("/auth/login");
   if (!ctx.session) throw redirect("/auth/login");
   if (!ctx.user) throw redirect("/auth/login");
 
-  const comp = await Companies.create({ name, phoneNumber, email, ownerId: ctx.user.id });
+  const d = Object.assign(data, { ownerId: ctx.user.id });
+
+  const comp = await Companies.create(d);
 
   // set lucia cookie session
 
@@ -53,7 +55,7 @@ export const joinCompany = action(async (name: string) => {
   const org = await Companies.findByName(name);
 
   if (!org) {
-    throw new Error("Organization not found");
+    throw new Error("Company not found");
   }
 
   // request to join the organization
@@ -71,17 +73,17 @@ export const removeCompany = action(async (id: InferInput<typeof Validator.Cuid2
   const comp = await Companies.findById(id);
 
   if (!comp) {
-    throw new Error("Organization not found");
+    throw new Error("Company not found");
   }
 
   if (comp.owner?.id !== ctx.user.id) {
-    throw new Error("You are not the owner of this organization");
+    throw new Error("You are not the owner of this company");
   }
 
   const removed = await Companies.remove(id);
 
   if (!removed) {
-    throw new Error("Failed to remove organization");
+    throw new Error("Failed to remove company");
   }
   // set lucia cookie session
 
@@ -108,4 +110,46 @@ export const removeCompany = action(async (id: InferInput<typeof Validator.Cuid2
   throw redirect("/dashboard", {
     revalidate: [getAuthenticatedSession.key],
   });
+});
+
+export const getCompanyById = cache(async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+  "use server";
+  if (!id) return undefined;
+  const [ctx, event] = await getContext();
+  if (!ctx) throw redirect("/auth/login");
+  if (!ctx.session) throw redirect("/auth/login");
+  if (!ctx.user) throw redirect("/auth/login");
+
+  const comp = await Companies.findById(id);
+
+  if (!comp) {
+    throw redirect("/404", { status: 404 });
+  }
+  return comp;
+}, "company");
+
+export const updateCompany = action(async (data: InferInput<typeof Companies.UpdateSchema>) => {
+  "use server";
+  const [ctx, event] = await getContext();
+  if (!ctx) throw redirect("/auth/login");
+  if (!ctx.session) throw redirect("/auth/login");
+  if (!ctx.user) throw redirect("/auth/login");
+
+  const comp = await Companies.findById(data.id);
+
+  if (!comp) {
+    throw new Error("Company not found");
+  }
+
+  if (comp.owner?.id !== ctx.user.id) {
+    throw new Error("You are not the owner of this company");
+  }
+
+  const updated = await Companies.update(data);
+
+  if (!updated) {
+    throw new Error("Failed to update company");
+  }
+
+  return updated;
 });

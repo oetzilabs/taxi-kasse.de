@@ -37,7 +37,7 @@ export const Company = (props: { user: UserSession["user"]; comp: Companies.Info
               </span>
               <div class="w-max flex flex-row items-center gap-3">
                 <Button size="sm" class="flex items-center gap-2">
-                  <span>Add Banner</span>
+                  <span>Upload Banner</span>
                   <ImagePlus class="size-4" />
                 </Button>
                 <span class="text-sm text-muted-foreground">or</span>
@@ -79,14 +79,12 @@ export const Company = (props: { user: UserSession["user"]; comp: Companies.Info
                 <ChevronDown class="size-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem
-                  class="flex flex-row items-center gap-2"
-                  as={A}
-                  href={`/dashboard/companies/${props.comp.id}/edit`}
-                >
-                  <Pencil class="size-4" />
-                  <span>Edit</span>
-                </DropdownMenuItem>
+                <A href={`/dashboard/companies/${props.comp.id}/edit`}>
+                  <DropdownMenuItem class="flex flex-row items-center gap-2">
+                    <Pencil class="size-4" />
+                    <span>Edit</span>
+                  </DropdownMenuItem>
+                </A>
                 <Show when={props.comp.owner?.id === props.user?.id}>
                   <DropdownMenuSeparator />
                   <Dialog open={openDeleteModal()} onOpenChange={setOpenDeleteModal}>

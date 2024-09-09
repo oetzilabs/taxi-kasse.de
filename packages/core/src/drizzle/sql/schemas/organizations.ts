@@ -11,10 +11,15 @@ export const organizations = commonTable(
   {
     ownerId: text("user_id").references(() => users.id, { onDelete: "set null" }),
     name: text("name").notNull(),
+
     image: text("image").notNull().default("/images/default-organization-profile.png"),
     banner: text("banner").notNull().default("/images/default-organization-banner.png"),
+
     phoneNumber: text("phone_number"),
+    website: text("website"),
     email: text("email").notNull(),
+
+    uid: text("uid").notNull().default(""),
   },
   "org",
 );

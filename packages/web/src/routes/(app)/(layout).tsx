@@ -16,6 +16,11 @@ export const route = {
 
     return { session };
   },
+  load: (props) => {
+    const session = getAuthenticatedSession();
+
+    return { session };
+  },
 } satisfies RouteDefinition;
 
 export default function DashboardLayout(props: RouteSectionProps) {

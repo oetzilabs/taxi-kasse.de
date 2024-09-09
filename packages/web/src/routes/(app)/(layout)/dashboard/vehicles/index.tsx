@@ -30,6 +30,11 @@ export const route = {
     const vehicles = getVehicles();
     return { session, vehicles };
   },
+  load: async () => {
+    const session = await getAuthenticatedSession();
+    const vehicles = getVehicles();
+    return { session, vehicles };
+  },
 } satisfies RouteDefinition;
 
 export default function DashboardPage() {
@@ -55,7 +60,7 @@ export default function DashboardPage() {
                     <span class="text-sm">
                       Please{" "}
                       <A href="/dashboard/vehicles/new" class="hover:underline text-blue-500 font-medium">
-                        create/join a vehicle
+                        create a vehicle
                       </A>{" "}
                       to view your list of vehicles.
                     </span>

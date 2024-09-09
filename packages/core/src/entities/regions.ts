@@ -52,7 +52,7 @@ export module Regions {
   };
 
   export const update = async (data: InferInput<typeof UpdateSchema>, tsx = db) => {
-    const isValid = safeParse(Regions.UpdateSchema, data.id);
+    const isValid = safeParse(Regions.UpdateSchema, data);
     if (!isValid.success) throw isValid.issues;
     return tsx.update(regions).set(isValid.output).where(eq(regions.id, isValid.output.id)).returning();
   };

@@ -58,7 +58,7 @@ export module Routes {
   };
 
   export const update = async (data: InferInput<typeof Routes.UpdateSchema>, tsx = db) => {
-    const isValid = safeParse(Routes.UpdateSchema, data.id);
+    const isValid = safeParse(Routes.UpdateSchema, data);
     if (!isValid.success) {
       throw isValid.issues;
     }

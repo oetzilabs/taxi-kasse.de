@@ -1,3 +1,4 @@
+import type { Companies } from "@taxikassede/core/src/entities/companies";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TextField, TextFieldLabel, TextFieldRoot } from "@/components/ui/textfield";
@@ -5,10 +6,16 @@ import { createCompany, joinCompany } from "@/lib/api/companies";
 import { getAuthenticatedSession } from "@/lib/auth/util";
 import { createAsync, RouteDefinition, useAction, useSubmission } from "@solidjs/router";
 import { createSignal, Show } from "solid-js";
+import { createStore } from "solid-js/store";
 import { toast } from "solid-sonner";
+import { InferInput } from "valibot";
 
 export const route = {
   preload: async () => {
+    const session = await getAuthenticatedSession();
+    return { session };
+  },
+  load: async () => {
     const session = await getAuthenticatedSession();
     return { session };
   },
@@ -24,6 +31,15 @@ export default function DashboardPage() {
   const joinCompanyAction = useAction(joinCompany);
   const createCompanyStatus = useSubmission(createCompany);
   const joinCompanyStatus = useSubmission(joinCompany);
+  const [company, setCompany] = createStore<InferInput<typeof Companies.CreateWithoutOwnerSchema>>({
+    name: "",
+    email: "",
+    phoneNumber: "",
+    image: "",
+    banner: "",
+    website: "",
+    uid: "",
+  });
 
   return (
     <div class="w-full grow flex flex-col">
@@ -42,7 +58,7 @@ export default function DashboardPage() {
                 <TabsContent value="create">
                   <div class="space-y-4">
                     <div>
-                      <TextFieldRoot value={companyName()} onChange={(value) => setCompanyName(value)}>
+                      <TextFieldRoot value={company.name} onChange={(value) => setCompany("name", value)}>
                         <TextFieldLabel>
                           <span class="text-sm font-bold">Company Name</span>
                         </TextFieldLabel>
@@ -50,7 +66,10 @@ export default function DashboardPage() {
                       </TextFieldRoot>
                     </div>
                     <div>
-                      <TextFieldRoot value={phoneNumber()} onChange={(value) => setPhoneNumber(value)}>
+                      <TextFieldRoot
+                        value={company.phoneNumber ?? ""}
+                        onChange={(value) => setCompany("phoneNumber", value)}
+                      >
                         <TextFieldLabel>
                           <span class="text-sm font-bold">Company Phone Number</span>
                         </TextFieldLabel>
@@ -58,32 +77,42 @@ export default function DashboardPage() {
                       </TextFieldRoot>
                     </div>
                     <div>
-                      <TextFieldRoot value={email()} onChange={(value) => setEmail(value)}>
+                      <TextFieldRoot value={company.email} onChange={(value) => setCompany("email", value)}>
                         <TextFieldLabel>
                           <span class="text-sm font-bold">Company Email</span>
                         </TextFieldLabel>
                         <TextField placeholder="Enter Company email" />
                       </TextFieldRoot>
                     </div>
+                    <div>
+                      <TextFieldRoot value={company.uid} onChange={(value) => setCompany("uid", value)}>
+                        <TextFieldLabel>
+                          <span class="text-sm font-bold">Company UID</span>
+                        </TextFieldLabel>
+                        <TextField placeholder="Enter Company UID" />
+                      </TextFieldRoot>
+                    </div>
                     <Button
                       class="w-full"
                       onClick={() => {
-                        const name = companyName();
-                        if (name.length === 0) {
-                          toast.error("Please enter an Company name");
+                        if (company.name.length === 0) {
+                          toast.error("Please enter a Company name");
                           return;
                         }
-                        const pn = phoneNumber();
-                        if (pn.length === 0) {
-                          toast.error("Please enter an Company phone number");
+                        if (!company.phoneNumber || company.phoneNumber.length === 0) {
+                          toast.error("Please enter a Company phone number");
                           return;
                         }
-                        const em = email();
-                        if (em.length === 0) {
-                          toast.error("Please enter an Company email");
+                        if (company.email.length === 0) {
+                          toast.error("Please enter a Company email");
                           return;
                         }
-                        toast.promise(createCompanyAction(name, pn, em), {
+                        if (company.uid.length === 0) {
+                          toast.error("Please enter a Company UID");
+                          return;
+                        }
+
+                        toast.promise(createCompanyAction(company), {
                           loading: "Creating Company...",
                           success: "Company Created",
                           error: (e) => "Could not create Company: " + e.message,

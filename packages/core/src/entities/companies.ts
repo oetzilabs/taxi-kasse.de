@@ -1,17 +1,22 @@
 import { desc, eq } from "drizzle-orm";
-import { InferInput, intersect, nullable, object, optional, partial, pipe, safeParse, string } from "valibot";
+import { InferInput, intersect, nullable, object, omit, optional, partial, pipe, safeParse, string } from "valibot";
 import { db } from "../drizzle/sql";
 import { companies } from "../drizzle/sql/schema";
 import { Validator } from "../validator";
 
 export module Companies {
   export const CreateSchema = object({
-    ownerId: Validator.Cuid2Schema,
+    ownerId: nullable(Validator.Cuid2Schema),
     name: string(),
     email: string(),
     phoneNumber: optional(nullable(string())),
     image: optional(string()),
+    banner: optional(string()),
+    website: optional(nullable(string())),
+    uid: string(),
   });
+
+  export const CreateWithoutOwnerSchema = omit(CreateSchema, ["ownerId"]);
 
   export const UpdateSchema = intersect([partial(Companies.CreateSchema), object({ id: Validator.Cuid2Schema })]);
 
@@ -27,7 +32,7 @@ export module Companies {
     if (!isValid.success) {
       throw isValid.issues;
     }
-    const [created] = await tsx.insert(companies).values(isValid.output).returning();
+    const [created] = await tsx.insert(companies).values([isValid.output]).returning();
     const org = await Companies.findById(created.id);
     return org!;
   };
@@ -108,7 +113,7 @@ export module Companies {
   };
 
   export const update = async (data: InferInput<typeof UpdateSchema>, tsx = db) => {
-    const isValid = safeParse(Companies.UpdateSchema, data.id);
+    const isValid = safeParse(Companies.UpdateSchema, data);
     if (!isValid.success) throw isValid.issues;
     return tsx.update(companies).set(isValid.output).where(eq(companies.id, isValid.output.id)).returning();
   };

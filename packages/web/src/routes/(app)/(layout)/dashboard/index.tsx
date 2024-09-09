@@ -13,7 +13,6 @@ import { getRides } from "@/lib/api/rides";
 import { getStatistics } from "@/lib/api/statistics";
 import { getAuthenticatedSession } from "@/lib/auth/util";
 import { cn } from "@/lib/utils";
-import { createScrollPosition } from "@solid-primitives/scroll";
 import { A, createAsync, revalidate, RouteDefinition, useSearchParams } from "@solidjs/router";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { getSystemNotifications } from "~/lib/api/system_notifications";
@@ -21,7 +20,6 @@ import dayjs from "dayjs";
 import Box from "lucide-solid/icons/box";
 import Car from "lucide-solid/icons/car";
 import Check from "lucide-solid/icons/check";
-import CheckCircle from "lucide-solid/icons/check-circle";
 import DollarSign from "lucide-solid/icons/dollar-sign";
 import Loader2 from "lucide-solid/icons/loader-2";
 import RotateClockwise from "lucide-solid/icons/rotate-cw";
@@ -29,10 +27,18 @@ import ShoppingBag from "lucide-solid/icons/shopping-bag";
 import SquareArrowOutUpRight from "lucide-solid/icons/square-arrow-out-up-right";
 import TrendingUp from "lucide-solid/icons/trending-up";
 import X from "lucide-solid/icons/x";
-import { createEffect, createSignal, For, JSX, Match, Show, Suspense, Switch } from "solid-js";
+import { For, JSX, Match, Show, Suspense, Switch } from "solid-js";
 
 export const route = {
   preload: async () => {
+    const session = await getAuthenticatedSession();
+    const notification = await getSystemNotifications();
+    const rides = await getRides();
+    const stats = await getStatistics();
+    const hotspot = await getHotspot();
+    return { notification, rides, session, stats, hotspot };
+  },
+  load: async () => {
     const session = await getAuthenticatedSession();
     const notification = await getSystemNotifications();
     const rides = await getRides();
@@ -48,8 +54,6 @@ const icons: Record<string, (props: LucideProps) => JSX.Element> = {
   orders: ShoppingBag,
   performance: TrendingUp,
 };
-
-const nonEmptyObject = (obj: Record<string, unknown>) => Object.keys(obj).length > 0;
 
 const Statistic = (props: {
   label: string;
