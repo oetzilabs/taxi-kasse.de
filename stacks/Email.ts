@@ -19,7 +19,7 @@ export const mainEmailWorker = new sst.cloudflare.Worker("MainEmailWorker", {
   transform: {
     worker: {
       compatibilityFlags: ["nodejs_compat", "nodejs_compat_v2", "nodejs_als"],
-      compatibilityDate: "2024-06-05",
+      compatibilityDate: "2024-09-09",
     },
   },
 });

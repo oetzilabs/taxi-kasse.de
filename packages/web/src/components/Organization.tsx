@@ -145,6 +145,46 @@ export const Organization = (props: { user: UserSession["user"]; org: Organizati
         </div>
       </div>
       <div class="grid grid-cols-3 gap-6 w-full p-6 border-t border-neutral-200 dark:border-neutral-800">
+        <span class="text-base font-bold">Employees</span>
+        <For
+          each={props.org.employees}
+          fallback={
+            <div class="col-span-full p-20 w-full border border-neutral-200 dark:border-neutral-800 rounded-md items-center bg-neutral-50 dark:bg-neutral-900 justify-center flex flex-col gap-4">
+              <span class="text-sm font-bold text-muted-foreground select-none">No Employees</span>
+              <Button
+                size="sm"
+                class="flex items-center gap-2"
+                onClick={() => {
+                  toast.info("Coming Soon");
+                }}
+              >
+                <span>Add Employee</span>
+                <Plus class="size-4" />
+              </Button>
+            </div>
+          }
+        >
+          {(employee) => (
+            <div class="flex flex-col gap-1 w-full h-max border-b border-neutral-200 dark:border-neutral-800 last:border-b-0">
+              <div class="text-sm font-bold">
+                {employee.user.name} ({employee.user.email})
+              </div>
+            </div>
+          )}
+        </For>
+        <Show when={props.org.employees.length > 0}>
+          <div
+            class="w-full p-4"
+            onClick={() => {
+              toast.info("Coming Soon");
+            }}
+          >
+            <span>Add Employee</span>
+            <Plus class="size-4" />
+          </div>
+        </Show>
+      </div>
+      <div class="grid grid-cols-3 gap-6 w-full p-6 border-t border-neutral-200 dark:border-neutral-800">
         <div class="col-span-full flex flex-row gap-6 w-full items-center justify-between">
           <span class="text-base font-bold w-max">Regions</span>
           <span class="text-xs font-medium w-max text-muted-foreground border border-neutral-300 dark:border-neutral-800 rounded-md px-2 py-1 select-none">
@@ -188,12 +228,17 @@ export const Organization = (props: { user: UserSession["user"]; org: Organizati
         </Show>
       </div>
       <div class="grid grid-cols-3 gap-6 w-full p-6 border-t border-neutral-200 dark:border-neutral-800">
-        <span class="text-base font-bold">Employees</span>
+        <div class="col-span-full flex flex-row gap-6 w-full items-center justify-between">
+          <span class="text-base font-bold w-max">Discounts</span>
+          <span class="text-xs font-medium w-max text-muted-foreground border border-neutral-300 dark:border-neutral-800 rounded-md px-2 py-1 select-none">
+            {props.org.discounts.length}
+          </span>
+        </div>
         <For
-          each={props.org.employees}
+          each={props.org.discounts}
           fallback={
             <div class="col-span-full p-20 w-full border border-neutral-200 dark:border-neutral-800 rounded-md items-center bg-neutral-50 dark:bg-neutral-900 justify-center flex flex-col gap-4">
-              <span class="text-sm font-bold text-muted-foreground select-none">No Employees</span>
+              <span class="text-sm font-bold text-muted-foreground select-none">No Discounts in Collection</span>
               <Button
                 size="sm"
                 class="flex items-center gap-2"
@@ -201,28 +246,26 @@ export const Organization = (props: { user: UserSession["user"]; org: Organizati
                   toast.info("Coming Soon");
                 }}
               >
-                <span>Add Employee</span>
+                <span>Add Discount</span>
                 <Plus class="size-4" />
               </Button>
             </div>
           }
         >
-          {(employee) => (
+          {(r) => (
             <div class="flex flex-col gap-1 w-full h-max border-b border-neutral-200 dark:border-neutral-800 last:border-b-0">
-              <div class="text-sm font-bold">
-                {employee.user.name} ({employee.user.email})
-              </div>
+              <div class="text-sm font-bold">{r.discount?.name}</div>
             </div>
           )}
         </For>
-        <Show when={props.org.employees.length > 0}>
+        <Show when={props.org.discounts.length > 0}>
           <div
             class="w-full p-4"
             onClick={() => {
               toast.info("Coming Soon");
             }}
           >
-            <span>Add Employee</span>
+            <span>Add Discount</span>
             <Plus class="size-4" />
           </div>
         </Show>
