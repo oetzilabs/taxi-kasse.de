@@ -1,4 +1,4 @@
-import { cuid2, email, pipe, safeParse, string, transform, ValiError } from "valibot";
+import { cuid2, email, minValue, number, pipe, safeParse, string, transform, ValiError } from "valibot";
 import { z } from "zod";
 
 export module Validator {
@@ -41,4 +41,6 @@ export module Validator {
       }
     }),
   );
+
+  export const MinZeroSchema = pipe(number(), minValue(0));
 }

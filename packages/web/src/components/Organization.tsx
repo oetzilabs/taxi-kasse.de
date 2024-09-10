@@ -69,8 +69,21 @@ export const Organization = (props: { user: UserSession["user"]; org: Organizati
               <span class="font-bold">{props.org.name}</span>
               <span class="text-xs font-medium text-muted-foreground">by {props.org.owner?.name}</span>
             </div>
-            <div class="text-sm">{props.org.email}</div>
-            <div class="text-sm">{props.org.phoneNumber}</div>
+            <div class="text-sm">
+              <b>Email:</b> {props.org.email}
+            </div>
+            <div class="text-sm">
+              <b>Phone Number:</b> {props.org.phoneNumber}
+            </div>
+            <div class="text-sm">
+              <b>Base Charge (Grundtaxe):</b> {props.org.base_charge ?? ""}
+            </div>
+            <div class="text-sm">
+              <b>Distance Charge (km):</b> {props.org.distance_charge ?? ""}
+            </div>
+            <div class="text-sm">
+              <b>Time Charge (pro minute):</b> {props.org.time_charge ?? ""}
+            </div>
           </div>
           <div class="flex flex-col gap-0.5 w-max">
             <DropdownMenu>

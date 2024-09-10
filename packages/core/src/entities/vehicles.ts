@@ -1,5 +1,20 @@
 import { eq } from "drizzle-orm";
-import { array, date, InferInput, intersect, nullable, object, omit, partial, safeParse, string } from "valibot";
+import {
+  array,
+  date,
+  InferInput,
+  intersect,
+  nullable,
+  number,
+  object,
+  omit,
+  optional,
+  partial,
+  pipe,
+  safeParse,
+  string,
+  transform,
+} from "valibot";
 import { db } from "../drizzle/sql";
 import { vehicles } from "../drizzle/sql/schema";
 import { Validator } from "../validator";
@@ -14,6 +29,30 @@ export module Vehicles {
       model_id: nullable(string()),
       inspection_date: nullable(date()),
       mileage: string(),
+      overwrite_base_charge: optional(
+        nullable(
+          pipe(
+            Validator.MinZeroSchema,
+            transform((val) => String(val)),
+          ),
+        ),
+      ),
+      overwrite_distance_charge: optional(
+        nullable(
+          pipe(
+            Validator.MinZeroSchema,
+            transform((val) => String(val)),
+          ),
+        ),
+      ),
+      overwrite_time_charge: optional(
+        nullable(
+          pipe(
+            Validator.MinZeroSchema,
+            transform((val) => String(val)),
+          ),
+        ),
+      ),
     }),
   );
   export const UpdateSchema = intersect([partial(CreateSchema.item), object({ id: Validator.Cuid2Schema })]);

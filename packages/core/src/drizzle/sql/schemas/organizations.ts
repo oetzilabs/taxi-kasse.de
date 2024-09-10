@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { text } from "drizzle-orm/pg-core";
+import { decimal, text } from "drizzle-orm/pg-core";
 import { commonTable } from "./entity";
 import { organization_companies } from "./organization_companies";
 import { organization_discounts } from "./organization_discounts";
@@ -21,6 +21,10 @@ export const organizations = commonTable(
     email: text("email").notNull(),
 
     uid: text("uid").notNull().default(""),
+
+    base_charge: decimal("base_charge", { scale: 2 }).default("0.00"),
+    distance_charge: decimal("distance_charge", { scale: 2 }).default("0.00"),
+    time_charge: decimal("time_charge", { scale: 2 }).default("0.00"),
   },
   "org",
 );

@@ -6,6 +6,7 @@
   "scripts": {
     "clean": "find . -name \"node_modules\" -type d -prune -exec rm -rf '{}' +",
     "dev": "sst dev",
+    "devlog": "sst dev 2> out",
     "predev": "docker compose up -d",
     "build": "sst build",
     "deploy": "sst deploy",

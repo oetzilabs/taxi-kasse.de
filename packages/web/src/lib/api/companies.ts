@@ -2,6 +2,7 @@ import type { Validator } from "@taxikassede/core/src/validator";
 import type { InferInput } from "valibot";
 import { action, cache, redirect } from "@solidjs/router";
 import { Companies } from "@taxikassede/core/src/entities/companies";
+import { Organizations } from "@taxikassede/core/src/entities/organizations";
 import { appendHeader } from "vinxi/http";
 import { lucia } from "../auth";
 import { getContext } from "../auth/context";
@@ -146,6 +147,42 @@ export const updateCompany = action(async (data: InferInput<typeof Companies.Upd
   }
 
   const updated = await Companies.update(data);
+
+  if (!updated) {
+    throw new Error("Failed to update company");
+  }
+
+  return updated;
+});
+
+export const resetCompanyChargesToOrganization = action(async (c_id, org_id) => {
+  "use server";
+  const [ctx, event] = await getContext();
+  if (!ctx) throw redirect("/auth/login");
+  if (!ctx.session) throw redirect("/auth/login");
+  if (!ctx.user) throw redirect("/auth/login");
+
+  const comp = await Companies.findById(c_id);
+
+  if (!comp) {
+    throw new Error("Company not found");
+  }
+
+  if (comp.owner?.id !== ctx.user.id) {
+    throw new Error("You are not the owner of this company");
+  }
+
+  const org = await Organizations.findById(org_id);
+
+  if (!org) {
+    throw new Error("Organization not found");
+  }
+  const updated = await Companies.update({
+    ...comp,
+    base_charge: Number(org.base_charge),
+    distance_charge: Number(org.distance_charge),
+    time_charge: Number(org.time_charge),
+  });
 
   if (!updated) {
     throw new Error("Failed to update company");

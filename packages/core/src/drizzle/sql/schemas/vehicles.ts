@@ -19,6 +19,10 @@ export const vehicles = commonTable(
       mode: "date",
     }),
     mileage: decimal("mileage", { scale: 3 }).notNull().default("0.000"),
+
+    overwrite_base_charge: decimal("overwrite_base_charge", { scale: 2 }).default("0.00"),
+    overwrite_distance_charge: decimal("overwrite_distance_charge", { scale: 2 }).default("0.00"),
+    overwrite_time_charge: decimal("overwrite_time_charge", { scale: 2 }).default("0.00"),
   },
   "vehicle",
 );

@@ -6,11 +6,11 @@
     "test": "sst bind vitest",
     "check": "sst shell 'tsx src/test.ts'",
     "typecheck": "tsc -noEmit",
-    "generate": "sst shell 'drizzle-kit generate'",
-    "migrate": "sst shell 'drizzle-kit migrate'",
+    "generate": "sst shell 'bun run drizzle-kit generate'",
+    "migrate": "sst shell 'bun run drizzle-kit migrate'",
     "seed": "sst shell 'bun run src/entities/seed.ts'",
-    "up": "sst shell 'drizzle-kit up'",
-    "studio": "sst shell 'drizzle-kit studio'"
+    "up": "sst shell 'bun run drizzle-kit up'",
+    "studio": "sst shell 'bun run drizzle-kit studio'"
   },
   "devDependencies": {
     "@types/pg-pool": "2.0.6",

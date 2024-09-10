@@ -1,5 +1,18 @@
 import { desc, eq } from "drizzle-orm";
-import { InferInput, intersect, nullable, object, omit, optional, partial, pipe, safeParse, string } from "valibot";
+import {
+  InferInput,
+  intersect,
+  nullable,
+  number,
+  object,
+  omit,
+  optional,
+  partial,
+  pipe,
+  safeParse,
+  string,
+  transform,
+} from "valibot";
 import { db } from "../drizzle/sql";
 import { companies } from "../drizzle/sql/schema";
 import { Validator } from "../validator";
@@ -13,12 +26,22 @@ export module Companies {
     image: optional(string()),
     banner: optional(string()),
     website: optional(nullable(string())),
+
     uid: string(),
+
+    base_charge: optional(nullable(Validator.MinZeroSchema)),
+    distance_charge: optional(nullable(Validator.MinZeroSchema)),
+    time_charge: optional(nullable(Validator.MinZeroSchema)),
   });
 
   export const CreateWithoutOwnerSchema = omit(CreateSchema, ["ownerId"]);
 
-  export const UpdateSchema = intersect([partial(Companies.CreateSchema), object({ id: Validator.Cuid2Schema })]);
+  export const UpdateSchema = intersect([
+    partial(Companies.CreateSchema),
+    object({
+      id: Validator.Cuid2Schema,
+    }),
+  ]);
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.companies.findFirst>[0]>["with"];
   export const _with: WithOptions = {
@@ -32,7 +55,13 @@ export module Companies {
     if (!isValid.success) {
       throw isValid.issues;
     }
-    const [created] = await tsx.insert(companies).values([isValid.output]).returning();
+    const bC = String(isValid.output.base_charge ?? undefined);
+    const dC = String(isValid.output.distance_charge ?? undefined);
+    const tC = String(isValid.output.time_charge ?? undefined);
+    const [created] = await tsx
+      .insert(companies)
+      .values([{ ...isValid.output, base_charge: bC, distance_charge: dC, time_charge: tC }])
+      .returning();
     const org = await Companies.findById(created.id);
     return org!;
   };
@@ -148,7 +177,14 @@ export module Companies {
   export const update = async (data: InferInput<typeof UpdateSchema>, tsx = db) => {
     const isValid = safeParse(Companies.UpdateSchema, data);
     if (!isValid.success) throw isValid.issues;
-    return tsx.update(companies).set(isValid.output).where(eq(companies.id, isValid.output.id)).returning();
+    const bC = String(isValid.output.base_charge ?? undefined);
+    const dC = String(isValid.output.distance_charge ?? undefined);
+    const tC = String(isValid.output.time_charge ?? undefined);
+    return tsx
+      .update(companies)
+      .set({ ...isValid.output, base_charge: bC, distance_charge: dC, time_charge: tC })
+      .where(eq(companies.id, isValid.output.id))
+      .returning();
   };
 
   export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>) => {

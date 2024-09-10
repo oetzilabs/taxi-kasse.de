@@ -1,5 +1,16 @@
 import { desc, eq } from "drizzle-orm";
-import { InferInput, intersect, nullable, object, optional, partial, pipe, safeParse, string } from "valibot";
+import {
+  InferInput,
+  intersect,
+  nullable,
+  object,
+  optional,
+  partial,
+  pipe,
+  safeParse,
+  string,
+  transform,
+} from "valibot";
 import { db } from "../drizzle/sql";
 import { organizations } from "../drizzle/sql/schema";
 import { Validator } from "../validator";
@@ -11,6 +22,31 @@ export module Organizations {
     email: string(),
     phoneNumber: optional(nullable(string())),
     image: optional(string()),
+
+    base_charge: optional(
+      nullable(
+        pipe(
+          Validator.MinZeroSchema,
+          transform((val) => String(val)),
+        ),
+      ),
+    ),
+    distance_charge: optional(
+      nullable(
+        pipe(
+          Validator.MinZeroSchema,
+          transform((val) => String(val)),
+        ),
+      ),
+    ),
+    time_charge: optional(
+      nullable(
+        pipe(
+          Validator.MinZeroSchema,
+          transform((val) => String(val)),
+        ),
+      ),
+    ),
   });
 
   export const UpdateSchema = intersect([partial(Organizations.CreateSchema), object({ id: Validator.Cuid2Schema })]);

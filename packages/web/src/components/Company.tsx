@@ -71,6 +71,9 @@ export const Company = (props: { user: UserSession["user"]; comp: Companies.Info
             </div>
             <div class="text-sm">{props.comp.email}</div>
             <div class="text-sm">{props.comp.phoneNumber}</div>
+            <div class="text-sm">{props.comp.base_charge ?? ""}</div>
+            <div class="text-sm">{props.comp.distance_charge ?? ""}</div>
+            <div class="text-sm">{props.comp.time_charge ?? ""}</div>
           </div>
           <div class="flex flex-col gap-0.5 w-max">
             <DropdownMenu>

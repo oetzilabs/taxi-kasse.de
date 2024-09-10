@@ -96,6 +96,7 @@ export const importVehicles = action(async () => {
 
 export const getVehicleById = cache(async (id: string) => {
   "use server";
+  if (!id) return undefined;
   const [ctx, event] = await getContext();
   if (!ctx) throw redirect("/auth/login");
   if (!ctx.session) throw redirect("/auth/login");

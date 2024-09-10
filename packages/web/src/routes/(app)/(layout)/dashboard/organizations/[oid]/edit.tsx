@@ -1,8 +1,12 @@
 import type { Organizations } from "@taxikassede/core/src/entities/organizations";
+import { language } from "@/components/stores/Language";
 import { Button } from "@/components/ui/button";
+import { NumberField, NumberFieldInput, NumberFieldLabel } from "@/components/ui/number-field";
+import { Separator } from "@/components/ui/separator";
 import { TextField, TextFieldLabel, TextFieldRoot } from "@/components/ui/textfield";
 import { getOrganizationById, updateOrganization } from "@/lib/api/organizations";
 import { getAuthenticatedSession } from "@/lib/auth/util";
+import { parseLocaleNumber } from "@/lib/utils";
 import { A, createAsync, RouteDefinition, RouteSectionProps, useAction, useSubmission } from "@solidjs/router";
 import Loader2 from "lucide-solid/icons/loader-2";
 import { Match, Show, Suspense, Switch } from "solid-js";
@@ -84,6 +88,43 @@ const OrganizationForm = (props: { organization: Organizations.Info }) => {
             <TextField />
           </TextFieldRoot>
         </div>
+        <Separator class="w-full" />
+        <div class="flex flex-col gap-2 w-full">
+          <NumberField
+            defaultValue={props.organization.base_charge ?? ""}
+            name="base_charge"
+            onChange={(value) => setO("base_charge", value)}
+            disabled={updateOrganizationState.pending}
+            minValue={0}
+          >
+            <NumberFieldLabel class="font-bold">Base Charge (Grundtaxe)</NumberFieldLabel>
+            <NumberFieldInput />
+          </NumberField>
+        </div>
+        <div class="flex flex-col gap-2 w-full">
+          <NumberField
+            defaultValue={props.organization.distance_charge ?? ""}
+            name="distance_charge"
+            onChange={(value) => setO("distance_charge", value)}
+            disabled={updateOrganizationState.pending}
+            minValue={0}
+          >
+            <NumberFieldLabel class="font-bold">Distance Charge (km)</NumberFieldLabel>
+            <NumberFieldInput />
+          </NumberField>
+        </div>
+        <div class="flex flex-col gap-2 w-full">
+          <NumberField
+            defaultValue={props.organization.time_charge ?? ""}
+            name="time_charge"
+            onChange={(value) => setO("time_charge", value)}
+            disabled={updateOrganizationState.pending}
+            minValue={0}
+          >
+            <NumberFieldLabel class="font-bold">Time Charge (pro minute)</NumberFieldLabel>
+            <NumberFieldInput />
+          </NumberField>
+        </div>
         <div class="flex flex-row items-center justify-end gap-4">
           <Button
             class="w-max"
@@ -93,12 +134,23 @@ const OrganizationForm = (props: { organization: Organizations.Info }) => {
                 toast.error("Failed to save! Please fill out all fields.");
                 return;
               }
+              const bC = o.base_charge ? parseLocaleNumber(language(), o.base_charge) : undefined;
+              const dC = o.distance_charge ? parseLocaleNumber(language(), o.distance_charge) : undefined;
+              const tC = o.time_charge ? parseLocaleNumber(language(), o.time_charge) : undefined;
 
-              toast.promise(updateOrganizationAction(o), {
-                loading: "Saving...",
-                success: "Saved!",
-                error: (e) => `Failed to save! ${e.message}`,
-              });
+              toast.promise(
+                updateOrganizationAction({
+                  ...o,
+                  base_charge: bC,
+                  distance_charge: dC,
+                  time_charge: tC,
+                }),
+                {
+                  loading: "Saving...",
+                  success: "Saved!",
+                  error: (e) => `Failed to save! ${e.message}`,
+                },
+              );
             }}
           >
             <Switch fallback={<span>Save</span>}>
