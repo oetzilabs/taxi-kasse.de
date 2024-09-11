@@ -1,6 +1,6 @@
+import type { Rides } from "@taxikassede/core/src/entities/rides";
 import { Arrow, DropdownMenuTriggerProps } from "@kobalte/core/dropdown-menu";
 import { Column, ColumnDef } from "@tanstack/solid-table";
-import type { Rides } from "@taxikassede/core/src/entities/rides";
 import ArrowDown from "lucide-solid/icons/arrow-down";
 import ArrowUp from "lucide-solid/icons/arrow-up";
 import ArrowUpDown from "lucide-solid/icons/arrow-up-down";
@@ -116,7 +116,7 @@ export const EARNINGS_COLUMNS: ColumnDef<Rides.Info>[] = [
   },
   {
     accessorKey: "income",
-    header: (props) => <TableColumnHeader column={props.column} title="Income" />,
+    header: (props) => <TableColumnHeader column={props.column} title="Charge" />,
     cell: (props) => (
       <div class="flex space-x-2">
         <Badge variant="outline">{props.row.original.income}</Badge>
@@ -139,7 +139,7 @@ export const EARNINGS_COLUMNS: ColumnDef<Rides.Info>[] = [
     cell: (props) => (
       <div class="flex w-[100px] items-center">
         <span class="capitalize">
-          {props.row.original.vehicle.name} ({props.row.original.vehicle.model})
+          {props.row.original.vehicle.name} ({props.row.original.vehicle.model?.name})
         </span>
       </div>
     ),

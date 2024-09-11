@@ -1,5 +1,4 @@
 import type { SendEmail } from "@cloudflare/workers-types";
-// @esbuild-ignore: Ignore import of worker
 import { EmailMessage } from "cloudflare:email";
 import { Hono } from "hono";
 import { createMimeMessage } from "mimetext/browser";

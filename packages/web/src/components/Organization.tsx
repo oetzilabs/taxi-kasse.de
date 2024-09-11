@@ -75,15 +75,6 @@ export const Organization = (props: { user: UserSession["user"]; org: Organizati
             <div class="text-sm">
               <b>Phone Number:</b> {props.org.phoneNumber}
             </div>
-            <div class="text-sm">
-              <b>Base Charge (Grundtaxe):</b> {props.org.base_charge ?? ""}
-            </div>
-            <div class="text-sm">
-              <b>Distance Charge (km):</b> {props.org.distance_charge ?? ""}
-            </div>
-            <div class="text-sm">
-              <b>Time Charge (pro minute):</b> {props.org.time_charge ?? ""}
-            </div>
           </div>
           <div class="flex flex-col gap-0.5 w-max">
             <DropdownMenu>
@@ -154,6 +145,28 @@ export const Organization = (props: { user: UserSession["user"]; org: Organizati
                 </Show>
               </DropdownMenuContent>
             </DropdownMenu>
+          </div>
+        </div>
+        <div class="flex flex-col gap-0.5 w-full">
+          <div class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4  font-bold">
+            <div class="text-sm p-6 border border-neutral-200 dark:border-neutral-800 rounded-xl flex flex-row items-center justify-between">
+              <span>Base Charge (Grundtaxe):</span>
+              <span>
+                {props.org.base_charge ?? ""} {props.user?.currency_code}
+              </span>
+            </div>
+            <div class="text-sm p-6 border border-neutral-200 dark:border-neutral-800 rounded-xl flex flex-row items-center justify-between">
+              <span>Distance Charge (km):</span>
+              <span>
+                {props.org.distance_charge ?? ""} {props.user?.currency_code}
+              </span>
+            </div>
+            <div class="text-sm p-6 border border-neutral-200 dark:border-neutral-800 rounded-xl flex flex-row items-center justify-between">
+              <span>Time Charge (pro minute):</span>
+              <span>
+                {props.org.time_charge ?? ""} {props.user?.currency_code}
+              </span>
+            </div>
           </div>
         </div>
       </div>

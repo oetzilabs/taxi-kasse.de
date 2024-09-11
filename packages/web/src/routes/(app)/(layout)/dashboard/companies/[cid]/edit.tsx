@@ -1,6 +1,7 @@
 import type { Companies } from "@taxikassede/core/src/entities/companies";
 import type { Organizations } from "@taxikassede/core/src/entities/organizations";
 import { language } from "@/components/stores/Language";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -25,12 +26,12 @@ import {
   useAction,
   useSubmission,
 } from "@solidjs/router";
+import Building2 from "lucide-solid/icons/building-2";
 import Info from "lucide-solid/icons/info";
 import Loader2 from "lucide-solid/icons/loader-2";
 import { Accessor, createMemo, For, Match, Show, Suspense, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
 import { toast } from "solid-sonner";
-import { Alert, AlertDescription, AlertTitle } from "../../../../../../components/ui/alert";
 
 export const route = {
   preload: async (props) => {
@@ -153,7 +154,8 @@ const CompanyForm = (props: { organizations: Organizations.Info[]; company: Acce
                         }}
                         disabled={resetCompanyChargesToOrganizationState.pending}
                       >
-                        <DropdownMenuItemLabel>{org.name}</DropdownMenuItemLabel>
+                        <Building2 class="size-4" />
+                        {org.name}
                       </DropdownMenuItem>
                     )}
                   </For>

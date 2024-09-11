@@ -53,6 +53,7 @@ export module Rides {
     vehicle: {
       with: {
         owner: true,
+        model: true,
       },
     },
     routes: {
@@ -94,6 +95,12 @@ export module Rides {
       where: (fields, ops) => ops.eq(fields.id, isValid.output),
       with: {
         ...Rides._with,
+        vehicle: {
+          with: {
+            owner: true,
+            model: true,
+          },
+        },
         routes: {
           orderBy: (fields, ops) => ops.desc(fields.createdAt),
           with: {
@@ -121,6 +128,12 @@ export module Rides {
       where: (fields, ops) => ops.eq(fields.user_id, isValid.output),
       with: {
         ...Rides._with,
+        vehicle: {
+          with: {
+            owner: true,
+            model: true,
+          },
+        },
         routes: {
           orderBy: (fields, ops) => ops.desc(fields.createdAt),
           with: {

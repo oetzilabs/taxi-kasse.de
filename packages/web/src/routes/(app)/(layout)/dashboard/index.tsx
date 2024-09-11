@@ -227,7 +227,7 @@ export default function DashboardPage() {
       <Show when={session()}>
         {(s) => (
           <Show
-            when={s().organization}
+            when={s().company}
             fallback={
               <div class="flex flex-col w-full py-4 gap-4">
                 <div class="flex flex-col w-full items-center justify-center rounded-md px-4 py-20 gap-2 bg-neutral-200 dark:bg-neutral-800">
@@ -243,12 +243,12 @@ export default function DashboardPage() {
               </div>
             }
           >
-            {(o) => (
+            {(c) => (
               <div class="flex flex-col w-full gap-0 grow">
                 <div class="flex flex-col w-full gap-1 sticky top-0 py-4 bg-background border-b border-neutral-200 dark:border-neutral-800 z-10">
-                  <h2 class="text-lg font-bold">{o().name}</h2>
+                  <h2 class="text-lg font-bold">{c().name}</h2>
                   <span class="text-sm font-medium text-muted-foreground">
-                    {o().email} ({o().phoneNumber})
+                    {c().email} ({c().phoneNumber})
                   </span>
                 </div>
                 <div class="flex flex-col w-full py-4 gap-4 grow">
@@ -305,7 +305,14 @@ export default function DashboardPage() {
                               <span>Refresh</span>
                               <RotateClockwise class="size-4" />
                             </Button>
-                            <AddRideModal vehicle_id_saved={null} vehicle_id_used_last_time={null} />
+                            <AddRideModal
+                              vehicle_id_saved={null}
+                              vehicle_id_used_last_time={null}
+                              base_charge={Number(c().base_charge)}
+                              distance_charge={Number(c().distance_charge)}
+                              time_charge={Number(c().time_charge)}
+                              currency_code={s().user?.currency_code ?? "USD"}
+                            />
                           </div>
                         </div>
                         <Show when={filteredRides(rides() ?? [])}>

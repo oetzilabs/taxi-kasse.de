@@ -1,5 +1,6 @@
 import type { CreateRide } from "@/lib/api/rides";
 import type { DialogTriggerProps } from "@kobalte/core/dialog";
+import type { CurrencyCode } from "../../lib/api/application";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,7 +11,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { NumberField, NumberFieldInput } from "@/components/ui/number-field";
+import { NumberField, NumberFieldInput, NumberFieldLabel } from "@/components/ui/number-field";
+import { SwitchControl, Switch as Switcher, SwitchLabel, SwitchThumb } from "@/components/ui/switch";
 import { TextField, TextFieldRoot } from "@/components/ui/textfield";
 import { addRide } from "@/lib/api/rides";
 import { getVehicles } from "@/lib/api/vehicles";
@@ -20,7 +22,7 @@ import dayjs from "dayjs";
 import Loader2 from "lucide-solid/icons/loader-2";
 import Plus from "lucide-solid/icons/plus";
 import X from "lucide-solid/icons/x";
-import { createSignal, For, Match, Show, Switch } from "solid-js";
+import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
 import { toast } from "solid-sonner";
 import { maxValue, minValue, number, pipe, string, transform } from "valibot";
@@ -43,7 +45,14 @@ const HourNumberSchema = pipe(
   maxValue(23, "The time must be less than 23"),
 );
 
-const AddRideModal = (props: { vehicle_id_used_last_time: string | null; vehicle_id_saved: string | null }) => {
+const AddRideModal = (props: {
+  vehicle_id_used_last_time: string | null;
+  vehicle_id_saved: string | null;
+  base_charge: number;
+  distance_charge: number;
+  time_charge: number;
+  currency_code: CurrencyCode;
+}) => {
   const [open, setOpen] = createSignal(false);
 
   const vehicles = createAsync(() => getVehicles());
@@ -69,8 +78,22 @@ const AddRideModal = (props: { vehicle_id_used_last_time: string | null; vehicle
     endedAtMinute: "",
   });
 
+  const [duration, setDuration] = createSignal(0);
+
   const addRideAction = useAction(addRide);
   const addRideStatus = useSubmission(addRide);
+
+  const [currency, setCurrency] = createSignal(props.currency_code);
+
+  const [isManualCalculation, setIsManualCalculation] = createSignal(false);
+
+  const automatedCalculation = createMemo(() => {
+    const track = parseLocaleNumber(language(), newRide.distance) * props.distance_charge;
+    const timed = props.time_charge * duration();
+    const result = props.base_charge + track + timed;
+
+    return Math.round(result * 100) / 100;
+  });
   return (
     <Dialog
       open={open()}
@@ -238,38 +261,89 @@ const AddRideModal = (props: { vehicle_id_used_last_time: string | null; vehicle
                     </div>
                   </div>
                   <div class="w-full flex flex-col gap-2">
+                    <NumberField
+                      class="w-full"
+                      value={duration()}
+                      minValue={0}
+                      onChange={(v) => {
+                        if (v === null) return;
+                        if (v === "") v = "0";
+                        if (Number(v) < 0) v = "0";
+                        setDuration(Number(v));
+                      }}
+                    >
+                      <NumberFieldLabel class="text-sm font-bold">Duration (min)</NumberFieldLabel>
+                      <NumberFieldInput class="max-w-full w-full text-left px-3" />
+                    </NumberField>
+                  </div>
+                  <div class="w-full flex flex-col gap-2">
                     <div class="flex flex-row items-center gap-2 justify-between  w-full">
                       <span class="text-sm font-bold">Distance (km)</span>
-                      <span class="text-sm font-bold">Income</span>
+                      <div class="flex flex-row gap-2 items-baseline justify-between w-max min-w-[200px]">
+                        <span class="text-sm font-bold ">Charge</span>
+                        <Switcher
+                          class="flex items-center space-x-2"
+                          checked={isManualCalculation()}
+                          onChange={(v) => setIsManualCalculation(v)}
+                        >
+                          <SwitchControl>
+                            <SwitchThumb />
+                          </SwitchControl>
+                          <SwitchLabel class="text-sm font-medium leading-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-70">
+                            Manual
+                          </SwitchLabel>
+                        </Switcher>
+                      </div>
                     </div>
                     <div class="flex flex-row w-full border border-neutral-300 dark:border-neutral-800 rounded-md overflow-clip shadow-sm">
                       <NumberField
                         class="w-full border-0 "
                         value={newRide.distance}
                         minValue={0}
-                        onChange={(v) => {
+                        onRawValueChange={(v) => {
                           if (v === null) return;
-                          if (v === "") v = "0";
-                          if (Number(v) < 0) v = "0";
-                          setNewRide("distance", v);
+                          setNewRide("distance", String(v));
+                          setNewRide("income", String(automatedCalculation()));
                         }}
                       >
                         <NumberFieldInput class="max-w-full w-full border-0 focus-visible:ring-0 shadow-none text-left px-3" />
                       </NumberField>
                       <div class="h-full bg-neutral-300 dark:bg-neutral-800 w-px" />
-                      <NumberField
-                        class="w-max border-0 "
-                        value={newRide.income}
-                        minValue={0}
-                        onChange={(v) => {
-                          if (v === null) return;
-                          if (v === "") v = "0";
-                          if (Number(v) < 0) v = "0";
-                          setNewRide("income", v);
-                        }}
+                      <Show
+                        when={!isManualCalculation()}
+                        fallback={
+                          <NumberField
+                            class="w-max border-0 "
+                            value={newRide.income}
+                            minValue={0}
+                            onRawValueChange={(v) => {
+                              if (v === null) return;
+                              setNewRide("income", String(v));
+                            }}
+                            format
+                            lang={language()}
+                            formatOptions={{
+                              currency: currency(),
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                              style: "currency",
+                            }}
+                          >
+                            <NumberFieldInput class="w-full min-w-[200px] border-0 focus-visible:ring-0 shadow-none text-right px-3" />
+                          </NumberField>
+                        }
                       >
-                        <NumberFieldInput class="w-full border-0 focus-visible:ring-0 shadow-none text-right px-3" />
-                      </NumberField>
+                        <div class="w-max min-w-[200px] flex flex-row items-center justify-end gap-2 text-sm px-3">
+                          <span class="w-max">
+                            {new Intl.NumberFormat(language(), {
+                              style: "currency",
+                              currency: currency(),
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }).format(automatedCalculation())}
+                          </span>
+                        </div>
+                      </Show>
                     </div>
                   </div>
                   {/* <div class="w-full flex flex-col gap-1">
@@ -405,14 +479,15 @@ const AddRideModal = (props: { vehicle_id_used_last_time: string | null; vehicle
               const r = Object.assign({}, newRide);
 
               const lang = language();
-              r.income = String(parseLocaleNumber(lang, r.income));
-              r.distance = String(parseLocaleNumber(lang, r.distance) * 1000);
+              r.income = r.income;
+              r.distance = String(Number(r.distance) * 1000);
               r.rating = String(parseLocaleNumber(lang, r.rating));
 
               if (!r.vehicle_id || r.vehicle_id === "") {
                 toast.error("Please select a vehicle");
                 return;
               }
+
               toast.promise(addRideAction(r, checkSavedVehicleId()), {
                 loading: "Adding ride",
                 success: () => {
