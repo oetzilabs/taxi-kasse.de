@@ -12,7 +12,7 @@
     "allowJs": true,
     "noEmit": true,
     "strict": true,
-    "types": ["vinxi/types/client"],
+    "types": ["vinxi/types/client", "vite-plugin-pwa/solid"],
     "isolatedModules": true,
     "baseUrl": "./",
     "paths": {

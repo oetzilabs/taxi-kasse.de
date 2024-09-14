@@ -10,9 +10,10 @@ import AlertCircle from "lucide-solid/icons/alert-circle";
 import CheckCheck from "lucide-solid/icons/check-check";
 import Info from "lucide-solid/icons/info";
 import Loader2 from "lucide-solid/icons/loader-2";
-import { createSignal, ErrorBoundary, onCleanup, onMount, Show, Suspense } from "solid-js";
+import { ErrorBoundary, Show, Suspense } from "solid-js";
 import { isServer } from "solid-js/web";
 import { Toaster } from "solid-sonner";
+import { ServiceWorker } from "./components/ServiceWorker";
 import { logout } from "./utils/api/actions";
 import "./app.css";
 import "@fontsource/ibm-plex-sans/400.css";
@@ -72,6 +73,7 @@ export default function App() {
                 //   </div>
                 // }
                 >
+                  <ServiceWorker />
                   <ColorModeScript storageType={storageManager.type} initialColorMode="system" />
                   <ColorModeProvider storageManager={storageManager}>
                     <Toaster

@@ -16,7 +16,8 @@
     "postcss": "8.4.43",
     "tailwindcss": "3.4.10",
     "typescript": "5.5.4",
-    "vite": "5.4.2"
+    "vite": "5.4.2",
+    "vite-plugin-pwa": "^0.20.5"
   },
   "dependencies": {
     "@ark-ui/solid": "3.10.0",
@@ -71,6 +72,10 @@
     "tailwindcss-animate": "1.0.7",
     "valibot": "0.41.0",
     "vinxi": "0.4.2",
+    "workbox-core": "^7.1.0",
+    "workbox-precaching": "^7.1.0",
+    "workbox-routing": "^7.1.0",
+    "workbox-strategies": "^7.1.0",
     "zod": "3.23.8"
   },
   "engines": {
