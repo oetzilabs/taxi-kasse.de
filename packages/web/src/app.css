@@ -137,14 +137,14 @@
 
 /* scrollbars */
 ::-webkit-scrollbar {
-  @apply h-2 w-2 overflow-clip rounded-full;
+  @apply h-2 w-2 overflow-clip rounded-full bg-transparent ;
 }
 ::-webkit-scrollbar-track {
-  @apply overflow-clip rounded-full bg-transparent;
+  @apply overflow-clip rounded-full bg-transparent ;
 }
 ::-webkit-scrollbar-thumb {
-  @apply overflow-clip rounded-full bg-neutral-300 dark:bg-neutral-700;
+  @apply overflow-clip rounded-full bg-neutral-900 dark:bg-neutral-700;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply overflow-clip rounded-full bg-neutral-400 dark:bg-neutral-600;
+  @apply overflow-clip rounded-full bg-neutral-950 dark:bg-neutral-600;
 }

@@ -223,7 +223,7 @@ export default function Dashboard() {
                     Recommend it to your friends & colleagues!
                   </h2>
                   <p class="text-sm font-bold text-white md:text-lg/relaxed lg:text-xl/relaxed xl:text-2xl/relaxed dark:text-black uppercase">
-                    It's Free for a week
+                    It's Free for two weeks!
                   </p>
                 </div>
                 <div
@@ -267,7 +267,7 @@ export default function Dashboard() {
                   )}
                 >
                   <p class="text-xs font-bold text-white/50 dark:text-black/50">
-                    <span class="text-blue-500 font-bold">*</span> We are working on a referral program
+                    <span class="text-blue-500 font-bold">*</span> We are working on a referral program, stay tuned!
                   </p>
                 </div>
               </div>
@@ -283,7 +283,7 @@ export default function Dashboard() {
                   If you think you'll like it, try it out!
                 </h2>
                 <p class="text-sm font-bold text-white md:text-lg/relaxed lg:text-xl/relaxed xl:text-2xl/relaxed dark:text-black uppercase">
-                  It's Free for a week
+                  It's Free for two weeks!
                 </p>
               </div>
               <div
