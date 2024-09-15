@@ -1,18 +1,21 @@
-import { A, createAsync, RouteDefinition } from "@solidjs/router";
-import FeatureSection from "~/components/Features";
-import TestimonialSection from "~/components/Testimonials";
-import { Button } from "~/components/ui/button";
-import { getAuthenticatedSession } from "~/lib/auth/util";
+import FeatureSection from "@/components/Features";
+import { Footer } from "@/components/Footer";
+import TestimonialSection from "@/components/Testimonials";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import UsedByCompaniesSection from "@/components/UsedByCompanies";
+import { generateReferralCode } from "@/lib/api/referral";
+import { getAuthenticatedSession } from "@/lib/auth/util";
+import { cn } from "@/utils/cn";
+import { A, createAsync, revalidate, RouteDefinition, useAction, useSubmission } from "@solidjs/router";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import relativeTime from "dayjs/plugin/relativeTime";
 import ArrowRight from "lucide-solid/icons/arrow-right";
+import Loader2 from "lucide-solid/icons/loader-2";
+import Share from "lucide-solid/icons/share-2";
 import Sparkles from "lucide-solid/icons/sparkles";
 import { createEffect, createSignal, onCleanup, Show } from "solid-js";
-import { Footer } from "../components/Footer";
-import { Badge } from "../components/ui/badge";
-import UsedByCompaniesSection from "../components/UsedByCompanies";
-import { cn } from "../utils/cn";
 
 dayjs.extend(relativeTime);
 dayjs.extend(advancedFormat);
@@ -70,7 +73,7 @@ export default function Dashboard() {
         }
       },
       {
-        threshold: 0.1, // Trigger when 10% of the banner is visible
+        threshold: 0.05, // Trigger when 10% of the banner is visible
       },
     );
 
@@ -96,6 +99,10 @@ export default function Dashboard() {
       }
     });
   });
+
+  const generateReferralCodeAction = useAction(generateReferralCode);
+  const generateReferralCodeStatus = useSubmission(generateReferralCode);
+
   return (
     <main class="w-full flex flex-col gap-0">
       {/* <div class="absolute w-full h-full bg-gradient-to-r from-sky-500 via-teal-400 to-orange-500 -z-10 blur-[400px] opacity-5" /> */}
@@ -106,12 +113,15 @@ export default function Dashboard() {
               "opacity-100 translate-y-0": titleVisible(),
             })}
           >
-            <h2 class="text-8xl font-bold text-gray-800 dark:text-white " ref={titleRef!}>
+            <h2
+              class="transition-[font-size] text-5xl md:text-8xl font-bold text-gray-800 dark:text-white leading-[60px]"
+              ref={titleRef!}
+            >
               Cab Driving{" "}
               <span class="text-gradient-primary-to-secondary-from-bottom bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-300 relative">
                 Magic
-                <div class="absolute top-0 right-0 flex flex-row gap-2 items-center transform translate-x-full translate-y-5">
-                  <div class="flex flex-row gap-2 items-center px-2 py-1 text-white dark:text-black rounded-lg text-xs bg-gradient-to-r from-blue-400 to-teal-300 font-medium">
+                <div class="absolute top-0 right-0 flex flex-row gap-2 items-center transform translate-x-full -translate-y-0 md:translate-y-5">
+                  <div class="flex flex-row gap-2 items-center px-2 py-0.5 md:px-2 md:py-1 text-white dark:text-black rounded-lg text-[10px] md:text-xs bg-gradient-to-r from-blue-400 to-teal-300 font-medium h-6 md:h-auto">
                     <Sparkles class="size-3" />
                     Beta
                   </div>
@@ -169,7 +179,7 @@ export default function Dashboard() {
         </div>
       </section>
       <section class="flex flex-col gap-0 w-full" ref={heroRef!}>
-        <div class="flex flex-col gap-2 w-full container mx-auto h-[300px] overflow-clip">
+        <div class="flex flex-col gap-2 w-full container mx-auto h-auto md:h-[300px] overflow-clip">
           <img
             src="/assets/images/hero.png"
             alt="Dashboard"
@@ -215,9 +225,6 @@ export default function Dashboard() {
                   <p class="text-sm font-bold text-white md:text-lg/relaxed lg:text-xl/relaxed xl:text-2xl/relaxed dark:text-black uppercase">
                     It's Free for a week
                   </p>
-                  <p class="text-xs font-bold text-white/50 dark:text-black/50">
-                    Information: We are working on a referral program
-                  </p>
                 </div>
                 <div
                   class={cn("transition-all duration-1000 ease-in-out delay-300 opacity-0 translate-y-10", {
@@ -225,14 +232,43 @@ export default function Dashboard() {
                   })}
                 >
                   <Button
-                    class="bg-white text-black hover:bg-neutral-100 hover:text-black"
+                    class="bg-white text-black hover:bg-neutral-100 hover:text-black flex flex-row items-center gap-2"
                     size="lg"
-                    as={A}
-                    href="/auth/login"
+                    disabled={generateReferralCodeStatus.pending}
+                    onClick={async () => {
+                      let referral_code = session()!.user!.referral_code;
+                      if (!referral_code) {
+                        referral_code = await generateReferralCodeAction();
+                        await revalidate([getAuthenticatedSession.key]);
+                      }
+                      if ("navigator" in window) {
+                        navigator.share({
+                          title: "Share the app",
+                          text: "Check out the new Taxi-Kasse.de app!",
+                          url: `https://taxi-kasse.de/referral/${referral_code}`,
+                        });
+                      }
+                    }}
                   >
-                    Start Your Free Trial
-                    <ArrowRight class="ml-2 h-5 w-5" />
+                    <div class="w-max">
+                      Share the app<span class="text-blue-500 font-bold">*</span>
+                    </div>
+                    <Show when={generateReferralCodeStatus.pending} fallback={<Share class="size-4" />}>
+                      <Loader2 class="size-4 animate-spin" />
+                    </Show>
                   </Button>
+                </div>
+                <div
+                  class={cn(
+                    "transition-all flex flex-col gap-4 duration-1000 delay-500  ease-in-out opacity-0 translate-y-10",
+                    {
+                      "opacity-100 translate-y-0": isVisible(),
+                    },
+                  )}
+                >
+                  <p class="text-xs font-bold text-white/50 dark:text-black/50">
+                    <span class="text-blue-500 font-bold">*</span> We are working on a referral program
+                  </p>
                 </div>
               </div>
             }

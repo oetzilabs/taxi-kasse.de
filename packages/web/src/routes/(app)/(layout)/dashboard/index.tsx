@@ -69,18 +69,40 @@ const Statistic = (props: {
 }) => (
   <div
     class={cn(
-      "flex flex-col  w-full gap-0 select-none border-t lg:border-l lg:border-t-0 first:border-l-0 first:border-t-0 border-neutral-200 dark:border-neutral-800 relative overflow-clip group",
+      "flex flex-col  w-full gap-0 select-none border-l first:border-l-0 border-neutral-200 dark:border-neutral-800 relative overflow-clip group",
     )}
   >
-    <div class="flex flex-row items-center justify-between gap-4 px-6 pb-4 pt-6">
-      <Show when={props.icon !== undefined && props.icon} fallback={<Box />} keyed>
-        {(Ic) => <Ic class="size-4 text-muted-foreground" />}
-      </Show>
-      <span class="font-bold uppercase text-xs text-muted-foreground">{props.label}</span>
+    <div class="flex flex-row items-center justify-between gap-2 md:px-6 md:pb-4 md:pt-6 px-3 py-2">
+      <div class="flex-1 size-4">
+        <Show when={props.icon !== undefined && props.icon} fallback={<Box />} keyed>
+          {(Ic) => <Ic class="size-4 text-muted-foreground" />}
+        </Show>
+      </div>
+      <span class="font-bold uppercase text-xs text-muted-foreground md:flex hidden">{props.label}</span>
+      <div class="transition-[font-size] text-base md:text-3xl font-bold md:hidden flex flex-row items-baseline gap-2">
+        <Show when={props.prefix.length > 0}>
+          <span>{props.prefix}</span>
+        </Show>
+        <span>
+          {props.type === "currency"
+            ? new Intl.NumberFormat(language() ?? "en-US", {
+                style: "currency",
+                currency: props.currency,
+              })
+                .formatToParts(Number(props.value))
+                .filter((p) => p.type !== "currency" && p.type !== "literal")
+                .map((p) => p.value)
+                .join("")
+            : props.value}
+        </span>
+        <Show when={props.sufix.length > 0}>
+          <span class="text-sm text-muted-foreground">{props.sufix}</span>
+        </Show>
+      </div>
     </div>
-    <div class="flex flex-row items-center justify-between gap-4 px-6 py-4">
+    <div class="flex-row items-center justify-between gap-4 px-6 py-4 hidden md:flex">
       <div class=""></div>
-      <div class="text-3xl font-bold flex flex-row items-baseline gap-2">
+      <div class="transition-[font-size] text-base md:text-3xl font-bold flex flex-row items-baseline gap-2">
         <Show when={props.prefix.length > 0}>
           <span>{props.prefix}</span>
         </Show>
@@ -103,7 +125,7 @@ const Statistic = (props: {
     </div>
     <div
       class={cn(
-        "transition-all w-full border-b border-neutral-200 dark:border-neutral-800 py-4 px-6 leading-none text-muted-foreground absolute -top-full group-hover:top-0 left-0 right-0 backdrop-blur ",
+        "transition-all w-full border-b border-neutral-200 dark:border-neutral-800 py-4 px-6 leading-none text-muted-foreground absolute -top-full group-hover:top-0 left-0 right-0 backdrop-blur hidden md:flex",
         {
           "bg-neutral-950/10 dark:bg-neutral-100/10 text-black dark:text-white": props.priority === 1,
         },
@@ -245,14 +267,14 @@ export default function DashboardPage() {
           >
             {(c) => (
               <div class="flex flex-col w-full gap-0 grow">
-                <div class="flex flex-col w-full gap-1 sticky top-0 py-4 bg-background border-b border-neutral-200 dark:border-neutral-800 z-10">
+                <div class="flex flex-col w-full gap-1 sticky top-[60px] xl:top-0 py-4 bg-background border-b border-neutral-200 dark:border-neutral-800 z-10">
                   <h2 class="text-lg font-bold">{c().name}</h2>
                   <span class="text-sm font-medium text-muted-foreground">
                     {c().email} ({c().phoneNumber})
                   </span>
                 </div>
                 <div class="flex flex-col w-full py-4 gap-4 grow">
-                  <div class="grid grid-cols-1 lg:grid-cols-4 gap-0 w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-clip">
+                  <div class="grid grid-flow-col md:grid-cols-4 gap-0 w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-clip">
                     <Show when={stats() && stats()}>
                       {(ss) => (
                         <For each={Object.entries(ss())}>
@@ -296,13 +318,13 @@ export default function DashboardPage() {
                             </TextFieldRoot>
                             <Button
                               size="sm"
-                              class="flex flex-row items-center gap-2 select-none"
+                              class="flex flex-row items-center gap-2 select-none size-8 md:size-auto p-2 md:px-3 md:py-2"
                               variant="secondary"
                               onClick={async () => {
                                 await revalidate([getRides.key, getLanguage.key]);
                               }}
                             >
-                              <span>Refresh</span>
+                              <span class="sr-only md:not-sr-only">Refresh</span>
                               <RotateClockwise class="size-4" />
                             </Button>
                             <AddRideModal
@@ -449,7 +471,7 @@ export default function DashboardPage() {
                         </Show>
                       </div>
                     </div>
-                    <div class="gap-4 flex flex-col xl:w-max w-full xl:min-w-80 h-max min-h-40 ">
+                    <div class="gap-4 flex flex-row xl:flex-col xl:w-max w-full xl:min-w-80 h-max min-h-40 max-h-40 md:max-h-full ">
                       <div class="flex flex-col h-full w-full border border-yellow-200 dark:border-yellow-800 rounded-2xl min-h-40 bg-gradient-to-br from-yellow-100 via-yellow-50 to-yellow-200 ">
                         <div class="p-4 flex-col flex h-full w-full grow gap-4">
                           <div class="flex flex-row items-center justify-between gap-2">
@@ -457,7 +479,7 @@ export default function DashboardPage() {
                             <div class="w-max flex flex-row items-center gap-2">
                               <Button
                                 size="icon"
-                                class="flex flex-row items-center gap-2 size-8 text-black"
+                                class="md:flex flex-row items-center gap-2 size-8 text-black hidden"
                                 variant="ghost"
                                 onClick={async () => {
                                   await revalidate([getHotspot.key]);
@@ -479,7 +501,7 @@ export default function DashboardPage() {
                               keyed
                               fallback={
                                 <div class="flex flex-col gap-1 h-full grow bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-yellow-200 shadow-sm select-none items-center justify-center">
-                                  <span class="text-sm text-black">No Hotspot at the current time</span>
+                                  <span class="text-sm text-black text-center">No Hotspot at the current time</span>
                                 </div>
                               }
                             >

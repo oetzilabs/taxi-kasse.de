@@ -1,7 +1,7 @@
 import type { ParentProps } from "solid-js";
 import { isServer } from "solid-js/web";
 
-const swFile = import.meta.env.MODE === "production" ? "/sw.js" : undefined; //'/dev-sw.js?dev-sw';
+const swFile = import.meta.env.MODE === "production" ? "/sw.js" : "/dev-sw.js?dev-sw"; //'/dev-sw.js?dev-sw';
 
 export function ServiceWorker(props: ParentProps) {
   if (!isServer) {

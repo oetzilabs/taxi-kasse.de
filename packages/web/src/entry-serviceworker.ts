@@ -28,7 +28,7 @@ export function register(opts: Options) {
     ({ request }) => ["image", "font", "script", "style", "video"].includes(request.destination),
     new CacheFirst({
       cacheName: cacheNames.runtime,
-    })
+    }),
   );
 
   registerRoute(assets);
@@ -46,6 +46,27 @@ self.addEventListener("install", (event) => {
 // Claim all open clients (tabs)
 self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
+});
+
+// Delete old caches
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys.map(async (key) => {
+          if (key !== cacheNames.runtime) {
+            await caches.delete(key);
+          }
+        }),
+      );
+    })(),
+  );
+});
+
+// Console log messages
+self.addEventListener("message", (event) => {
+  console.log(event.data.message);
 });
 
 declare global {

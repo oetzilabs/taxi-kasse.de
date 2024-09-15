@@ -13,6 +13,7 @@ export module Users {
     verifiedAt: optional(nullable(date())),
     role: optional(picklist(user_role.enumValues)),
     currency_code: optional(picklist(currency_code.enumValues)),
+    referral_code: optional(nullable(string())),
   });
   export const UpdateSchema = intersect([partial(Users.CreateSchema), object({ id: Validator.Cuid2Schema })]);
 

@@ -180,7 +180,7 @@ export const Company = (props: { user: UserSession["user"]; comp: Companies.Info
                   toast.info("Coming Soon");
                 }}
               >
-                <span>Add Employee</span>
+                <span class="w-max">Add Employee</span>
                 <Plus class="size-4" />
               </Button>
             </div>
@@ -201,7 +201,7 @@ export const Company = (props: { user: UserSession["user"]; comp: Companies.Info
               toast.info("Coming Soon");
             }}
           >
-            <span>Add Employee</span>
+            <span class="w-max">Add Employee</span>
             <Plus class="size-4" />
           </div>
         </Show>
@@ -225,7 +225,7 @@ export const Company = (props: { user: UserSession["user"]; comp: Companies.Info
                   toast.info("Coming Soon");
                 }}
               >
-                <span>Add Region</span>
+                <span class="w-max">Add Region</span>
                 <Plus class="size-4" />
               </Button>
             </div>
@@ -244,7 +244,7 @@ export const Company = (props: { user: UserSession["user"]; comp: Companies.Info
               toast.info("Coming Soon");
             }}
           >
-            <span>Add Region</span>
+            <span class="w-max">Add Region</span>
             <Plus class="size-4" />
           </div>
         </Show>
@@ -268,7 +268,7 @@ export const Company = (props: { user: UserSession["user"]; comp: Companies.Info
                   toast.info("Coming Soon");
                 }}
               >
-                <span>Add Discount</span>
+                <span class="w-max">Add Discount</span>
                 <Plus class="size-4" />
               </Button>
             </div>
@@ -287,7 +287,7 @@ export const Company = (props: { user: UserSession["user"]; comp: Companies.Info
               toast.info("Coming Soon");
             }}
           >
-            <span>Add Discount</span>
+            <span class="w-max">Add Discount</span>
             <Plus class="size-4" />
           </div>
         </Show>
