@@ -137,7 +137,7 @@
 
 /* scrollbars */
 ::-webkit-scrollbar {
-  @apply h-1.5 w-1.5 overflow-clip rounded-full;
+  @apply h-2 w-2 overflow-clip rounded-full;
 }
 ::-webkit-scrollbar-track {
   @apply overflow-clip rounded-full bg-transparent;

@@ -94,6 +94,7 @@ export default function App() {
                       style={{
                         "flex-grow": "1",
                         "min-height": "100vh",
+                        "scrollbar-gutter": "stable both-edges",
                       }}
                     >
                       <Header />

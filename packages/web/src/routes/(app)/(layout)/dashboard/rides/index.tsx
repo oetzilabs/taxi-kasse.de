@@ -155,7 +155,7 @@ export default function DashboardPage() {
       <Show when={session()}>
         {(s) => (
           <Show
-            when={s().organization}
+            when={s().company}
             fallback={
               <div class="flex flex-col w-full py-4 gap-4">
                 <div class="flex flex-col w-full items-center justify-center rounded-md px-4 py-20 gap-2 bg-neutral-200 dark:bg-neutral-800">
@@ -171,7 +171,7 @@ export default function DashboardPage() {
               </div>
             }
           >
-            {(o) => (
+            {(c) => (
               <div class="flex flex-col w-full gap-0 grow">
                 <div class="flex flex-col w-full py-4 gap-4 grow">
                   <div class="flex flex-col-reverse xl:flex-row w-full gap-4 grow">
@@ -179,7 +179,7 @@ export default function DashboardPage() {
                       <div class="flex flex-col gap-4 w-full grow">
                         <div class="flex flex-row items-center justify-between gap-4">
                           <div class="flex flex-row items-center gap-4">
-                            <span class="font-bold capitalize text-lg">
+                            <span class="font-bold capitalize text-lg w-max">
                               {filteredRides(rides() ?? [])?.length} Rides
                             </span>
                           </div>
@@ -196,16 +196,23 @@ export default function DashboardPage() {
                             </TextFieldRoot>
                             <Button
                               size="sm"
-                              class="flex flex-row items-center gap-2 select-none"
+                              class="flex flex-row items-center gap-2 select-none size-8 md:size-auto p-2 md:px-3 md:py-2"
                               variant="secondary"
                               onClick={async () => {
                                 await revalidate([getRides.key, getLanguage.key]);
                               }}
                             >
-                              <span>Refresh</span>
+                              <span class="sr-only md:not-sr-only">Refresh</span>
                               <RotateClockwise class="size-4" />
                             </Button>
-                            <AddRideModal vehicle_id_saved={null} vehicle_id_used_last_time={null} />
+                            <AddRideModal
+                              vehicle_id_saved={null}
+                              vehicle_id_used_last_time={null}
+                              base_charge={Number(c().base_charge)}
+                              distance_charge={Number(c().distance_charge)}
+                              time_charge={Number(c().time_charge)}
+                              currency_code={s().user?.currency_code ?? "USD"}
+                            />
                           </div>
                         </div>
                         <Show when={filteredRides(rides() ?? [])}>

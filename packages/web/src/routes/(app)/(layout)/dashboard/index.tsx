@@ -69,7 +69,7 @@ const Statistic = (props: {
 }) => (
   <div
     class={cn(
-      "flex flex-col  w-full gap-0 select-none border-l first:border-l-0 border-neutral-200 dark:border-neutral-800 relative overflow-clip group",
+      "flex flex-col w-full gap-0 select-none border-l first:border-l-0 border-neutral-200 dark:border-neutral-800 relative overflow-clip group",
     )}
   >
     <div class="flex flex-row items-center justify-between gap-2 md:px-6 md:pb-4 md:pt-6 px-3 py-2">
@@ -301,7 +301,7 @@ export default function DashboardPage() {
                       <div class="flex flex-col gap-4 w-full grow">
                         <div class="flex flex-row items-center justify-between gap-4">
                           <div class="flex flex-row items-center gap-4">
-                            <span class="font-bold capitalize text-lg">
+                            <span class="font-bold capitalize text-lg w-max">
                               {filteredRides(rides() ?? [])?.length} Rides
                             </span>
                           </div>
