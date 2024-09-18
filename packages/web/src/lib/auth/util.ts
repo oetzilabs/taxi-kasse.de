@@ -67,6 +67,7 @@ export const getAuthenticatedSession = cache(async () => {
   }
 
   userSession.id = session.id;
+  userSession.token = session.access_token;
   if (session.organization_id) userSession.organization = await Organizations.findById(session.organization_id);
   if (session.company_id) userSession.company = await Companies.findById(session.company_id);
   if (session.userId) {

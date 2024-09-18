@@ -19,7 +19,7 @@
     "@ianvs/prettier-plugin-sort-imports": "4.3.1",
     "prettier-plugin-tailwindcss": "0.6.6",
     "@tsconfig/node22": "22.0.0",
-    "sst": "3.1.10",
+    "sst": "3.1.17",
     "typescript": "5.5.4",
     "prettier": "3.3.3"
   },
@@ -27,6 +27,7 @@
     "packages/*"
   ],
   "trustedDependencies": [
-    "core-js-pure"
+    "core-js-pure",
+    "esbuild"
   ]
 }

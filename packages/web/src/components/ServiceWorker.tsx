@@ -8,7 +8,7 @@ export function ServiceWorker(props: ParentProps) {
     if ("serviceWorker" in navigator) {
       if (swFile) {
         navigator.serviceWorker.register(swFile, { type: import.meta.env.DEV ? "module" : "classic" }).catch((e) => {
-          // log…
+          console.error("ServiceWorker registration failed:", e);
         });
       } else {
         navigator.serviceWorker.getRegistrations().then((registrations) => {

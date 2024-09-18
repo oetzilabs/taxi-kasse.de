@@ -31,7 +31,7 @@ export default function DashboardPage() {
   const joinCompanyAction = useAction(joinCompany);
   const createCompanyStatus = useSubmission(createCompany);
   const joinCompanyStatus = useSubmission(joinCompany);
-  const [company, setCompany] = createStore<InferInput<typeof Companies.CreateWithoutOwnerSchema>>({
+  const [company, setCompany] = createStore<InferInput<typeof Companies.CreateWithoutOwnerAndCharges>>({
     name: "",
     email: "",
     phoneNumber: "",

@@ -1,4 +1,4 @@
-CREATE SCHEMA "taxikassede";
+CREATE SCHEMA IF NOT EXISTS "taxikassede";
 --> statement-breakpoint
 DO $$ BEGIN
  CREATE TYPE "taxikassede"."currency_code" AS ENUM('USD', 'EUR', 'GBP', 'CHF', 'JPY', 'AUD', 'CAD', 'NZD');
@@ -48,6 +48,18 @@ EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "taxikassede"."discounts" (
+	"name" text NOT NULL,
+	"description" text,
+	"data" json,
+	"start_date" text,
+	"end_date" text,
+	"id" varchar PRIMARY KEY NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone,
+	"deleted_at" timestamp with time zone
+);
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "taxikassede"."session" (
 	"id" text PRIMARY KEY NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -55,7 +67,8 @@ CREATE TABLE IF NOT EXISTS "taxikassede"."session" (
 	"user_id" varchar NOT NULL,
 	"expires_at" timestamp with time zone NOT NULL,
 	"access_token" text,
-	"organization_id" varchar
+	"organization_id" text,
+	"company_id" text
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "taxikassede"."users" (
@@ -65,6 +78,7 @@ CREATE TABLE IF NOT EXISTS "taxikassede"."users" (
 	"verified_at" timestamp with time zone,
 	"role" "taxikassede"."user_roles" DEFAULT 'member' NOT NULL,
 	"currency_code" "taxikassede"."currency_code" DEFAULT 'USD' NOT NULL,
+	"referral_code" varchar,
 	"id" varchar PRIMARY KEY NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone,
@@ -78,6 +92,9 @@ CREATE TABLE IF NOT EXISTS "taxikassede"."vehicles" (
 	"model_id" text,
 	"inspection_date" timestamp with time zone,
 	"mileage" numeric DEFAULT '0.000' NOT NULL,
+	"overwrite_base_charge" numeric DEFAULT '0.00',
+	"overwrite_distance_charge" numeric DEFAULT '0.00',
+	"overwrite_time_charge" numeric DEFAULT '0.00',
 	"id" varchar PRIMARY KEY NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone,
@@ -95,7 +112,7 @@ CREATE TABLE IF NOT EXISTS "taxikassede"."vehicle_models" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "taxikassede"."rides" (
 	"user_id" text NOT NULL,
-	"org_id" text,
+	"company_id" text,
 	"income" numeric DEFAULT '0.00' NOT NULL,
 	"distance" numeric DEFAULT '0.000' NOT NULL,
 	"vehicle_id" text NOT NULL,
@@ -180,11 +197,22 @@ CREATE TABLE IF NOT EXISTS "taxikassede"."companies" (
 	"image" text DEFAULT '/images/default-company-profile.png' NOT NULL,
 	"banner" text DEFAULT '/images/default-company-banner.png' NOT NULL,
 	"phone_number" text,
+	"website" text,
 	"email" text NOT NULL,
+	"uid" text DEFAULT '' NOT NULL,
+	"base_charge" numeric DEFAULT '0.00',
+	"distance_charge" numeric DEFAULT '0.00',
+	"time_charge" numeric DEFAULT '0.00',
 	"id" varchar PRIMARY KEY NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone,
 	"deleted_at" timestamp with time zone
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "taxikassede"."user_companies" (
+	"user_id" text NOT NULL,
+	"company_id" text,
+	"role" "taxikassede"."comp_role" DEFAULT 'employee' NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "taxikassede"."company_regions" (
@@ -193,21 +221,38 @@ CREATE TABLE IF NOT EXISTS "taxikassede"."company_regions" (
 	CONSTRAINT "company_regions_company_id_region_id_pk" PRIMARY KEY("company_id","region_id")
 );
 --> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "taxikassede"."company_discounts" (
+	"company_id" text,
+	"discount_id" text,
+	CONSTRAINT "company_discounts_company_id_discount_id_pk" PRIMARY KEY("company_id","discount_id")
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "taxikassede"."organization_companies" (
+	"company_id" text NOT NULL,
+	"organization_id" text,
+	"role" "taxikassede"."org_roles" DEFAULT 'employee' NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "taxikassede"."organizations" (
 	"user_id" text,
 	"name" text NOT NULL,
 	"image" text DEFAULT '/images/default-organization-profile.png' NOT NULL,
 	"banner" text DEFAULT '/images/default-organization-banner.png' NOT NULL,
 	"phone_number" text,
+	"website" text,
 	"email" text NOT NULL,
+	"uid" text DEFAULT '' NOT NULL,
+	"base_charge" numeric DEFAULT '0.00',
+	"distance_charge" numeric DEFAULT '0.00',
+	"time_charge" numeric DEFAULT '0.00',
 	"id" varchar PRIMARY KEY NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone,
 	"deleted_at" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "taxikassede"."organization_companies" (
-	"company_id" text NOT NULL,
+CREATE TABLE IF NOT EXISTS "taxikassede"."user_organizations" (
+	"user_id" text NOT NULL,
 	"organization_id" text,
 	"role" "taxikassede"."org_roles" DEFAULT 'employee' NOT NULL
 );
@@ -218,10 +263,10 @@ CREATE TABLE IF NOT EXISTS "taxikassede"."organization_regions" (
 	CONSTRAINT "organization_regions_organization_id_region_id_pk" PRIMARY KEY("organization_id","region_id")
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "taxikassede"."user_organizations" (
-	"user_id" text NOT NULL,
+CREATE TABLE IF NOT EXISTS "taxikassede"."organization_discounts" (
 	"organization_id" text,
-	"role" "taxikassede"."org_roles" DEFAULT 'employee' NOT NULL
+	"discount_id" text,
+	CONSTRAINT "organization_discounts_organization_id_discount_id_pk" PRIMARY KEY("organization_id","discount_id")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "taxikassede"."addresses" (
@@ -291,7 +336,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "taxikassede"."rides" ADD CONSTRAINT "rides_org_id_companies_id_fk" FOREIGN KEY ("org_id") REFERENCES "taxikassede"."companies"("id") ON DELETE set null ON UPDATE no action;
+ ALTER TABLE "taxikassede"."rides" ADD CONSTRAINT "rides_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "taxikassede"."companies"("id") ON DELETE set null ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -351,6 +396,18 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
+ ALTER TABLE "taxikassede"."user_companies" ADD CONSTRAINT "user_companies_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "taxikassede"."users"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "taxikassede"."user_companies" ADD CONSTRAINT "user_companies_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "taxikassede"."companies"("id") ON DELETE set null ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
  ALTER TABLE "taxikassede"."company_regions" ADD CONSTRAINT "company_regions_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "taxikassede"."companies"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
@@ -363,7 +420,13 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "taxikassede"."organizations" ADD CONSTRAINT "organizations_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "taxikassede"."users"("id") ON DELETE set null ON UPDATE no action;
+ ALTER TABLE "taxikassede"."company_discounts" ADD CONSTRAINT "company_discounts_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "taxikassede"."companies"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "taxikassede"."company_discounts" ADD CONSTRAINT "company_discounts_discount_id_discounts_id_fk" FOREIGN KEY ("discount_id") REFERENCES "taxikassede"."discounts"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -381,6 +444,24 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
+ ALTER TABLE "taxikassede"."organizations" ADD CONSTRAINT "organizations_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "taxikassede"."users"("id") ON DELETE set null ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "taxikassede"."user_organizations" ADD CONSTRAINT "user_organizations_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "taxikassede"."users"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "taxikassede"."user_organizations" ADD CONSTRAINT "user_organizations_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "taxikassede"."organizations"("id") ON DELETE set null ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
  ALTER TABLE "taxikassede"."organization_regions" ADD CONSTRAINT "organization_regions_organization_id_companies_id_fk" FOREIGN KEY ("organization_id") REFERENCES "taxikassede"."companies"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
@@ -393,13 +474,13 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "taxikassede"."user_organizations" ADD CONSTRAINT "user_organizations_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "taxikassede"."users"("id") ON DELETE cascade ON UPDATE no action;
+ ALTER TABLE "taxikassede"."organization_discounts" ADD CONSTRAINT "organization_discounts_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "taxikassede"."organizations"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "taxikassede"."user_organizations" ADD CONSTRAINT "user_organizations_organization_id_companies_id_fk" FOREIGN KEY ("organization_id") REFERENCES "taxikassede"."companies"("id") ON DELETE set null ON UPDATE no action;
+ ALTER TABLE "taxikassede"."organization_discounts" ADD CONSTRAINT "organization_discounts_discount_id_discounts_id_fk" FOREIGN KEY ("discount_id") REFERENCES "taxikassede"."discounts"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

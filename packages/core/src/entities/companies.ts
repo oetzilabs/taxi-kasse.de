@@ -35,6 +35,12 @@ export module Companies {
   });
 
   export const CreateWithoutOwnerSchema = omit(CreateSchema, ["ownerId"]);
+  export const CreateWithoutOwnerAndCharges = omit(CreateSchema, [
+    "ownerId",
+    "base_charge",
+    "distance_charge",
+    "time_charge",
+  ]);
 
   export const UpdateSchema = intersect([
     partial(Companies.CreateSchema),
@@ -55,15 +61,15 @@ export module Companies {
     if (!isValid.success) {
       throw isValid.issues;
     }
-    const bC = String(isValid.output.base_charge ?? undefined);
-    const dC = String(isValid.output.distance_charge ?? undefined);
-    const tC = String(isValid.output.time_charge ?? undefined);
+    const bC = String(isValid.output.base_charge ?? 0);
+    const dC = String(isValid.output.distance_charge ?? 0);
+    const tC = String(isValid.output.time_charge ?? 0);
     const [created] = await tsx
       .insert(companies)
       .values([{ ...isValid.output, base_charge: bC, distance_charge: dC, time_charge: tC }])
       .returning();
-    const org = await Companies.findById(created.id);
-    return org!;
+    const company = await Companies.findById(created.id);
+    return company!;
   };
 
   export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {

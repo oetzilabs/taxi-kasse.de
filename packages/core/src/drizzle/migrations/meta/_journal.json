@@ -5,78 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1725787266916,
-      "tag": "0000_wide_the_hand",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1725787562369,
-      "tag": "0001_volatile_firelord",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1725787745605,
-      "tag": "0002_overconfident_gladiator",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1725787897458,
-      "tag": "0003_worthless_blizzard",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1725788398224,
-      "tag": "0004_material_lenny_balinger",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1725875881962,
-      "tag": "0005_legal_mimic",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1725880925907,
-      "tag": "0006_open_prima",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1725909263341,
-      "tag": "0007_lying_nuke",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1725913615756,
-      "tag": "0008_premium_vapor",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1725974472375,
-      "tag": "0009_petite_kinsey_walden",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1726391036771,
-      "tag": "0010_black_silver_surfer",
+      "when": 1726660028780,
+      "tag": "0000_bitter_trish_tilby",
       "breakpoints": true
     }
   ]

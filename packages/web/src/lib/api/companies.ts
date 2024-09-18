@@ -8,7 +8,7 @@ import { lucia } from "../auth";
 import { getContext } from "../auth/context";
 import { getAuthenticatedSession } from "../auth/util";
 
-export const createCompany = action(async (data: InferInput<typeof Companies.CreateWithoutOwnerSchema>) => {
+export const createCompany = action(async (data: InferInput<typeof Companies.CreateWithoutOwnerAndCharges>) => {
   "use server";
   const [ctx, event] = await getContext();
   if (!ctx) throw redirect("/auth/login");
@@ -18,8 +18,6 @@ export const createCompany = action(async (data: InferInput<typeof Companies.Cre
   const d = Object.assign(data, { ownerId: ctx.user.id });
 
   const comp = await Companies.create(d);
-
-  // set lucia cookie session
 
   const oldSession = ctx.session;
 
