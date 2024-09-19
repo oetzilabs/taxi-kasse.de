@@ -2,13 +2,14 @@ import type { CurrencyCode } from "@/lib/api/application";
 import type { Rides } from "@taxikassede/core/src/entities/rides";
 import type { LucideProps } from "lucide-solid";
 import AddRideModal from "@/components/forms/AddRide";
+import { Hotspots } from "@/components/Hotspots";
 import { language } from "@/components/stores/Language";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { TextField, TextFieldRoot } from "@/components/ui/textfield";
+import { Weather } from "@/components/Weather";
 import { getLanguage } from "@/lib/api/application";
-import { getHotspot } from "@/lib/api/orders";
+import { getHotspots } from "@/lib/api/hotspots";
 import { getRides } from "@/lib/api/rides";
 import { getStatistics } from "@/lib/api/statistics";
 import { getAuthenticatedSession } from "@/lib/auth/util";
@@ -27,7 +28,7 @@ import ShoppingBag from "lucide-solid/icons/shopping-bag";
 import SquareArrowOutUpRight from "lucide-solid/icons/square-arrow-out-up-right";
 import TrendingUp from "lucide-solid/icons/trending-up";
 import X from "lucide-solid/icons/x";
-import { For, JSX, Match, Show, Suspense, Switch } from "solid-js";
+import { For, JSX, Match, Show, Switch } from "solid-js";
 
 export const route = {
   preload: async () => {
@@ -35,7 +36,7 @@ export const route = {
     const notification = await getSystemNotifications();
     const rides = await getRides();
     const stats = await getStatistics();
-    const hotspot = await getHotspot();
+    const hotspot = await getHotspots();
     return { notification, rides, session, stats, hotspot };
   },
   load: async () => {
@@ -43,7 +44,7 @@ export const route = {
     const notification = await getSystemNotifications();
     const rides = await getRides();
     const stats = await getStatistics();
-    const hotspot = await getHotspot();
+    const hotspot = await getHotspots();
     return { notification, rides, session, stats, hotspot };
   },
 } satisfies RouteDefinition;
@@ -69,7 +70,7 @@ const Statistic = (props: {
 }) => (
   <div
     class={cn(
-      "flex flex-col w-full gap-0 select-none border-l first:border-l-0 border-neutral-200 dark:border-neutral-800 relative overflow-clip group",
+      "flex flex-col w-full gap-0 select-none border-l first:border-l-0 border-neutral-200 dark:border-neutral-800 relative overflow-clip group"
     )}
   >
     <div class="flex flex-row items-center justify-between gap-2 md:px-6 md:pb-4 md:pt-6 px-3 py-2">
@@ -128,7 +129,7 @@ const Statistic = (props: {
         "transition-all w-full border-b border-neutral-200 dark:border-neutral-800 py-4 px-6 leading-none text-muted-foreground absolute -top-full group-hover:top-0 left-0 right-0 backdrop-blur hidden md:flex",
         {
           "bg-neutral-950/10 dark:bg-neutral-100/10 text-black dark:text-white": props.priority === 1,
-        },
+        }
       )}
     >
       <span class="text-xs">{props.description}</span>
@@ -139,7 +140,7 @@ const Statistic = (props: {
 export default function DashboardPage() {
   const stats = createAsync(() => getStatistics());
   const rides = createAsync(() => getRides());
-  const hotspot = createAsync(() => getHotspot());
+  const hotspot = createAsync(() => getHotspots());
   const session = createAsync(() => getAuthenticatedSession());
   const [search, setSearchParams] = useSearchParams();
 
@@ -472,59 +473,8 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div class="gap-4 flex flex-row xl:flex-col xl:w-max w-full xl:min-w-80 h-max min-h-40 max-h-40 md:max-h-full ">
-                      <div class="flex flex-col h-full w-full border border-yellow-200 dark:border-yellow-800 rounded-2xl min-h-40 bg-gradient-to-br from-yellow-100 via-yellow-50 to-yellow-200 ">
-                        <div class="p-4 flex-col flex h-full w-full grow gap-4">
-                          <div class="flex flex-row items-center justify-between gap-2">
-                            <span class="font-bold text-black select-none">Hotspot</span>
-                            <div class="w-max flex flex-row items-center gap-2">
-                              <Button
-                                size="icon"
-                                class="md:flex flex-row items-center gap-2 size-8 text-black hidden"
-                                variant="ghost"
-                                onClick={async () => {
-                                  await revalidate([getHotspot.key]);
-                                }}
-                              >
-                                <RotateClockwise class="size-4" />
-                              </Button>
-                            </div>
-                          </div>
-                          <Suspense
-                            fallback={
-                              <div class="flex flex-col items-center justify-center w-full h-full">
-                                <Loader2 class="size-4 animate-spin" />
-                              </div>
-                            }
-                          >
-                            <Show
-                              when={hotspot() && hotspot()!.length > 0 && hotspot()!}
-                              keyed
-                              fallback={
-                                <div class="flex flex-col gap-1 h-full grow bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-yellow-200 shadow-sm select-none items-center justify-center">
-                                  <span class="text-sm text-black text-center">No Hotspot at the current time</span>
-                                </div>
-                              }
-                            >
-                              {(h) => (
-                                <div class="flex flex-row items-center">
-                                  <For each={h} fallback={<Skeleton class="w-full h-full" />}>
-                                    {(v) => (
-                                      <div class="flex flex-row items-center gap-2">
-                                        <span>{v.points.join(", ")}</span>
-                                      </div>
-                                    )}
-                                  </For>
-                                </div>
-                              )}
-                            </Show>
-                          </Suspense>
-                        </div>
-                      </div>
-                      <div class="flex flex-col h-full w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl min-h-40">
-                        <div class="p-4 flex-col flex h-full w-full">
-                          <span class="font-bold select-none">Weather</span>
-                        </div>
-                      </div>
+                      <Hotspots />
+                      <Weather />
                     </div>
                   </div>
                 </div>
