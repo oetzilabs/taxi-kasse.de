@@ -1,16 +1,26 @@
-import { getRide } from "@/lib/api/rides";
-import { getAuthenticatedSession } from "@/lib/auth/util";
-import { A, createAsync, RouteDefinition, RouteSectionProps } from "@solidjs/router";
-import { language } from "~/components/stores/Language";
-import { Button } from "~/components/ui/button";
+import { language } from "@/components/stores/Language";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
+import { getRide, removeRide } from "@/lib/api/rides";
+import { getAuthenticatedSession } from "@/lib/auth/util";
+import { A, createAsync, RouteDefinition, RouteSectionProps, useAction, useSubmission } from "@solidjs/router";
 import Car from "lucide-solid/icons/car";
-import { Show } from "solid-js";
+import Trash from "lucide-solid/icons/trash";
+import { createSignal, Show } from "solid-js";
+import { toast } from "solid-sonner";
 
 export const route = {
   preload: async (props) => {
@@ -36,6 +46,10 @@ export default function RideRidPage(props: RouteSectionProps) {
     const rest = id.substring(6);
     return firstSix + "*".repeat(rest.length);
   };
+
+  const [openDeleteModal, setOpenDeleteModal] = createSignal(false);
+  const removeRideAction = useAction(removeRide);
+  const removeRideStatus = useSubmission(removeRide);
 
   return (
     <div class="w-full grow flex flex-col">
@@ -73,7 +87,50 @@ export default function RideRidPage(props: RouteSectionProps) {
                             <DropdownMenuItem as={A} href={`/dashboard/rides/${r().id}/edit`}>
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem>Delete</DropdownMenuItem>
+                            <Dialog open={openDeleteModal()} onOpenChange={setOpenDeleteModal}>
+                              <DialogTrigger
+                                as={DropdownMenuItem}
+                                class="flex flex-row items-center gap-2 text-red-500 hover:!bg-red-200 dark:hover:!bg-red-800 hover:!text-red-600 dark:hover:!text-red-500"
+                                closeOnSelect={false}
+                              >
+                                <Trash class="size-4" />
+                                <span>Delete</span>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>Delete Organization?</DialogHeader>
+                                <DialogDescription>
+                                  Are you sure you want to delete this organization? This action cannot be undone. All
+                                  data associated with this organization will be deleted, including employees,vehicles,
+                                  regions, and rides.
+                                </DialogDescription>
+                                <DialogFooter>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                      setOpenDeleteModal(false);
+                                    }}
+                                  >
+                                    No, Cancel!
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    disabled={removeRideStatus.pending}
+                                    onClick={() => {
+                                      toast.promise(removeRideAction(r().id), {
+                                        loading: "Deleting Organization",
+                                        success: () => {
+                                          setOpenDeleteModal(false);
+                                          return "Organization deleted";
+                                        },
+                                        error: (e) => `Failed to delete organization: ${e.message}`,
+                                      });
+                                    }}
+                                  >
+                                    Yes, Delete.
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>

@@ -1,6 +1,18 @@
 import dayjs from "dayjs";
 import { and, asc, count, desc, eq, gte, lte, sum } from "drizzle-orm";
-import { array, date, InferInput, intersect, object, picklist, safeParse, string } from "valibot";
+import {
+  array,
+  date,
+  InferInput,
+  intersect,
+  number,
+  object,
+  partial,
+  picklist,
+  safeParse,
+  string,
+  tuple,
+} from "valibot";
 import { db } from "../drizzle/sql";
 import { ride_added_by, ride_status, rides, RideSelect } from "../drizzle/sql/schemas/rides";
 import { Validator } from "../validator";
@@ -18,9 +30,16 @@ export module Rides {
       status: picklist(ride_status.enumValues),
       startedAt: date(),
       endedAt: date(),
-    }),
+    })
   );
-  export const UpdateSchema = intersect([CreateSchema.item, object({ id: Validator.Cuid2Schema })]);
+  export const UpdateSchema = intersect([partial(CreateSchema.item), object({ id: Validator.Cuid2Schema })]);
+
+  export const UpdateRoutesSchema = object({
+    id: Validator.Cuid2Schema,
+    waypoints: array(tuple([number(), number()])),
+  });
+
+  export const StatusSchema = picklist(ride_status.enumValues);
 
   export type WithOptions = NonNullable<NonNullable<Parameters<typeof db.query.rides.findFirst>[0]>["with"]>;
   export const _with: WithOptions = {
@@ -187,7 +206,7 @@ export module Rides {
   export const sumByUserId = async (
     id: InferInput<typeof Validator.Cuid2Schema>,
     field: keyof RideSelect,
-    tsx = db,
+    tsx = db
   ) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
@@ -208,7 +227,7 @@ export module Rides {
   export const sumByUserIdForThisMonth = async (
     id: InferInput<typeof Validator.Cuid2Schema>,
     field: keyof RideSelect,
-    tsx = db,
+    tsx = db
   ) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
@@ -228,5 +247,32 @@ export module Rides {
     const __sum = Number(_sum);
     if (Number.isNaN(__sum)) return 0;
     return __sum;
+  };
+
+  export const markDeleted = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+    const isValid = safeParse(Validator.Cuid2Schema, id);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+    return tsx.update(rides).set({ deletedAt: new Date() }).where(eq(rides.id, isValid.output)).returning();
+  };
+
+  export const updateRoutes = async (data: InferInput<typeof Rides.UpdateRoutesSchema>, tsx = db) => {
+    const isValid = safeParse(Rides.UpdateRoutesSchema, data);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+    // compare already existing routes from the array of Lat,Lng if the origin and destination are the same,
+    // then update the existing route
+    // if they dont exist, create a new route,
+
+    const newRoutes = [];
+
+    for (const [lat, lng] of isValid.output.waypoints) {
+
+    }
+
+    const updatedRide = await findById(isValid.output.id, tsx);
+    return updatedRide!;
   };
 }
