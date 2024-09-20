@@ -61,7 +61,7 @@ export default function LoginPage() {
         <div class="w-full relative flex h-full flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
           <div class="relative hidden h-full flex-col bg-muted p-10 dark:border-r lg:flex">
             <div class="absolute inset-0 bg-neutral-100 dark:bg-neutral-900" />
-            <div class="relative z-20 flex items-center text-lg gap-2 font-bold">Taxi-Kasse.de</div>
+            <div class="relative z-20 flex items-center text-lg gap-2 font-bold">Caby</div>
             <div class="relative z-20 mt-auto">
               <blockquote class="space-y-2">
                 <p class="">&ldquo;{randomPersonTesimonial.testimonial}&rdquo;</p>
@@ -74,10 +74,10 @@ export default function LoginPage() {
           <div class="p-8 w-full">
             <div class="mx-auto flex w-full flex-col justify-center space-y-6 max-w-[300px]">
               <div class="relative z-20 flex lg:hidden items-center text-lg font-bold gap-2 justify-center">
-                Taxi-Kasse.de
+                Caby
               </div>
               <div class="flex flex-col space-y-4 text-center">
-                <h1 class="text-2xl font-semibold tracking-tight">Taxi-Kasse.de</h1>
+                <h1 class="text-2xl font-semibold tracking-tight">Caby</h1>
                 <p class="text-sm text-muted-foreground">Login via your preferred method</p>
               </div>
               <div class="flex flex-col gap-4 items-center w-full">

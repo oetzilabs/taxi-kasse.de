@@ -32,28 +32,28 @@ function UsedByCompaniesSection() {
   });
   const companies = [
     {
-      name: "Taxi-Kasse.de",
-      image: "/assets/images/companies/taxi-kasse.png",
+      name: "Caby",
+      image: "/assets/images/companies/caby.png",
     },
     {
-      name: "Taxi-Kasse.de",
-      image: "/assets/images/companies/taxi-kasse.png",
+      name: "Caby",
+      image: "/assets/images/companies/caby.png",
     },
     {
-      name: "Taxi-Kasse.de",
-      image: "/assets/images/companies/taxi-kasse.png",
+      name: "Caby",
+      image: "/assets/images/companies/caby.png",
     },
     {
-      name: "Taxi-Kasse.de",
-      image: "/assets/images/companies/taxi-kasse.png",
+      name: "Caby",
+      image: "/assets/images/companies/caby.png",
     },
     {
-      name: "Taxi-Kasse.de",
-      image: "/assets/images/companies/taxi-kasse.png",
+      name: "Caby",
+      image: "/assets/images/companies/caby.png",
     },
     {
-      name: "Taxi-Kasse.de",
-      image: "/assets/images/companies/taxi-kasse.png",
+      name: "Caby",
+      image: "/assets/images/companies/caby.png",
     },
   ];
 

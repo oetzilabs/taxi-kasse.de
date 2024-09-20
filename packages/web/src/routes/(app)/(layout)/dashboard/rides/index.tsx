@@ -176,14 +176,10 @@ export default function DashboardPage() {
                 <div class="flex flex-col w-full py-4 gap-4 grow">
                   <div class="flex flex-col-reverse xl:flex-row w-full gap-4 grow">
                     <div class="gap-0 w-full grow">
-                      <div class="flex flex-col gap-4 w-full grow">
-                        <div class="flex flex-row items-center justify-between gap-4">
-                          <div class="flex flex-row items-center gap-4">
-                            <span class="font-bold capitalize text-lg w-max">
-                              {filteredRides(rides() ?? [])?.length} Rides
-                            </span>
-                          </div>
-                          <div class="flex flex-row items-center gap-2">
+                      <div class="flex flex-col gap-2 w-full grow">
+                        <div class="flex flex-row items-center justify-between gap-0">
+                          <div class="flex flex-row items-center gap-4 w-min"></div>
+                          <div class="flex flex-row items-center gap-2 w-full">
                             <TextFieldRoot
                               value={search.query}
                               onChange={(v) =>
@@ -191,8 +187,12 @@ export default function DashboardPage() {
                                   query: v,
                                 })
                               }
+                              class="w-full max-w-full"
                             >
-                              <TextField placeholder="Search" class="w-full" />
+                              <TextField
+                                placeholder={`Search across ${filteredRides(rides() ?? [])?.length} rides`}
+                                class="w-full max-w-full"
+                              />
                             </TextFieldRoot>
                             <Button
                               size="sm"
@@ -228,7 +228,7 @@ export default function DashboardPage() {
                               >
                                 {([month, rides], i) => (
                                   <div class="flex flex-col gap-0 w-full">
-                                    <div class="flex flex-row items-center w-full px-4 py-4">
+                                    <div class={cn("flex flex-row items-center w-full px-4  py-4", { "px-0": i() === 0 })}>
                                       <div class="flex flex-row items-center w-full">
                                         <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
                                       </div>
@@ -255,7 +255,7 @@ export default function DashboardPage() {
                                           </div>
                                         }
                                       >
-                                        {(v) => (
+                                        {(ride) => (
                                           <div class="h-max w-full flex flex-col border-b border-neutral-200 dark:border-neutral-800 last:border-b-0">
                                             <div class="flex flex-row w-full px-6 pt-6 pb-4 items-center justify-between gap-2">
                                               <div class="flex items-center justify-center gap-2 select-none">
@@ -263,25 +263,25 @@ export default function DashboardPage() {
                                                   <TooltipTrigger>
                                                     <div class="size-5 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-800">
                                                       <Switch>
-                                                        <Match when={v.status === "accepted"}>
+                                                        <Match when={ride.status === "accepted"}>
                                                           <Check class="size-3 text-muted-foreground" />
                                                         </Match>
-                                                        <Match when={v.status === "pending"}>
+                                                        <Match when={ride.status === "pending"}>
                                                           <Loader2 class="size-3 animate-spin" />
                                                         </Match>
-                                                        <Match when={v.status === "rejected"}>
+                                                        <Match when={ride.status === "rejected"}>
                                                           <X class="size-3 text-red-500" />
                                                         </Match>
                                                       </Switch>
                                                     </div>
                                                   </TooltipTrigger>
                                                   <TooltipContent class="uppercase font-bold">
-                                                    {v.status}
+                                                    {ride.status}
                                                   </TooltipContent>
                                                 </Tooltip>
                                                 <Badge variant="outline" class="flex flex-row items-center gap-2">
                                                   <Car class="size-4 text-muted-foreground" />
-                                                  {v.vehicle.name}
+                                                  {ride.vehicle.name}
                                                 </Badge>
                                               </div>
                                               <div class="">
@@ -289,7 +289,7 @@ export default function DashboardPage() {
                                                   {new Intl.NumberFormat(language() ?? "en-US", {
                                                     style: "currency",
                                                     currency: s().user!.currency_code,
-                                                  }).format(Number(v.income))}
+                                                  }).format(Number(ride.income))}
                                                 </span>
                                               </div>
                                             </div>
@@ -307,7 +307,7 @@ export default function DashboardPage() {
                                                       style: "unit",
                                                       unit: "kilometer",
                                                       unitDisplay: "short",
-                                                    }).format(Number(v.distance) / 1000)}
+                                                    }).format(Number(ride.distance) / 1000)}
                                                   </span>
                                                 </div>
                                                 <div class="flex flex-row items-center w-full">
@@ -317,11 +317,11 @@ export default function DashboardPage() {
                                               </div>
                                               <div class="flex flex-row items-center">
                                                 <div class="flex flex-row items-center w-full">
-                                                  <span class="font-bold text-sm">{beginningOfRide(v.routes)}</span>
+                                                  <span class="font-bold text-sm">{beginningOfRide(ride.routes)}</span>
                                                 </div>
                                                 <div class="flex flex-row items-center w-max"></div>
                                                 <div class="flex flex-row items-center w-full justify-end">
-                                                  <span class="font-bold text-sm">{endOfRide(v.routes)}</span>
+                                                  <span class="font-bold text-sm">{endOfRide(ride.routes)}</span>
                                                 </div>
                                               </div>
                                               <div class="flex flex-row items-center justify-end w-full pt-4">
@@ -330,6 +330,8 @@ export default function DashboardPage() {
                                                     size="sm"
                                                     variant="secondary"
                                                     class="flex flex-row items-center gap-2"
+                                                    as={A}
+                                                    href={`/dashboard/rides/${ride.id}`}
                                                   >
                                                     <span>Open</span>
                                                     <SquareArrowOutUpRight class="size-4" />

@@ -64,7 +64,7 @@ export default function App() {
           root={(props) => (
             <>
               <MetaProvider>
-                <Title>Taxi-Kasse.de</Title>
+                <Title>Caby</Title>
                 <Suspense
                 // fallback={
                 //   <div class="w-full flex flex-col items-center justify-center h-screen bg-background text-muted-foreground gap-2">

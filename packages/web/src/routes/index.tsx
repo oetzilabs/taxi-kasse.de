@@ -142,7 +142,7 @@ export default function Dashboard() {
             }}
           >
             <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl">
-              Taxi-Kasse.de transforms your taxi business for the digital age — streamlined, intuitive, and designed
+              Caby transforms your taxi business for the digital age — streamlined, intuitive, and designed
               with your needs in mind.
             </p>
           </div>
@@ -244,7 +244,7 @@ export default function Dashboard() {
                       if ("navigator" in window) {
                         navigator.share({
                           title: "Share the app",
-                          text: "Check out the new Taxi-Kasse.de app!",
+                          text: "Check out the new Caby app!",
                           url: `https://taxi-kasse.de/referral/${referral_code}`,
                         });
                       }

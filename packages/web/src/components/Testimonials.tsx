@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 function TestimonialSection() {
   const testimonials = [
     {
-      quote: "Taxi-Kasse.de saved me hours of paperwork every month. The automated reports are a game-changer!",
+      quote: "Caby saved me hours of paperwork every month. The automated reports are a game-changer!",
       author: "Anonymous",
     },
     {
@@ -15,16 +15,16 @@ function TestimonialSection() {
     },
     {
       quote:
-        "Taxi-Kasse.de is the best tool for my taxi business. It has helped me streamline my operations and improve my profitability.",
+        "Caby is the best tool for my taxi business. It has helped me streamline my operations and improve my profitability.",
       author: "Anonymous",
     },
     {
       quote:
-        "Taxi-Kasse.de has been a game-changer for my taxi business. It took me a couple minutes to set up, but now I can focus on my core business.",
+        "Caby has been a game-changer for my taxi business. It took me a couple minutes to set up, but now I can focus on my core business.",
       author: "Anonymous",
     },
     {
-      quote: "Where was this tool before? Taxi-Kasse.de is the best!",
+      quote: "Where was this tool before? Caby is the best!",
       author: "Anonymous",
     },
   ];

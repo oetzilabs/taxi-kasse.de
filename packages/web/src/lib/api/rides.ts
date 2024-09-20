@@ -60,3 +60,31 @@ export const addRide = action(async (data: CreateRide, lastSavedVehicleId: strin
   // TODO: set lastSavedVehicleId somewhere...
   return ride;
 });
+
+export const getRide = cache(async (rid: string) => {
+  "use server";
+  if (!rid) return undefined;
+  const [ctx, event] = await getContext();
+  if (!ctx)
+    throw redirect("/auth/login", {
+      statusText: "Please login",
+      status: 401,
+    });
+  if (!ctx.session)
+    throw redirect("/auth/login", {
+      statusText: "Please login",
+      status: 401,
+    });
+  if (!ctx.user)
+    throw redirect("/auth/login", {
+      statusText: "Please login",
+      status: 401,
+    });
+  const ride = await Rides.findById(rid);
+  if (!ride)
+    throw redirect("/404", {
+      status: 404,
+      statusText: "Ride not found",
+    });
+  return ride;
+}, "ride");
