@@ -39,7 +39,7 @@ export const Weather = (props: WeatherProps) => {
             keyed
             fallback={
               <div class="flex flex-col gap-1 h-full grow bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-yellow-200 shadow-sm select-none items-center justify-center">
-                <span class="text-sm text-black text-center">No Hotspot at the current time</span>
+                <span class="text-sm text-black text-center">No Weather informations available</span>
               </div>
             }
           >

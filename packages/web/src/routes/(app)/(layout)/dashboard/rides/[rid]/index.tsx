@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import Car from "lucide-solid/icons/car";
 import { Show } from "solid-js";
 
 export const route = {
@@ -46,10 +47,22 @@ export default function RideRidPage(props: RouteSectionProps) {
                 <div class="w-full flex-col flex gap-2">
                   <div class="flex flex-col p-2 w-full">
                     <div class="flex flex-row items-start justify-between gap-2 w-full">
-                      <div class="flex flex-col w-full">
+                      <div class="flex flex-col w-full gap-2">
                         <span class="text-xs text-muted-foreground">{obscureId(r().id.split("ride_")[1])}</span>
-                        <span class="text-sm font-bold">{r().vehicle.name}</span>
+                        <div class="flex flex-row items-center gap-2">
+                          <Car class="size-4" />
+                          <span class="text-sm font-bold">{r().vehicle.name}</span>
+                        </div>
                         <span class="text-sm">{r().status}</span>
+                        <div class="flex flex-row items-center gap-2">
+                          <span class="text-sm font-bold">Charged</span>
+                          <span class="text-sm font-bold">
+                            {new Intl.NumberFormat(language(), {
+                              style: "currency",
+                              currency: s().user!.currency_code,
+                            }).format(Number(r().income))}
+                          </span>
+                        </div>
                       </div>
                       <div class="flex flex-col w-max items-start justify-start">
                         <DropdownMenu>
@@ -68,16 +81,10 @@ export default function RideRidPage(props: RouteSectionProps) {
                   </div>
                   <div class="flex flex-col p-2 w-full border border-neutral-200 dark:border-neutral-800 rounded-xl">
                     <span class="font-bold pb-2 pl-1">Map</span>
-                    <div class="flex flex-col w-full bg-neutral-100 dark:bg-neutral-900 min-h-[450px] rounded-lg"></div>
+                    <div class="flex flex-col w-full border border-nuetral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 min-h-[450px] rounded-lg"></div>
                   </div>
                   <div class="flex flex-col p-2 w-full">
                     <span class="text-xs text-muted-foreground"></span>
-                    <span class="text-sm font-bold">
-                      {new Intl.NumberFormat(language(), {
-                        style: "currency",
-                        currency: s().user!.currency_code,
-                      }).format(Number(r().income))}
-                    </span>
                     <span class="text-sm"></span>
                   </div>
                 </div>
