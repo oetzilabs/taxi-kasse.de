@@ -34,7 +34,7 @@ export const getStatistics = cache(async () => {
       value: earningsThisMonth,
       ...preffered_currency,
       priority: 1,
-      description: `You made ${preffered_currency.prefix} ${total_earnings} ${preffered_currency.sufix} in total`,
+      description: `You made ${preffered_currency.prefix}${total_earnings} ${preffered_currency.sufix} in total`,
     },
     orders: {
       value: orders,

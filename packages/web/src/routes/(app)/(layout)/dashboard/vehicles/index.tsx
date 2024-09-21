@@ -135,11 +135,15 @@ export default function DashboardPage() {
                                           No, Cancel!
                                         </Button>
                                         <Button
+                                          disabled={deleteVehicleState.pending}
                                           variant="destructive"
                                           onClick={async () => {
                                             toast.promise(deleteVehicleAction(vehicle.id), {
                                               loading: "Deleting vehicle...",
-                                              success: "Vehicle deleted successfully!",
+                                              success: () => {
+                                                setOpenDeleteDialog(false);
+                                                return "Vehicle deleted successfully!";
+                                              },
                                               error: "Something went wrong while deleting the vehicle.",
                                             });
                                             await revalidate([getVehicles.key, getVehicleById.keyFor(vehicle.id)]);

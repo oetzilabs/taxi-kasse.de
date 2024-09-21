@@ -11,20 +11,9 @@ import {
 import { TextField, TextFieldLabel, TextFieldRoot } from "@/components/ui/textfield";
 import { getVehicleById, updateVehicle } from "@/lib/api/vehicles";
 import { getAuthenticatedSession } from "@/lib/auth/util";
-import {
-  A,
-  createAsync,
-  redirect,
-  RouteDefinition,
-  RouteSectionProps,
-  useAction,
-  useParams,
-  useSubmission,
-} from "@solidjs/router";
-import { language } from "~/components/stores/Language";
-import { parseLocaleNumber } from "~/lib/utils";
+import { A, createAsync, RouteDefinition, RouteSectionProps, useAction, useSubmission } from "@solidjs/router";
 import Loader2 from "lucide-solid/icons/loader-2";
-import { createSignal, Match, Show, Suspense, Switch } from "solid-js";
+import { Match, Show, Suspense, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
 import { toast } from "solid-sonner";
 
@@ -68,10 +57,13 @@ const VehicleForm = (props: { vehicle: Vehicles.Info }) => {
               unit: "kilometer",
               unitDisplay: "narrow",
             }}
-            onChange={(value) => {
-              const pN = parseLocaleNumber(language(), value);
-              setV("mileage", String(pN));
+            onRawValueChange={(value) => {
+              setV("mileage", String(value));
             }}
+            // onChange={(value) => {
+            //   const pN = parseLocaleNumber(language(), value);
+            //   setV("mileage", String(pN));
+            // }}
             disabled={updateVehicleState.pending}
           >
             <NumberFieldLabel class="font-bold">Mileage (km)</NumberFieldLabel>
@@ -92,7 +84,15 @@ const VehicleForm = (props: { vehicle: Vehicles.Info }) => {
                 return;
               }
 
-              toast.promise(updateVehicleAction(v), {
+              // const saveV = { ...v, overwrite_base_charge: Number(v.overwrite_base_charge)} satisfies Parameters<typeof updateVehicleAction>[0];
+              const saveV = {
+                ...v,
+                overwrite_base_charge: Number(v.overwrite_base_charge),
+                overwrite_distance_charge: Number(v.overwrite_distance_charge),
+                overwrite_time_charge: Number(v.overwrite_time_charge),
+              } satisfies Parameters<typeof updateVehicleAction>[0];
+
+              toast.promise(updateVehicleAction(saveV), {
                 loading: "Saving...",
                 success: "Saved!",
                 error: (e) => `Failed to save! ${e.message}`,

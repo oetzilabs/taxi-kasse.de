@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { and, asc, count, desc, eq, gte, lte, sum } from "drizzle-orm";
+import { and, count, eq, gte, isNull, lte, sum } from "drizzle-orm";
 import {
   array,
   date,
@@ -30,7 +30,7 @@ export module Rides {
       status: picklist(ride_status.enumValues),
       startedAt: date(),
       endedAt: date(),
-    })
+    }),
   );
   export const UpdateSchema = intersect([partial(CreateSchema.item), object({ id: Validator.Cuid2Schema })]);
 
@@ -144,7 +144,7 @@ export module Rides {
       throw isValid.issues;
     }
     const rides = await tsx.query.rides.findMany({
-      where: (fields, ops) => ops.eq(fields.user_id, isValid.output),
+      where: (fields, ops) => ops.and(ops.eq(fields.user_id, isValid.output), ops.isNull(fields.deletedAt)),
       with: {
         ...Rides._with,
         vehicle: {
@@ -179,7 +179,11 @@ export module Rides {
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return tsx.update(rides).set(isValid.output).where(eq(rides.id, isValid.output.id)).returning();
+    return tsx
+      .update(rides)
+      .set({ ...isValid.output, updatedAt: new Date() })
+      .where(eq(rides.id, isValid.output.id))
+      .returning();
   };
 
   export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
@@ -198,7 +202,7 @@ export module Rides {
     const result = await tsx
       .select({ count: count(rides.id) })
       .from(rides)
-      .where(eq(rides.user_id, isValid.output));
+      .where(and(eq(rides.user_id, isValid.output), isNull(rides.deletedAt)));
 
     return result[0].count;
   };
@@ -206,7 +210,7 @@ export module Rides {
   export const sumByUserId = async (
     id: InferInput<typeof Validator.Cuid2Schema>,
     field: keyof RideSelect,
-    tsx = db
+    tsx = db,
   ) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
@@ -215,7 +219,7 @@ export module Rides {
     const result = await tsx
       .select({ sum: sum(rides[field]) })
       .from(rides)
-      .where(eq(rides.user_id, isValid.output));
+      .where(and(eq(rides.user_id, isValid.output), isNull(rides.deletedAt)));
 
     const _sum = result[0].sum;
     if (_sum === null) return 0;
@@ -227,7 +231,7 @@ export module Rides {
   export const sumByUserIdForThisMonth = async (
     id: InferInput<typeof Validator.Cuid2Schema>,
     field: keyof RideSelect,
-    tsx = db
+    tsx = db,
   ) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
@@ -238,7 +242,14 @@ export module Rides {
     const result = await tsx
       .select({ sum: sum(rides[field]) })
       .from(rides)
-      .where(and(eq(rides.user_id, isValid.output), gte(rides.startedAt, startDate), lte(rides.endedAt, endDate)));
+      .where(
+        and(
+          eq(rides.user_id, isValid.output),
+          gte(rides.startedAt, startDate),
+          lte(rides.endedAt, endDate),
+          isNull(rides.deletedAt),
+        ),
+      );
 
     if (result.length === 0) return 0;
 
@@ -254,7 +265,11 @@ export module Rides {
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return tsx.update(rides).set({ deletedAt: new Date() }).where(eq(rides.id, isValid.output)).returning();
+    return tsx
+      .update(rides)
+      .set({ deletedAt: new Date(), updatedAt: new Date() })
+      .where(eq(rides.id, isValid.output))
+      .returning();
   };
 
   export const updateRoutes = async (data: InferInput<typeof Rides.UpdateRoutesSchema>, tsx = db) => {
@@ -269,7 +284,6 @@ export module Rides {
     const newRoutes = [];
 
     for (const [lat, lng] of isValid.output.waypoints) {
-
     }
 
     const updatedRide = await findById(isValid.output.id, tsx);

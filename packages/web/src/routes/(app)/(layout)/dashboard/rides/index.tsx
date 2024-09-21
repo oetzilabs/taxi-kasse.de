@@ -1,35 +1,23 @@
-import type { CurrencyCode } from "@/lib/api/application";
 import type { Rides } from "@taxikassede/core/src/entities/rides";
-import type { LucideProps } from "lucide-solid";
 import AddRideModal from "@/components/forms/AddRide";
 import { language } from "@/components/stores/Language";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { TextField, TextFieldRoot } from "@/components/ui/textfield";
 import { getLanguage } from "@/lib/api/application";
-import { getHotspot } from "@/lib/api/orders";
 import { getRides } from "@/lib/api/rides";
-import { getStatistics } from "@/lib/api/statistics";
 import { getAuthenticatedSession } from "@/lib/auth/util";
 import { cn } from "@/lib/utils";
-import { createScrollPosition } from "@solid-primitives/scroll";
 import { A, createAsync, revalidate, RouteDefinition, useSearchParams } from "@solidjs/router";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
-import { getSystemNotifications } from "~/lib/api/system_notifications";
 import dayjs from "dayjs";
-import Box from "lucide-solid/icons/box";
 import Car from "lucide-solid/icons/car";
 import Check from "lucide-solid/icons/check";
-import CheckCircle from "lucide-solid/icons/check-circle";
-import DollarSign from "lucide-solid/icons/dollar-sign";
 import Loader2 from "lucide-solid/icons/loader-2";
 import RotateClockwise from "lucide-solid/icons/rotate-cw";
-import ShoppingBag from "lucide-solid/icons/shopping-bag";
 import SquareArrowOutUpRight from "lucide-solid/icons/square-arrow-out-up-right";
-import TrendingUp from "lucide-solid/icons/trending-up";
 import X from "lucide-solid/icons/x";
-import { createEffect, createSignal, For, JSX, Match, Show, Suspense, Switch } from "solid-js";
+import { For, Match, Show, Switch } from "solid-js";
 
 export const route = {
   preload: async () => {
@@ -228,7 +216,9 @@ export default function DashboardPage() {
                               >
                                 {([month, rides], i) => (
                                   <div class="flex flex-col gap-0 w-full">
-                                    <div class={cn("flex flex-row items-center w-full px-4  py-4", { "px-0": i() === 0 })}>
+                                    <div
+                                      class={cn("flex flex-row items-center w-full px-4  py-4", { "px-0": i() === 0 })}
+                                    >
                                       <div class="flex flex-row items-center w-full">
                                         <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
                                       </div>
@@ -281,7 +271,12 @@ export default function DashboardPage() {
                                                 </Tooltip>
                                                 <Badge variant="outline" class="flex flex-row items-center gap-2">
                                                   <Car class="size-4 text-muted-foreground" />
-                                                  {ride.vehicle.name}
+                                                  <Show
+                                                    when={ride.vehicle}
+                                                    fallback={<span class="text-sm font-bold">Unknown</span>}
+                                                  >
+                                                    {(v) => <span class="text-sm font-bold">{v().name}</span>}
+                                                  </Show>
                                                 </Badge>
                                               </div>
                                               <div class="">

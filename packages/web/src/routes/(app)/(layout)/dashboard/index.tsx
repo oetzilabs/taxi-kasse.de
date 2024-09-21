@@ -70,7 +70,7 @@ const Statistic = (props: {
 }) => (
   <div
     class={cn(
-      "flex flex-col w-full gap-0 select-none border-l first:border-l-0 border-neutral-200 dark:border-neutral-800 relative overflow-clip group"
+      "flex flex-col w-full gap-0 select-none border-l first:border-l-0 border-neutral-200 dark:border-neutral-800 relative overflow-clip group",
     )}
   >
     <div class="flex flex-row items-center justify-between gap-2 md:px-6 md:pb-4 md:pt-6 px-3 py-2">
@@ -129,7 +129,7 @@ const Statistic = (props: {
         "transition-all w-full border-b border-neutral-200 dark:border-neutral-800 py-4 px-6 leading-none text-muted-foreground absolute -top-full group-hover:top-0 left-0 right-0 backdrop-blur hidden md:flex",
         {
           "bg-neutral-950/10 dark:bg-neutral-100/10 text-black dark:text-white": props.priority === 1,
-        }
+        },
       )}
     >
       <span class="text-xs">{props.description}</span>
@@ -271,12 +271,8 @@ export default function DashboardPage() {
                 <div class="flex flex-col w-full gap-1 sticky top-[60px] xl:top-0 py-4 bg-background border-b border-neutral-200 dark:border-neutral-800 z-10">
                   <h2 class="text-lg font-bold">{c().name}</h2>
                   <div class="flex flex-row items-center gap-2">
-                    <span class="text-sm font-medium text-muted-foreground">
-                      {c().email}
-                    </span>
-                    <span class="text-sm font-medium text-muted-foreground">
-                      ({c().phoneNumber})
-                    </span>
+                    <span class="text-sm font-medium text-muted-foreground">{c().email}</span>
+                    <span class="text-sm font-medium text-muted-foreground">({c().phoneNumber})</span>
                   </div>
                 </div>
                 <div class="flex flex-col w-full py-4 gap-4 grow">
@@ -306,8 +302,7 @@ export default function DashboardPage() {
                     <div class="gap-0 w-full grow">
                       <div class="flex flex-col gap-2 w-full grow">
                         <div class="flex flex-row items-center justify-between gap-0">
-                          <div class="flex flex-row items-center gap-4 w-min">
-                          </div>
+                          <div class="flex flex-row items-center gap-4 w-min"></div>
                           <div class="flex flex-row items-center gap-2 w-full">
                             <TextFieldRoot
                               value={search.query}
@@ -318,14 +313,17 @@ export default function DashboardPage() {
                               }
                               class="w-full max-w-full"
                             >
-                              <TextField placeholder={`Search across ${filteredRides(rides() ?? [])?.length} rides`} class="w-full max-w-full" />
+                              <TextField
+                                placeholder={`Search across ${filteredRides(rides() ?? [])?.length} rides`}
+                                class="w-full max-w-full"
+                              />
                             </TextFieldRoot>
                             <Button
                               size="sm"
                               class="flex flex-row items-center gap-2 select-none size-8 md:size-auto p-2 md:px-3 md:py-2"
                               variant="secondary"
                               onClick={async () => {
-                                await revalidate([getRides.key, getLanguage.key]);
+                                await revalidate([getRides.key, getLanguage.key, getStatistics.key]);
                               }}
                             >
                               <span class="sr-only md:not-sr-only">Refresh</span>
@@ -354,7 +352,9 @@ export default function DashboardPage() {
                               >
                                 {([month, rides], i) => (
                                   <div class="flex flex-col gap-0 w-full">
-                                    <div class={cn("flex flex-row items-center w-full px-4  py-4", { "px-0": i() === 0 })}>
+                                    <div
+                                      class={cn("flex flex-row items-center w-full px-4  py-4", { "px-0": i() === 0 })}
+                                    >
                                       <div class="flex flex-row items-center w-full">
                                         <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
                                       </div>
@@ -407,7 +407,12 @@ export default function DashboardPage() {
                                                 </Tooltip>
                                                 <Badge variant="outline" class="flex flex-row items-center gap-2">
                                                   <Car class="size-4 text-muted-foreground" />
-                                                  {ride.vehicle.name}
+                                                  <Show
+                                                    when={ride.vehicle}
+                                                    fallback={<span class="text-sm font-bold">Unknown</span>}
+                                                  >
+                                                    {(v) => <span class="text-sm font-bold">{v().name}</span>}
+                                                  </Show>
                                                 </Badge>
                                               </div>
                                               <div class="">

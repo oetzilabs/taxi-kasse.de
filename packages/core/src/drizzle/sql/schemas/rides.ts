@@ -27,9 +27,7 @@ export const rides = commonTable(
     company_id: text("company_id").references(() => companies.id, { onDelete: "set null" }),
     income: decimal("income", { scale: 2 }).notNull().default("0.00"),
     distance: decimal("distance", { scale: 3 }).notNull().default("0.000"),
-    vehicle_id: text("vehicle_id")
-      .notNull()
-      .references(() => vehicles.id, { onDelete: "cascade" }),
+    vehicle_id: text("vehicle_id").references(() => vehicles.id, { onDelete: "set null" }),
     rating: decimal("rating", { scale: 2 }).notNull().default("0.00"),
     status: ride_status("status").notNull().default("pending"),
     added_by: ride_added_by("added_by").notNull().default("system:auto"),

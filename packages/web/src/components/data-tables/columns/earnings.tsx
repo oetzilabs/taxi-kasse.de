@@ -138,9 +138,13 @@ export const EARNINGS_COLUMNS: ColumnDef<Rides.Info>[] = [
     header: (props) => <TableColumnHeader column={props.column} title="Vehicle" />,
     cell: (props) => (
       <div class="flex w-[100px] items-center">
-        <span class="capitalize">
-          {props.row.original.vehicle.name} ({props.row.original.vehicle.model?.name})
-        </span>
+        <Show when={props.row.original.vehicle}>
+          {(v) => (
+            <span class="capitalize">
+              {v().name} ({v().model?.name})
+            </span>
+          )}
+        </Show>
       </div>
     ),
   },

@@ -44,7 +44,7 @@ export const addVehicle = action(async (data: CreateVehicle) => {
   if (!ctx.user) throw redirect("/auth/login");
   const newV = { ...data, owner_id: ctx.user.id };
   const vehicle = await Vehicles.create([newV]);
-  return vehicle;
+  throw redirect(`/dashboard/vehicles/${vehicle.id}`);
 });
 
 export const getVehicleModels = cache(async () => {
@@ -125,6 +125,6 @@ export const deleteVehicle = action(async (id: string) => {
   const v = await Vehicles.findById(id);
   if (!v) throw new Error("Vehicle not found");
 
-  const vehicle = await Vehicles.remove(id);
+  const vehicle = await Vehicles.markDeleted(id);
   return vehicle;
 });

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, isNull } from "drizzle-orm";
 import {
   array,
   date,
@@ -95,7 +95,7 @@ export module Vehicles {
     }
     const [created] = await tsx.insert(vehicles).values(isValid.output).returning();
     const vehicle = await Vehicles.findById(created.id)!;
-    return vehicle;
+    return vehicle!;
   };
 
   export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
@@ -131,7 +131,7 @@ export module Vehicles {
       throw isValid.issues;
     }
     return tsx.query.vehicles.findMany({
-      where: (fields, ops) => ops.eq(fields.owner_id, isValid.output),
+      where: (fields, ops) => ops.and(ops.eq(fields.owner_id, isValid.output), isNull(fields.deletedAt)),
       with: _with,
     });
   };
@@ -175,5 +175,17 @@ export module Vehicles {
     const vehicle_models = await VehicleModels.upsert(models);
 
     return vehicle_models;
+  };
+
+  export const markDeleted = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+    const isValid = safeParse(Validator.Cuid2Schema, id);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+    return tsx
+      .update(vehicles)
+      .set({ deletedAt: new Date(), updatedAt: new Date() })
+      .where(eq(vehicles.id, isValid.output))
+      .returning();
   };
 }
