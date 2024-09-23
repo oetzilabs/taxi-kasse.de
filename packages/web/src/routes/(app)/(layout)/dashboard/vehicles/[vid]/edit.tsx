@@ -118,41 +118,49 @@ export default function DashboardEditPage(props: RouteSectionProps) {
 
   return (
     <div class="w-full grow flex flex-col">
-      <Show when={session()}>
-        {(s) => (
-          <div class="flex flex-col w-full py-4 gap-6">
-            <div class="flex flex-col w-full items-center justify-center gap-6">
-              <Suspense
-                fallback={
-                  <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
-                    <Loader2 class="size-4 animate-spin" />
-                  </div>
-                }
-              >
-                <Show
-                  when={vehicle() && vehicle()}
+      <Suspense
+        fallback={
+          <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
+            <Loader2 class="size-4 animate-spin" />
+          </div>
+        }
+      >
+        <Show when={session()}>
+          {(s) => (
+            <div class="flex flex-col w-full py-4 gap-6">
+              <div class="flex flex-col w-full items-center justify-center gap-6">
+                <Suspense
                   fallback={
-                    <div class="flex flex-col w-full pb-4 gap-4">
-                      <div class="flex flex-col w-full items-center justify-center rounded-md px-4 py-20 gap-2 bg-neutral-200 dark:bg-neutral-800">
-                        <span class="text-sm">You currently have no vehicles.</span>
-                        <span class="text-sm">
-                          Please{" "}
-                          <A href="/dashboard/vehicles/new" class="hover:underline text-blue-500 font-medium">
-                            create a vehicle
-                          </A>{" "}
-                          to view your list of vehicles.
-                        </span>
-                      </div>
+                    <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
+                      <Loader2 class="size-4 animate-spin" />
                     </div>
                   }
                 >
-                  {(vehicle) => <VehicleForm vehicle={vehicle()} />}
-                </Show>
-              </Suspense>
+                  <Show
+                    when={vehicle() && vehicle()}
+                    fallback={
+                      <div class="flex flex-col w-full pb-4 gap-4">
+                        <div class="flex flex-col w-full items-center justify-center rounded-md px-4 py-20 gap-2 bg-neutral-200 dark:bg-neutral-800">
+                          <span class="text-sm">You currently have no vehicles.</span>
+                          <span class="text-sm">
+                            Please{" "}
+                            <A href="/dashboard/vehicles/new" class="hover:underline text-blue-500 font-medium">
+                              create a vehicle
+                            </A>{" "}
+                            to view your list of vehicles.
+                          </span>
+                        </div>
+                      </div>
+                    }
+                  >
+                    {(vehicle) => <VehicleForm vehicle={vehicle()} />}
+                  </Show>
+                </Suspense>
+              </div>
             </div>
-          </div>
-        )}
-      </Show>
+          )}
+        </Show>
+      </Suspense>
     </div>
   );
 }

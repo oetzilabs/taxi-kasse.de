@@ -30,16 +30,22 @@ export const getWeather = cache(async () => {
   if (!ctx.session) throw redirect("/auth/login");
   if (!ctx.user) throw redirect("/auth/login");
 
+  return undefined;
+
   const city = "Basel";
   const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric`;
   const response = await fetch(url).catch((e) => {
-    console.error(e)
+    console.error(e);
     return null;
   });
 
   if (!response) {
     return undefined;
   }
+  if (response.status !== 200) {
+    return undefined;
+  }
+
   const json = await response.json();
   console.log(json);
 

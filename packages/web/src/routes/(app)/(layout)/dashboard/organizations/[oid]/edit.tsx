@@ -168,45 +168,53 @@ const OrganizationForm = (props: { organization: Organizations.Info }) => {
 export default function DashboardEditPage(props: RouteSectionProps) {
   const session = createAsync(() => getAuthenticatedSession());
 
-  const organizations = createAsync(() => getOrganizationById(props.params.oid));
+  const organization = createAsync(() => getOrganizationById(props.params.oid));
 
   return (
     <div class="w-full grow flex flex-col">
-      <Show when={session()}>
-        {(s) => (
-          <div class="flex flex-col w-full py-4 gap-6">
-            <div class="flex flex-col w-full items-center justify-center gap-6">
-              <Suspense
-                fallback={
-                  <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
-                    <Loader2 class="size-4 animate-spin" />
-                  </div>
-                }
-              >
-                <Show
-                  when={organizations() && organizations()}
+      <Suspense
+        fallback={
+          <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
+            <Loader2 class="size-4 animate-spin" />
+          </div>
+        }
+      >
+        <Show when={session() && session()}>
+          {(s) => (
+            <div class="flex flex-col w-full py-4 gap-6">
+              <div class="flex flex-col w-full items-center justify-center gap-6">
+                <Suspense
                   fallback={
-                    <div class="flex flex-col w-full pb-4 gap-4">
-                      <div class="flex flex-col w-full items-center justify-center rounded-md px-4 py-20 gap-2 bg-neutral-200 dark:bg-neutral-800">
-                        <span class="text-sm">You currently have no organizations.</span>
-                        <span class="text-sm">
-                          Please{" "}
-                          <A href="/dashboard/vehicles/new" class="hover:underline text-blue-500 font-medium">
-                            create/join a organization
-                          </A>{" "}
-                          to view your list of organizations.
-                        </span>
-                      </div>
+                    <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
+                      <Loader2 class="size-4 animate-spin" />
                     </div>
                   }
                 >
-                  {(c) => <OrganizationForm organization={c()} />}
-                </Show>
-              </Suspense>
+                  <Show
+                    when={organization() && organization()}
+                    fallback={
+                      <div class="flex flex-col w-full pb-4 gap-4">
+                        <div class="flex flex-col w-full items-center justify-center rounded-md px-4 py-20 gap-2 bg-neutral-200 dark:bg-neutral-800">
+                          <span class="text-sm">You currently have no organizations.</span>
+                          <span class="text-sm">
+                            Please{" "}
+                            <A href="/dashboard/vehicles/new" class="hover:underline text-blue-500 font-medium">
+                              create/join a organization
+                            </A>{" "}
+                            to view your list of organizations.
+                          </span>
+                        </div>
+                      </div>
+                    }
+                  >
+                    {(c) => <OrganizationForm organization={c()} />}
+                  </Show>
+                </Suspense>
+              </div>
             </div>
-          </div>
-        )}
-      </Show>
+          )}
+        </Show>
+      </Suspense>
     </div>
   );
 }

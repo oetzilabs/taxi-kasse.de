@@ -7,7 +7,8 @@ import { cookieStorage, makePersisted } from "@solid-primitives/storage";
 import { createAsync, revalidate, RouteDefinition, useAction, useSubmission } from "@solidjs/router";
 import DollarSign from "lucide-solid/icons/dollar-sign";
 import Languages from "lucide-solid/icons/languages";
-import { createSignal, Show } from "solid-js";
+import Loader2 from "lucide-solid/icons/loader-2";
+import { createSignal, Show, Suspense } from "solid-js";
 
 export const route = {
   preload: async () => {
@@ -44,68 +45,78 @@ export default function Settings() {
 
   return (
     <div class="container p-4 flex flex-col gap-2 mx-auto">
-      <Show when={session() && session()!.user !== null && session()}>
-        {(s) => (
-          <div class="flex flex-col gap-8">
-            <div class="flex flex-col gap-2">
-              <h1 class="text-2xl font-bold">Language</h1>
-              <div class="flex flex-row gap-2">
-                <Combobox<{ label: string; value: string }>
-                  value={LANGUAGES.find((l) => l.value === language())!}
-                  disabled={loading()}
-                  optionValue="value"
-                  optionLabel="label"
-                  options={LANGUAGES}
-                  onChange={async (v) => {
-                    if (!v) return;
-                    setLoading(true);
-                    setLanguage(v.value);
-                    await revalidate([getLanguage.key]);
-                    setLoading(false);
-                  }}
-                  itemComponent={(props) => <ComboboxItem item={props.item}>{props.item.rawValue.label}</ComboboxItem>}
-                >
-                  <ComboboxTrigger class="flex flex-row gap-2 items-center h-8 px-2 bg-white dark:bg-black">
-                    <Languages class="size-3" />
-                    <span class="text-sm">{LANGUAGES.find((l) => l.value === language())?.value}</span>
-                  </ComboboxTrigger>
-                  <ComboboxContent />
-                </Combobox>
-              </div>
-            </div>
-            <div class="flex flex-col gap-2">
-              <h1 class="text-2xl font-bold">Currency</h1>
-              <div class="flex flex-row gap-2">
-                <Show when={currencies()}>
-                  {(cs) => (
-                    <Combobox<{ label: string; value: CurrencyCode }>
-                      value={cs().find((l) => l.value === s().user!.currency_code)!}
-                      disabled={setPreferedCurrencyStatus.pending}
-                      optionValue="value"
-                      optionLabel="label"
-                      options={cs()}
-                      onChange={async (v) => {
-                        if (!v) return;
-                        await setPreferedCurrencyAction(v.value);
-                        await revalidate([getAuthenticatedSession.key]);
-                      }}
-                      itemComponent={(props) => (
-                        <ComboboxItem item={props.item}>{props.item.rawValue.label}</ComboboxItem>
-                      )}
-                    >
-                      <ComboboxTrigger class="flex flex-row gap-2 items-center h-8 px-2 bg-white dark:bg-black">
-                        <DollarSign class="size-3" />
-                        <span class="text-sm">{cs().find((l) => l.value === s().user!.currency_code)?.value}</span>
-                      </ComboboxTrigger>
-                      <ComboboxContent />
-                    </Combobox>
-                  )}
-                </Show>
-              </div>
-            </div>
+      <Suspense
+        fallback={
+          <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
+            <Loader2 class="size-4 animate-spin" />
           </div>
-        )}
-      </Show>
+        }
+      >
+        <Show when={session() && session()!.user !== null && session()}>
+          {(s) => (
+            <div class="flex flex-col gap-8">
+              <div class="flex flex-col gap-2">
+                <h1 class="text-2xl font-bold">Language</h1>
+                <div class="flex flex-row gap-2">
+                  <Combobox<{ label: string; value: string }>
+                    value={LANGUAGES.find((l) => l.value === language())!}
+                    disabled={loading()}
+                    optionValue="value"
+                    optionLabel="label"
+                    options={LANGUAGES}
+                    onChange={async (v) => {
+                      if (!v) return;
+                      setLoading(true);
+                      setLanguage(v.value);
+                      await revalidate([getLanguage.key]);
+                      setLoading(false);
+                    }}
+                    itemComponent={(props) => (
+                      <ComboboxItem item={props.item}>{props.item.rawValue.label}</ComboboxItem>
+                    )}
+                  >
+                    <ComboboxTrigger class="flex flex-row gap-2 items-center h-8 px-2 bg-white dark:bg-black">
+                      <Languages class="size-3" />
+                      <span class="text-sm">{LANGUAGES.find((l) => l.value === language())?.value}</span>
+                    </ComboboxTrigger>
+                    <ComboboxContent />
+                  </Combobox>
+                </div>
+              </div>
+              <div class="flex flex-col gap-2">
+                <h1 class="text-2xl font-bold">Currency</h1>
+                <div class="flex flex-row gap-2">
+                  <Show when={currencies()}>
+                    {(cs) => (
+                      <Combobox<{ label: string; value: CurrencyCode }>
+                        value={cs().find((l) => l.value === s().user!.currency_code)!}
+                        disabled={setPreferedCurrencyStatus.pending}
+                        optionValue="value"
+                        optionLabel="label"
+                        options={cs()}
+                        onChange={async (v) => {
+                          if (!v) return;
+                          await setPreferedCurrencyAction(v.value);
+                          await revalidate([getAuthenticatedSession.key]);
+                        }}
+                        itemComponent={(props) => (
+                          <ComboboxItem item={props.item}>{props.item.rawValue.label}</ComboboxItem>
+                        )}
+                      >
+                        <ComboboxTrigger class="flex flex-row gap-2 items-center h-8 px-2 bg-white dark:bg-black">
+                          <DollarSign class="size-3" />
+                          <span class="text-sm">{cs().find((l) => l.value === s().user!.currency_code)?.value}</span>
+                        </ComboboxTrigger>
+                        <ComboboxContent />
+                      </Combobox>
+                    )}
+                  </Show>
+                </div>
+              </div>
+            </div>
+          )}
+        </Show>
+      </Suspense>
     </div>
   );
 }

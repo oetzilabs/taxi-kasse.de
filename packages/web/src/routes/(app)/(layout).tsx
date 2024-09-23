@@ -28,7 +28,7 @@ export default function DashboardLayout(props: RouteSectionProps) {
   const hideSystemNotificationAction = useAction(hideSystemNotification);
   const [notificationIndex, setNotificationIndex] = createSignal(0);
   return (
-    <div class="w-full flex flex-col gap-4 overflow-y-auto h-[calc(100vh-65px)]">
+    <div class="w-full flex flex-col gap-4 overflow-y-scroll h-[calc(100vh-65px)]">
       <div class="flex flex-col grow container mx-auto">
         <Show when={notification() && notification()!.length > 0 && notification()}>
           {(ns) => (

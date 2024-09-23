@@ -28,7 +28,7 @@ import ShoppingBag from "lucide-solid/icons/shopping-bag";
 import SquareArrowOutUpRight from "lucide-solid/icons/square-arrow-out-up-right";
 import TrendingUp from "lucide-solid/icons/trending-up";
 import X from "lucide-solid/icons/x";
-import { For, JSX, Match, Show, Switch } from "solid-js";
+import { For, JSX, Match, Show, Suspense, Switch } from "solid-js";
 
 export const route = {
   preload: async () => {
@@ -247,252 +247,291 @@ export default function DashboardPage() {
 
   return (
     <div class="w-full grow flex flex-col">
-      <Show when={session()}>
-        {(s) => (
-          <Show
-            when={s().company}
-            fallback={
-              <div class="flex flex-col w-full py-4 gap-4">
-                <div class="flex flex-col w-full items-center justify-center rounded-md px-4 py-20 gap-2 bg-neutral-200 dark:bg-neutral-800">
-                  <span class="text-sm">You currently have no organizations.</span>
-                  <span class="text-sm">
-                    Please{" "}
-                    <A href="/dashboard/organizations/add" class="hover:underline text-blue-500 font-medium">
-                      create/join an organization
-                    </A>{" "}
-                    to view your dashboard
-                  </span>
-                </div>
-              </div>
-            }
-          >
-            {(c) => (
-              <div class="flex flex-col w-full gap-0 grow">
-                <div class="flex flex-col w-full gap-1 sticky top-[60px] xl:top-0 py-4 bg-background border-b border-neutral-200 dark:border-neutral-800 z-10">
-                  <h2 class="text-lg font-bold">{c().name}</h2>
-                  <div class="flex flex-row items-center gap-2">
-                    <span class="text-sm font-medium text-muted-foreground">{c().email}</span>
-                    <span class="text-sm font-medium text-muted-foreground">({c().phoneNumber})</span>
+      <Suspense
+        fallback={
+          <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
+            <Loader2 class="size-4 animate-spin" />
+          </div>
+        }
+      >
+        <Show when={session() && session()}>
+          {(s) => (
+            <Show
+              when={s().company}
+              fallback={
+                <div class="flex flex-col w-full py-4 gap-4">
+                  <div class="flex flex-col w-full items-center justify-center rounded-md px-4 py-20 gap-2 bg-neutral-200 dark:bg-neutral-800">
+                    <span class="text-sm">You currently have no organizations.</span>
+                    <span class="text-sm">
+                      Please{" "}
+                      <A href="/dashboard/organizations/add" class="hover:underline text-blue-500 font-medium">
+                        create/join an organization
+                      </A>{" "}
+                      to view your dashboard
+                    </span>
                   </div>
                 </div>
-                <div class="flex flex-col w-full py-4 gap-4 grow">
-                  <div class="grid grid-flow-col md:grid-cols-4 gap-0 w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-clip">
-                    <Show when={stats() && stats()}>
-                      {(ss) => (
-                        <For each={Object.entries(ss())}>
-                          {([sName, sValue], i) => (
-                            <Statistic
-                              label={sName}
-                              value={sValue.value}
-                              prefix={sValue.prefix ?? ""}
-                              sufix={sValue.sufix ?? ""}
-                              icon={icons[sName]}
-                              type={sName === "earnings" ? "currency" : "number"}
-                              currency={s().user!.currency_code}
-                              priority={sValue.priority}
-                              description={sValue.description}
-                              index={i()}
-                            />
-                          )}
-                        </For>
-                      )}
-                    </Show>
+              }
+            >
+              {(c) => (
+                <div class="flex flex-col w-full gap-0 grow">
+                  <div class="flex flex-col w-full gap-1 sticky top-[60px] xl:top-0 py-4 bg-background border-b border-neutral-200 dark:border-neutral-800 z-10">
+                    <h2 class="text-lg font-bold">{c().name}</h2>
+                    <div class="flex flex-row items-center gap-2">
+                      <span class="text-sm font-medium text-muted-foreground">{c().email}</span>
+                      <span class="text-sm font-medium text-muted-foreground">({c().phoneNumber})</span>
+                    </div>
                   </div>
-                  <div class="flex flex-col-reverse xl:flex-row w-full gap-4 grow">
-                    <div class="gap-0 w-full grow">
-                      <div class="flex flex-col gap-2 w-full grow">
-                        <div class="flex flex-row items-center justify-between gap-0">
-                          <div class="flex flex-row items-center gap-4 w-min"></div>
-                          <div class="flex flex-row items-center gap-2 w-full">
-                            <TextFieldRoot
-                              value={search.query}
-                              onChange={(v) =>
-                                setSearchParams({
-                                  query: v,
-                                })
-                              }
-                              class="w-full max-w-full"
-                            >
-                              <TextField
-                                placeholder={`Search across ${filteredRides(rides() ?? [])?.length} rides`}
-                                class="w-full max-w-full"
-                              />
-                            </TextFieldRoot>
-                            <Button
-                              size="sm"
-                              class="flex flex-row items-center gap-2 select-none size-8 md:size-auto p-2 md:px-3 md:py-2"
-                              variant="secondary"
-                              onClick={async () => {
-                                await revalidate([getRides.key, getLanguage.key, getStatistics.key]);
-                              }}
-                            >
-                              <span class="sr-only md:not-sr-only">Refresh</span>
-                              <RotateClockwise class="size-4" />
-                            </Button>
-                            <AddRideModal
-                              vehicle_id_saved={null}
-                              vehicle_id_used_last_time={null}
-                              base_charge={Number(c().base_charge)}
-                              distance_charge={Number(c().distance_charge)}
-                              time_charge={Number(c().time_charge)}
-                              currency_code={s().user?.currency_code ?? "USD"}
-                            />
+                  <div class="flex flex-col w-full py-4 gap-4 grow">
+                    <div class="grid grid-flow-col md:grid-cols-4 gap-0 w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-clip">
+                      <Suspense
+                        fallback={
+                          <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
+                            <Loader2 class="size-4 animate-spin" />
                           </div>
-                        </div>
-                        <Show when={filteredRides(rides() ?? [])}>
-                          {(rs) => (
-                            <div class="h-max w-full flex flex-col">
-                              <For
-                                each={Object.entries(groupByMonth(rs()))}
-                                fallback={
-                                  <div class="h-40 w-full flex flex-col items-center justify-center select-none bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl">
-                                    <span class="text-muted-foreground">There are currently no rides</span>
-                                  </div>
+                        }
+                      >
+                        <Show when={stats() && stats()}>
+                          {(ss) => (
+                            <For each={Object.entries(ss())}>
+                              {([sName, sValue], i) => (
+                                <Statistic
+                                  label={sName}
+                                  value={sValue.value}
+                                  prefix={sValue.prefix ?? ""}
+                                  sufix={sValue.sufix ?? ""}
+                                  icon={icons[sName]}
+                                  type={sName === "earnings" ? "currency" : "number"}
+                                  currency={s().user!.currency_code}
+                                  priority={sValue.priority}
+                                  description={sValue.description}
+                                  index={i()}
+                                />
+                              )}
+                            </For>
+                          )}
+                        </Show>
+                      </Suspense>
+                    </div>
+                    <div class="flex flex-col-reverse xl:flex-row w-full gap-4 grow">
+                      <div class="gap-0 w-full grow">
+                        <div class="flex flex-col gap-2 w-full grow">
+                          <div class="flex flex-row items-center justify-between gap-0">
+                            <div class="flex flex-row items-center gap-4 w-min"></div>
+                            <div class="flex flex-row items-center gap-2 w-full">
+                              <TextFieldRoot
+                                value={search.query}
+                                onChange={(v) =>
+                                  setSearchParams({
+                                    query: v,
+                                  })
                                 }
+                                class="w-full max-w-full"
                               >
-                                {([month, rides], i) => (
-                                  <div class="flex flex-col gap-0 w-full">
-                                    <div
-                                      class={cn("flex flex-row items-center w-full px-4  py-4", { "px-0": i() === 0 })}
-                                    >
-                                      <div class="flex flex-row items-center w-full">
-                                        <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
-                                      </div>
-                                      <div class="flex flex-row items-center w-max">
-                                        <span class="text-xs text-muted-foreground w-max px-2 font-medium select-none">
-                                          <Show
-                                            when={i() === 0}
-                                            fallback={`${month} - ${rides.length} Ride${rides.length > 1 ? "s" : ""}`}
-                                          >
-                                            This Month - {rides.length} Ride{rides.length > 1 ? "s" : ""}
-                                          </Show>
-                                        </span>
-                                      </div>
-                                      <div class="flex flex-row items-center w-full">
-                                        <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
-                                      </div>
-                                    </div>
-                                    <div class="w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl flex flex-col overflow-clip">
+                                <TextField
+                                  placeholder={`Search across ${filteredRides(rides() ?? [])?.length} rides`}
+                                  class="w-full max-w-full"
+                                />
+                              </TextFieldRoot>
+                              <Button
+                                size="sm"
+                                class="flex flex-row items-center gap-2 select-none size-8 md:size-auto p-2 md:px-3 md:py-2"
+                                variant="secondary"
+                                onClick={async () => {
+                                  await revalidate([getRides.key, getLanguage.key, getStatistics.key]);
+                                }}
+                              >
+                                <span class="sr-only md:not-sr-only">Refresh</span>
+                                <RotateClockwise class="size-4" />
+                              </Button>
+                              <AddRideModal
+                                vehicle_id_saved={null}
+                                vehicle_id_used_last_time={null}
+                                base_charge={Number(c().base_charge)}
+                                distance_charge={Number(c().distance_charge)}
+                                time_charge={Number(c().time_charge)}
+                                currency_code={s().user?.currency_code ?? "USD"}
+                              />
+                            </div>
+                          </div>
+                          <Suspense
+                            fallback={
+                              <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
+                                <Loader2 class="size-4 animate-spin" />
+                              </div>
+                            }
+                          >
+                            <Show when={rides() && rides()}>
+                              {(rs) => (
+                                <Show when={filteredRides(rs() ?? [])}>
+                                  {(_rides) => (
+                                    <div class="h-max w-full flex flex-col">
                                       <For
-                                        each={rides}
+                                        each={Object.entries(groupByMonth(_rides()))}
                                         fallback={
                                           <div class="h-40 w-full flex flex-col items-center justify-center select-none bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl">
                                             <span class="text-muted-foreground">There are currently no rides</span>
                                           </div>
                                         }
                                       >
-                                        {(ride) => (
-                                          <div class="h-max w-full flex flex-col border-b border-neutral-200 dark:border-neutral-800 last:border-b-0">
-                                            <div class="flex flex-row w-full px-6 pt-6 pb-4 items-center justify-between gap-2">
-                                              <div class="flex items-center justify-center gap-2 select-none">
-                                                <Tooltip>
-                                                  <TooltipTrigger>
-                                                    <div class="size-5 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-800">
-                                                      <Switch>
-                                                        <Match when={ride.status === "accepted"}>
-                                                          <Check class="size-3 text-muted-foreground" />
-                                                        </Match>
-                                                        <Match when={ride.status === "pending"}>
-                                                          <Loader2 class="size-3 animate-spin" />
-                                                        </Match>
-                                                        <Match when={ride.status === "rejected"}>
-                                                          <X class="size-3 text-red-500" />
-                                                        </Match>
-                                                      </Switch>
-                                                    </div>
-                                                  </TooltipTrigger>
-                                                  <TooltipContent class="uppercase font-bold">
-                                                    {ride.status}
-                                                  </TooltipContent>
-                                                </Tooltip>
-                                                <Badge variant="outline" class="flex flex-row items-center gap-2">
-                                                  <Car class="size-4 text-muted-foreground" />
-                                                  <Show
-                                                    when={ride.vehicle}
-                                                    fallback={<span class="text-sm font-bold">Unknown</span>}
-                                                  >
-                                                    {(v) => <span class="text-sm font-bold">{v().name}</span>}
-                                                  </Show>
-                                                </Badge>
+                                        {([month, rides], i) => (
+                                          <div class="flex flex-col gap-0 w-full">
+                                            <div
+                                              class={cn("flex flex-row items-center w-full px-4  py-4", {
+                                                "px-0": i() === 0,
+                                              })}
+                                            >
+                                              <div class="flex flex-row items-center w-full">
+                                                <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
                                               </div>
-                                              <div class="">
-                                                <span class="font-bold">
-                                                  {new Intl.NumberFormat(language() ?? "en-US", {
-                                                    style: "currency",
-                                                    currency: s().user!.currency_code,
-                                                  }).format(Number(ride.income))}
+                                              <div class="flex flex-row items-center w-max">
+                                                <span class="text-xs text-muted-foreground w-max px-2 font-medium select-none">
+                                                  <Show
+                                                    when={i() === 0}
+                                                    fallback={`${month} - ${rides.length} Ride${rides.length > 1 ? "s" : ""}`}
+                                                  >
+                                                    This Month - {rides.length} Ride{rides.length > 1 ? "s" : ""}
+                                                  </Show>
                                                 </span>
                                               </div>
+                                              <div class="flex flex-row items-center w-full">
+                                                <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
+                                              </div>
                                             </div>
-                                            <div class="flex flex-col w-full pt-4 pb-6 px-6 gap-2 select-none">
-                                              <div class="flex flex-row items-center">
-                                                <div class="flex flex-row items-center w-full">
-                                                  <div class="size-3.5 rounded-full border-2 border-black dark:border-white p-[2px]">
-                                                    <div class="h-full w-full bg-black dark:bg-white rounded-full"></div>
+                                            <div class="w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl flex flex-col overflow-clip">
+                                              <For
+                                                each={rides}
+                                                fallback={
+                                                  <div class="h-40 w-full flex flex-col items-center justify-center select-none bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl">
+                                                    <span class="text-muted-foreground">
+                                                      There are currently no rides
+                                                    </span>
                                                   </div>
-                                                  <div class="h-[2px] flex-1 flex bg-muted-foreground"></div>
-                                                </div>
-                                                <div class="flex flex-row items-center w-max">
-                                                  <span class="text-xs text-muted-foreground w-max px-2">
-                                                    {new Intl.NumberFormat(language() ?? "en-US", {
-                                                      style: "unit",
-                                                      unit: "kilometer",
-                                                      unitDisplay: "short",
-                                                    }).format(Number(ride.distance) / 1000)}
-                                                  </span>
-                                                </div>
-                                                <div class="flex flex-row items-center w-full">
-                                                  <div class="h-[2px] flex-1 flex bg-muted-foreground"></div>
-                                                  <div class="size-3.5 rounded-full bg-black dark:bg-white"></div>
-                                                </div>
-                                              </div>
-                                              <div class="flex flex-row items-center">
-                                                <div class="flex flex-row items-center w-full">
-                                                  <span class="font-bold text-sm">{beginningOfRide(ride.routes)}</span>
-                                                </div>
-                                                <div class="flex flex-row items-center w-max"></div>
-                                                <div class="flex flex-row items-center w-full justify-end">
-                                                  <span class="font-bold text-sm">{endOfRide(ride.routes)}</span>
-                                                </div>
-                                              </div>
-                                              <div class="flex flex-row items-center justify-end w-full pt-4">
-                                                <div class="flex flex-row items-center w-max">
-                                                  <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    class="flex flex-row items-center gap-2"
-                                                    as={A}
-                                                    href={`/dashboard/rides/${ride.id}`}
-                                                  >
-                                                    <span>Open</span>
-                                                    <SquareArrowOutUpRight class="size-4" />
-                                                  </Button>
-                                                </div>
-                                              </div>
+                                                }
+                                              >
+                                                {(ride) => (
+                                                  <div class="h-max w-full flex flex-col border-b border-neutral-200 dark:border-neutral-800 last:border-b-0">
+                                                    <div class="flex flex-row w-full px-6 pt-6 pb-4 items-center justify-between gap-2">
+                                                      <div class="flex items-center justify-center gap-2 select-none">
+                                                        <Tooltip>
+                                                          <TooltipTrigger>
+                                                            <div class="size-5 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-800">
+                                                              <Switch>
+                                                                <Match when={ride.status === "accepted"}>
+                                                                  <Check class="size-3 text-muted-foreground" />
+                                                                </Match>
+                                                                <Match when={ride.status === "pending"}>
+                                                                  <Loader2 class="size-3 animate-spin" />
+                                                                </Match>
+                                                                <Match when={ride.status === "rejected"}>
+                                                                  <X class="size-3 text-red-500" />
+                                                                </Match>
+                                                              </Switch>
+                                                            </div>
+                                                          </TooltipTrigger>
+                                                          <TooltipContent class="uppercase font-bold">
+                                                            {ride.status}
+                                                          </TooltipContent>
+                                                        </Tooltip>
+                                                        <Badge
+                                                          variant="outline"
+                                                          class="flex flex-row items-center gap-2"
+                                                        >
+                                                          <Car class="size-4 text-muted-foreground" />
+                                                          <Show
+                                                            when={ride.vehicle}
+                                                            fallback={<span class="text-sm font-bold">Unknown</span>}
+                                                          >
+                                                            {(v) => <span class="text-sm font-bold">{v().name}</span>}
+                                                          </Show>
+                                                        </Badge>
+                                                      </div>
+                                                      <div class="">
+                                                        <span class="font-bold">
+                                                          {new Intl.NumberFormat(language() ?? "en-US", {
+                                                            style: "currency",
+                                                            currency: s().user!.currency_code,
+                                                          }).format(Number(ride.income))}
+                                                        </span>
+                                                      </div>
+                                                    </div>
+                                                    <div class="flex flex-col w-full pt-4 pb-6 px-6 gap-2 select-none">
+                                                      <div class="flex flex-row items-center">
+                                                        <div class="flex flex-row items-center w-full">
+                                                          <div class="size-3.5 rounded-full border-2 border-black dark:border-white p-[2px]">
+                                                            <div class="h-full w-full bg-black dark:bg-white rounded-full"></div>
+                                                          </div>
+                                                          <div class="h-[2px] flex-1 flex bg-muted-foreground"></div>
+                                                        </div>
+                                                        <div class="flex flex-row items-center w-max">
+                                                          <span class="text-xs text-muted-foreground w-max px-2">
+                                                            {new Intl.NumberFormat(language() ?? "en-US", {
+                                                              style: "unit",
+                                                              unit: "kilometer",
+                                                              unitDisplay: "short",
+                                                            }).format(Number(ride.distance) / 1000)}
+                                                          </span>
+                                                        </div>
+                                                        <div class="flex flex-row items-center w-full">
+                                                          <div class="h-[2px] flex-1 flex bg-muted-foreground"></div>
+                                                          <div class="size-3.5 rounded-full bg-black dark:bg-white"></div>
+                                                        </div>
+                                                      </div>
+                                                      <div class="flex flex-row items-center">
+                                                        <div class="flex flex-row items-center w-full">
+                                                          <span class="font-bold text-sm">
+                                                            {beginningOfRide(ride.routes)}
+                                                          </span>
+                                                        </div>
+                                                        <div class="flex flex-row items-center w-max"></div>
+                                                        <div class="flex flex-row items-center w-full justify-end">
+                                                          <span class="font-bold text-sm">
+                                                            {endOfRide(ride.routes)}
+                                                          </span>
+                                                        </div>
+                                                      </div>
+                                                      <div class="flex flex-row items-center justify-end w-full pt-4">
+                                                        <div class="flex flex-row items-center w-max">
+                                                          <Button
+                                                            size="sm"
+                                                            variant="secondary"
+                                                            class="flex flex-row items-center gap-2"
+                                                            as={A}
+                                                            href={`/dashboard/rides/${ride.id}`}
+                                                          >
+                                                            <span>Open</span>
+                                                            <SquareArrowOutUpRight class="size-4" />
+                                                          </Button>
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                )}
+                                              </For>
                                             </div>
                                           </div>
                                         )}
                                       </For>
                                     </div>
-                                  </div>
-                                )}
-                              </For>
-                            </div>
-                          )}
-                        </Show>
+                                  )}
+                                </Show>
+                              )}
+                            </Show>
+                          </Suspense>
+                        </div>
                       </div>
-                    </div>
-                    <div class="gap-4 flex flex-row xl:flex-col xl:w-max w-full xl:min-w-80 h-max min-h-40 max-h-40 md:max-h-full ">
-                      <Hotspots />
-                      <Weather />
+                      <div class="gap-4 flex flex-row xl:flex-col xl:w-max w-full xl:min-w-80 h-max min-h-40 max-h-40 md:max-h-full ">
+                        <Hotspots />
+                        <Weather />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </Show>
-        )}
-      </Show>
+              )}
+            </Show>
+          )}
+        </Show>
+      </Suspense>
     </div>
   );
 }
