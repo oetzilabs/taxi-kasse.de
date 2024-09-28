@@ -1,9 +1,9 @@
+import { getWeather } from "@/lib/api/weather";
 import { createAsync, revalidate } from "@solidjs/router";
-import { Button } from "./ui/button";
+import Loader2 from "lucide-solid/icons/loader-2";
 import RotateClockwise from "lucide-solid/icons/rotate-cw";
 import { Show, Suspense } from "solid-js";
-import Loader2 from "lucide-solid/icons/loader-2";
-import { getWeather } from "@/lib/api/weather";
+import { Button } from "./ui/button";
 
 type WeatherProps = {};
 
@@ -38,15 +38,12 @@ export const Weather = (props: WeatherProps) => {
             when={weather() && weather()}
             keyed
             fallback={
-              <div class="flex flex-col gap-1 h-full grow bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-yellow-200 shadow-sm select-none items-center justify-center">
+              <div class="flex flex-col gap-1 h-full grow bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-neutral-200 shadow-sm select-none items-center justify-center">
                 <span class="text-sm text-black text-center">No Weather informations available</span>
               </div>
             }
           >
-            {(w) => (
-              <div class="flex flex-row items-center">
-              </div>
-            )}
+            {(w) => <div class="flex flex-row items-center"></div>}
           </Show>
         </Suspense>
       </div>

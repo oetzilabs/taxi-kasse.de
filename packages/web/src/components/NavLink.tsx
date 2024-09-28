@@ -8,12 +8,14 @@ export default function NavLink(props: AnchorProps & { exact?: boolean }) {
 
   return (
     <A
+      class={cn(
+        "flex flex-row items-center gap-3 pb-2 px-3 pt-6 text-sm w-max border-b-2 border-transparent select-none hover:border-neutral-300 dark:hover:border-neutral-800",
+        {
+          "border-neutral-800 dark:border-neutral-200 hover:border-neutral-800 dark:hover:border-neutral-200 font-bold":
+            isActive(),
+        },
+      )}
       {...props}
-      // class={props.class ? props.class + " hover:bg-neutral-700" : "hover:bg-neutral-700"}
-      class={cn(props.class, "xl:!flex w-full select-none", {
-        hidden: !isActive(),
-        "bg-black dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-100": isActive(),
-      })}
       href={props.href}
     />
   );

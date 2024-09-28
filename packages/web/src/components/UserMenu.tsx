@@ -50,20 +50,7 @@ export default function UserMenu(props: { user: UserSession["user"] }) {
             <Settings class="size-4" />
             <span>Settings</span>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Keyboard class="size-4" />
-            <span>Keyboard shortcuts</span>
-          </DropdownMenuItem>
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem disabled>
-          <LifeBuoy class="size-4" />
-          <span>Support</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem disabled>
-          <Cloud class="size-4" />
-          <span>API</span>
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <form action={logout} method="post">
           <DropdownMenuItem
