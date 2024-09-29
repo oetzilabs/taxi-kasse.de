@@ -30,9 +30,9 @@ export default function DashboardLayout(props: RouteSectionProps) {
   const hideSystemNotificationAction = useAction(hideSystemNotification);
   const [notificationIndex, setNotificationIndex] = createSignal(0);
   return (
-    <div class="w-full flex flex-col gap-4 overflow-y-scroll h-[calc(100vh-65px)]">
-      <div class="flex flex-col grow border-x border-neutral-200 dark:border-neutral-800 px-0">
-        <div class="flex flex-col gap-0 w-full relative">
+    <div class="w-full flex flex-col gap-4 h-[calc(100vh-61px)] grow">
+      <div class="flex flex-col grow w-full h-full">
+        <div class="flex flex-col gap-0 w-full h-full relative">
           <Sidebar />
           <Show when={notification() && notification()!.length > 0 && notification()}>
             {(ns) => (
@@ -142,7 +142,9 @@ export default function DashboardLayout(props: RouteSectionProps) {
               </div>
             )}
           </Show>
-          <div class="flex flex-col gap-0 w-full grow container mx-auto">{props.children}</div>
+          <div class="flex flex-col w-full h-full overflow-y-scroll">
+            <div class="flex flex-col gap-0 w-full grow container mx-auto">{props.children}</div>
+          </div>
         </div>
       </div>
     </div>

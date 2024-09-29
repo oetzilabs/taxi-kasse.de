@@ -90,10 +90,8 @@ export default function App() {
                       gap={4}
                     />
                     <div
-                      class="w-full flex flex-col"
+                      class="w-full flex flex-col h-full overflow-clip"
                       style={{
-                        "flex-grow": "1",
-                        "min-height": "100vh",
                         "scrollbar-gutter": "stable both-edges",
                       }}
                     >

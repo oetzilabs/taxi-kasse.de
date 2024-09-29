@@ -41,96 +41,107 @@ export default function Sidebar() {
   };
 
   return (
-    <div class="flex flex-col w-full h-max sticky top-0 z-50 bg-neutral-200 dark:bg-neutral-900 border-b border-neutral-300 dark:border-neutral-800 shadow-sm">
-      <div class="container mx-auto flex flex-col overflow-x-auto">
-        <Show when={session() && session()!.user !== null}>
-          {(s) => (
-            <nav class="flex flex-col w-full">
-              <div class="flex flex-row w-full items-center">
-                <div class="hidden xl:flex flex-row items-center gap-2">
-                  <NavLink exact href="/dashboard">
-                    {/* <Home class="size-4" /> */}
-                    Dashboard
-                  </NavLink>
-                  <NavLink href="/dashboard/rides">
-                    {/* <Car class="size-4" /> */}
-                    Rides
-                  </NavLink>
-                  <NavLink href="/dashboard/messages">
-                    {/* <MessageSquare class="size-4" /> */}
-                    Messages
-                  </NavLink>
-                  <NavLink href="/dashboard/vehicles">
-                    {/* <Truck class="size-4" /> */}
-                    Vehicles
-                  </NavLink>
-                  <NavLink href="/dashboard/regions">
-                    {/* <Map class="size-4" /> */}
-                    Regions
-                  </NavLink>
-                  <NavLink href="/dashboard/organizations">
-                    {/* <Building2 class="size-4" /> */}
-                    Organizations
-                  </NavLink>
-                  <NavLink href="/dashboard/companies">
-                    {/* <Building2 class="size-4" /> */}
-                    Companies
-                  </NavLink>
-                  <NavLink href="/settings">
-                    {/* <Settings class="size-4" /> */}
-                    Settings
-                  </NavLink>
+    <div class="flex flex-col w-full h-max bg-neutral-200 dark:bg-neutral-900 shadow-sm">
+      <div class="flex flex-row h-max w-full">
+        <div class="flex w-full h-[50px] flex-1 border-b-2 border-neutral-300 dark:border-neutral-800"></div>
+        <div class="container flex flex-col mx-0 px-0">
+          <Show when={session() && session()!.user !== null}>
+            {(s) => (
+              <nav class="flex flex-col w-full">
+                <div class="flex flex-row w-full items-center">
+                  <div class="w-8 border-b-2 border-neutral-300 dark:border-neutral-800 h-[50px]" />
+                  <div class="hidden xl:flex flex-row items-center gap-0 w-full">
+                    <NavLink exact href="/dashboard">
+                      {/* <Home class="size-4" /> */}
+                      <span class="h-4">Dashboard</span>
+                    </NavLink>
+                    <NavLink href="/dashboard/rides">
+                      {/* <Car class="size-4" /> */}
+                      <span class="h-4">Rides</span>
+                    </NavLink>
+                    <NavLink href="/dashboard/messages">
+                      {/* <MessageSquare class="size-4" /> */}
+                      <span class="h-4">Messages</span>
+                    </NavLink>
+                    <NavLink href="/dashboard/vehicles">
+                      {/* <Truck class="size-4" /> */}
+                      <span class="h-4">Vehicles</span>
+                    </NavLink>
+                    <NavLink href="/dashboard/regions">
+                      {/* <Map class="size-4" /> */}
+                      <span class="h-4">Regions</span>
+                    </NavLink>
+                    <NavLink href="/dashboard/organizations">
+                      {/* <Building2 class="size-4" /> */}
+                      <span class="h-4">Organizations</span>
+                    </NavLink>
+                    <NavLink href="/dashboard/companies">
+                      {/* <Building2 class="size-4" /> */}
+                      <span class="h-4">Companies</span>
+                    </NavLink>
+                    <div class="flex flex-1 w-full border-b-2 border-neutral-300 dark:border-neutral-800 h-[50px]" />
+                    <NavLink href="/settings">
+                      <span class="h-4">Settings</span>
+                      <Settings class="size-4" />
+                    </NavLink>
+                  </div>
+                  <div class="visible xl:invisible w-full xl:w-0 h-full py-2">
+                    <DropdownMenu placement="bottom-end" sameWidth>
+                      <DropdownMenuTrigger
+                        as={Button}
+                        size="sm"
+                        class="flex flex-row items-center justify-start gap-2 w-full "
+                      >
+                        {currentNavigation()}
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard">
+                          <Home class="size-4" />
+                          <span>Dashboard</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/rides">
+                          <Car class="size-4" />
+                          <span>Rides</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/messages">
+                          <MessageSquare class="size-4" />
+                          <span>Messages</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/vehicles">
+                          <Truck class="size-4" />
+                          <span>Vehicles</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/regions">
+                          <Map class="size-4" />
+                          <span>Regions</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/companies">
+                          <Building2 class="size-4" />
+                          <span>Companies</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          class="flex flex-row items-center gap-2"
+                          as={A}
+                          href="/dashboard/organizations"
+                        >
+                          <Building2 class="size-4" />
+                          <span>Organizations</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/settings">
+                          <Settings class="size-4" />
+                          <span>Settings</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <div class="w-8 border-b-2 border-neutral-300 dark:border-neutral-800 h-[50px]" />
                 </div>
-                <div class="visible xl:invisible w-full h-full py-2">
-                  <DropdownMenu placement="bottom-end" sameWidth>
-                    <DropdownMenuTrigger
-                      as={Button}
-                      size="sm"
-                      class="flex flex-row items-center justify-start gap-2 w-full "
-                    >
-                      {currentNavigation()}
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard">
-                        <Home class="size-4" />
-                        <span>Dashboard</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/rides">
-                        <Car class="size-4" />
-                        <span>Rides</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/messages">
-                        <MessageSquare class="size-4" />
-                        <span>Messages</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/vehicles">
-                        <Truck class="size-4" />
-                        <span>Vehicles</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/regions">
-                        <Map class="size-4" />
-                        <span>Regions</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/companies">
-                        <Building2 class="size-4" />
-                        <span>Companies</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/organizations">
-                        <Building2 class="size-4" />
-                        <span>Organizations</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/settings">
-                        <Settings class="size-4" />
-                        <span>Settings</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            </nav>
-          )}
-        </Show>
+              </nav>
+            )}
+          </Show>
+        </div>
+        <div class="flex h-[50px] w-full flex-1 border-b-2 border-neutral-300 dark:border-neutral-800"></div>
       </div>
     </div>
   );

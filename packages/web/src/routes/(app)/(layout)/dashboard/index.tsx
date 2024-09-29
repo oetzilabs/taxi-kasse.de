@@ -275,7 +275,7 @@ export default function DashboardPage() {
             >
               {(c) => (
                 <div class="flex flex-col w-full gap-0 grow relative py-4">
-                  <div class="flex flex-col w-full gap-3 p-4 bg-neutral-100 dark:bg-neutral-800 rounded-xl">
+                  <div class="flex flex-col w-full gap-3 p-6 bg-neutral-100 dark:bg-neutral-800 rounded-xl">
                     <h2 class="text-lg font-bold leading-none">{c().name}</h2>
                     <div class="flex flex-row items-center gap-2">
                       <span class="text-sm font-medium text-muted-foreground">{c().email}</span>
