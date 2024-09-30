@@ -60,3 +60,5 @@ export const CompanyPage = (props: RouteSectionProps) => {
     </div>
   );
 };
+
+export default CompanyPage;

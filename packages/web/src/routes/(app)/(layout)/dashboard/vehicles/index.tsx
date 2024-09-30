@@ -38,7 +38,7 @@ export const route = {
   },
 } satisfies RouteDefinition;
 
-export default function DashboardPage() {
+export default function VehiclesPage() {
   const session = createAsync(() => getAuthenticatedSession());
 
   const vehicles = createAsync(() => getVehicles());
@@ -59,6 +59,15 @@ export default function DashboardPage() {
         <Show when={session()}>
           {(s) => (
             <div class="flex flex-col w-full py-4 gap-6">
+              <div class="w-full flex flex-row items-center justify-between">
+                <div class="w-full font-bold text-lg">Vehicles</div>
+                <div class="w-max flex flex-row items-center justify-end gap-2">
+                  <Button size="sm" as={A} href="/dashboard/vehicles/new" class="gap-2">
+                    <span class="w-max">Add Vehicle</span>
+                    <Plus class="size-4" />
+                  </Button>
+                </div>
+              </div>
               <Suspense
                 fallback={
                   <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
@@ -84,7 +93,7 @@ export default function DashboardPage() {
                   }
                 >
                   {(vs) => (
-                    <div class="flex flex-col w-full items-center justify-center gap-6">
+                    <div class="grid grid-cols-4 w-full items-center justify-center gap-6">
                       <For
                         each={vs()}
                         fallback={
@@ -195,15 +204,6 @@ export default function DashboardPage() {
                   )}
                 </Show>
               </Suspense>
-              <Show when={s().organizations.length > 0}>
-                <A
-                  class="w-full p-4 items-center justify-center flex flex-row gap-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl"
-                  href="/dashboard/vehicles/new"
-                >
-                  <span>Add Vehicle</span>
-                  <Plus class="size-4" />
-                </A>
-              </Show>
             </div>
           )}
         </Show>

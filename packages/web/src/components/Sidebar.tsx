@@ -25,7 +25,7 @@ const navigations = [
   { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
   { label: "Vehicles", href: "/dashboard/vehicles", icon: Truck },
   { label: "Regions", href: "/dashboard/regions", icon: Map },
-  { label: "Organizations", href: "/dashboard/organizations", icon: Building2 },
+  { label: "Central", href: "/dashboard/organizations", icon: Building2 },
   { label: "Companies", href: "/dashboard/companies", icon: Building2 },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
@@ -59,10 +59,6 @@ export default function Sidebar() {
                       {/* <Car class="size-4" /> */}
                       <span class="h-4">Rides</span>
                     </NavLink>
-                    <NavLink href="/dashboard/messages">
-                      {/* <MessageSquare class="size-4" /> */}
-                      <span class="h-4">Messages</span>
-                    </NavLink>
                     <NavLink href="/dashboard/vehicles">
                       {/* <Truck class="size-4" /> */}
                       <span class="h-4">Vehicles</span>
@@ -73,7 +69,7 @@ export default function Sidebar() {
                     </NavLink>
                     <NavLink href="/dashboard/organizations">
                       {/* <Building2 class="size-4" /> */}
-                      <span class="h-4">Organizations</span>
+                      <span class="h-4">Central</span>
                     </NavLink>
                     <NavLink href="/dashboard/companies">
                       {/* <Building2 class="size-4" /> */}
@@ -103,10 +99,6 @@ export default function Sidebar() {
                           <Car class="size-4" />
                           <span>Rides</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/messages">
-                          <MessageSquare class="size-4" />
-                          <span>Messages</span>
-                        </DropdownMenuItem>
                         <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/dashboard/vehicles">
                           <Truck class="size-4" />
                           <span>Vehicles</span>
@@ -125,7 +117,7 @@ export default function Sidebar() {
                           href="/dashboard/organizations"
                         >
                           <Building2 class="size-4" />
-                          <span>Organizations</span>
+                          <span>Central</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem class="flex flex-row items-center gap-2" as={A} href="/settings">

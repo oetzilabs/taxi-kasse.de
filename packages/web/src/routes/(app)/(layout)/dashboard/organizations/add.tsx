@@ -18,7 +18,7 @@ export const route = {
   },
 } satisfies RouteDefinition;
 
-export default function DashboardPage() {
+export default function OrganizationAddPage() {
   const session = createAsync(() => getAuthenticatedSession());
   const [organizationName, setOrganizationName] = createSignal("");
   const [phoneNumber, setPhoneNumber] = createSignal("");

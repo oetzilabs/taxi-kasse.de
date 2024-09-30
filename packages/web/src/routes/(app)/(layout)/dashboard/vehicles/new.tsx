@@ -26,6 +26,7 @@ import {
   NumberFieldInput,
   NumberFieldLabel,
 } from "@/components/ui/number-field";
+import { Skeleton } from "@/components/ui/skeleton";
 import { TextField, TextFieldLabel, TextFieldRoot } from "@/components/ui/textfield";
 import { addVehicle, getVehicleIds, getVehicleModels, getVehicles } from "@/lib/api/vehicles";
 import { getAuthenticatedSession } from "@/lib/auth/util";
@@ -38,7 +39,6 @@ import { Index, Show, Suspense } from "solid-js";
 import { createStore } from "solid-js/store";
 import { Portal } from "solid-js/web";
 import { toast } from "solid-sonner";
-import { Skeleton } from "../../../../../components/ui/skeleton";
 
 export const route = {
   preload: async () => {
@@ -53,7 +53,7 @@ export const route = {
   },
 } satisfies RouteDefinition;
 
-export default function DashboardPage() {
+export default function VehicleAddPage() {
   const session = createAsync(() => getAuthenticatedSession());
   const vehicleBrands = createAsync(() => getVehicleModels(), { deferStream: true });
   const [newVehicle, setNewVehicle] = createStore<CreateVehicle>({

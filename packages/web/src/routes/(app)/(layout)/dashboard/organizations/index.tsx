@@ -19,7 +19,7 @@ export const route = {
   },
 } satisfies RouteDefinition;
 
-export default function DashboardPage() {
+export default function OrganizationsPage() {
   const session = createAsync(() => getAuthenticatedSession());
   const regions = createAsync(() => getAllRegions());
 
