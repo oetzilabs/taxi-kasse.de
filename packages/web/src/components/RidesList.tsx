@@ -130,6 +130,23 @@ const columns: ColumnDef<Rides.Info>[] = [
     filterFn: "fuzzy",
   },
   {
+    accessorKey: "income",
+    header: (props) => <TableColumnHeader column={props.column} title="Charge" />,
+    cell: (props) => (
+      <div class="flex space-x-2">
+        {/* <Badge variant="outline">{props.row.original.distance}</Badge> */}
+        <span class="max-w-[250px] truncate font-medium">
+          {new Intl.NumberFormat(language(), {
+            style: "currency",
+            currency: props.row.original.user.currency_code,
+            unitDisplay: "long",
+          }).format(Number(props.row.getValue("income")))}
+        </span>
+      </div>
+    ),
+    filterFn: "fuzzy",
+  },
+  {
     accessorKey: "status",
     header: (props) => <TableColumnHeader column={props.column} title="Status" />,
     cell: (props) => (
@@ -513,7 +530,7 @@ export const RidesList = (props: RidesListProps) => {
         </div>
       </div>
       <div class="rounded-md border">
-        <Table>
+        <Table class=" font-mono">
           <TableHeader>
             <For each={table.getHeaderGroups()}>
               {(headerGroup) => (
