@@ -27,7 +27,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TextField, TextFieldRoot } from "@/components/ui/textfield";
-import { rankItem } from "@tanstack/match-sorter-utils";
+import { A } from "@solidjs/router";
+import { compareItems, RankingInfo, rankItem } from "@tanstack/match-sorter-utils";
 import {
   createSolidTable,
   flexRender,
@@ -37,13 +38,24 @@ import {
   getSortedRowModel,
 } from "@tanstack/solid-table";
 import CheckCircle from "lucide-solid/icons/check-circle";
+// import { dataTable } from "./data-table-data";
+import Eye from "lucide-solid/icons/eye";
 import Loader2 from "lucide-solid/icons/loader-2";
 import MinusCircle from "lucide-solid/icons/minus-circle";
+import Pencil from "lucide-solid/icons/pencil";
+import Trash from "lucide-solid/icons/trash";
 import { createMemo, createSignal, For, Match, Show, splitProps, Switch } from "solid-js";
 import { language } from "./stores/Language";
 
-// import { dataTable } from "./data-table-data";
-
+declare module "@tanstack/solid-table" {
+  //add fuzzy filter to the filterFns
+  interface FilterFns {
+    fuzzy: FilterFn<unknown>;
+  }
+  interface FilterMeta {
+    itemRank: RankingInfo;
+  }
+}
 type RidesListProps = {
   rides: Rides.Info[];
 };
@@ -86,7 +98,8 @@ const columns: ColumnDef<Rides.Info>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "vehicle_id",
+    id: "vehicle",
+    accessorFn: (row) => row.vehicle?.name ?? "No Vehicle",
     header: (props) => <TableColumnHeader column={props.column} title="Vehicle" />,
     cell: (props) => (
       <div class="w-max text-xs">
@@ -97,7 +110,7 @@ const columns: ColumnDef<Rides.Info>[] = [
     ),
     enableSorting: false,
     enableHiding: false,
-    filterFn: fuzzyFilter,
+    filterFn: "fuzzy",
   },
   {
     accessorKey: "distance",
@@ -114,7 +127,7 @@ const columns: ColumnDef<Rides.Info>[] = [
         </span>
       </div>
     ),
-    filterFn: fuzzyFilter,
+    filterFn: "fuzzy",
   },
   {
     accessorKey: "status",
@@ -135,11 +148,11 @@ const columns: ColumnDef<Rides.Info>[] = [
         <span class="capitalize">{props.row.original.status}</span>
       </div>
     ),
-    filterFn: fuzzyFilter,
+    filterFn: "fuzzy",
   },
   {
     id: "actions",
-    cell: () => (
+    cell: (props) => (
       <DropdownMenu placement="bottom-end">
         <DropdownMenuTrigger class="flex items-center justify-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 24 24">
@@ -155,8 +168,23 @@ const columns: ColumnDef<Rides.Info>[] = [
           </svg>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Delete</DropdownMenuItem>
+          <DropdownMenuItem as={A} href={`/dashboard/rides/${props.row.original.id}`} class="flex items-center gap-2">
+            <Eye class="size-4"></Eye>
+            View
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            as={A}
+            href={`/dashboard/rides/${props.row.original.id}/edit`}
+            class="flex items-center gap-2"
+          >
+            <Pencil class="size-4"></Pencil>
+            Edit
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem class="flex items-center gap-2">
+            <Trash class="size-4"></Trash>
+            Delete
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     ),
@@ -315,11 +343,16 @@ export const RidesList = (props: RidesListProps) => {
   const [columnVisibility, setColumnVisibility] = createSignal<VisibilityState>({});
   const [columnFilters, setColumnFilters] = createSignal<ColumnFiltersState>([]);
   const [sorting, setSorting] = createSignal<SortingState>([]);
+  const [globalFilter, setGlobalFilter] = createSignal("");
 
   const table = createSolidTable({
     get data() {
       return props.rides;
     },
+    filterFns: {
+      fuzzy: fuzzyFilter, //define as a filter function that can be used in column definitions
+    },
+    globalFilterFn: "fuzzy",
     columns,
     state: {
       get sorting() {
@@ -334,9 +367,13 @@ export const RidesList = (props: RidesListProps) => {
       get columnFilters() {
         return columnFilters();
       },
+      get globalFilter() {
+        return globalFilter();
+      },
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setGlobalFilter,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
@@ -344,10 +381,6 @@ export const RidesList = (props: RidesListProps) => {
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    filterFns: {
-      fuzzy: fuzzyFilter, //define as a filter function that can be used in column definitions
-    },
-    globalFilterFn: fuzzyFilter,
   });
 
   return (
@@ -358,8 +391,8 @@ export const RidesList = (props: RidesListProps) => {
             type="text"
             placeholder="Filter rides..."
             class="h-8"
-            value={(table.getColumn("distance")?.getFilterValue() as string) ?? ""}
-            onInput={(e) => table.getColumn("distance")?.setFilterValue(e.currentTarget.value)}
+            value={globalFilter()}
+            onInput={(e) => setGlobalFilter(String(e.currentTarget.value))}
           />
         </TextFieldRoot>
         <div class="flex items-center gap-2">
