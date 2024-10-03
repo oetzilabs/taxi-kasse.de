@@ -51,7 +51,7 @@ export const route = {
 
 export default function RideRidPage(props: RouteSectionProps) {
   const session = createAsync(() => getAuthenticatedSession());
-  const ride = createAsync(() => getRide(props.params.rid), { deferStream: true });
+  const ride = createAsync(() => getRide(props.params.rid));
 
   const obscureId = (id: string) => {
     const firstSix = id.substring(0, 6);

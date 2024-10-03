@@ -55,7 +55,7 @@ export const route = {
 
 export default function VehicleAddPage() {
   const session = createAsync(() => getAuthenticatedSession());
-  const vehicleBrands = createAsync(() => getVehicleModels(), { deferStream: true });
+  const vehicleBrands = createAsync(() => getVehicleModels());
   const [newVehicle, setNewVehicle] = createStore<CreateVehicle>({
     name: "",
     license_plate: "",

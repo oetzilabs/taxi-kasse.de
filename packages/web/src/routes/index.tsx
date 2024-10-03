@@ -32,7 +32,7 @@ export const route = {
 } satisfies RouteDefinition;
 
 export default function Dashboard() {
-  const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
+  const session = createAsync(() => getAuthenticatedSession());
   let bannerRef: HTMLDivElement;
   let heroRef: HTMLDivElement;
   let titleRef: HTMLDivElement;
