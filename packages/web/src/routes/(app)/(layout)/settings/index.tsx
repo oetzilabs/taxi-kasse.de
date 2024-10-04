@@ -16,11 +16,6 @@ export const route = {
     const language = await getLanguage();
     return { session, language };
   },
-  load: async () => {
-    const session = await getAuthenticatedSession();
-    const language = await getLanguage();
-    return { session, language };
-  },
 } satisfies RouteDefinition;
 
 const LANGUAGES = [

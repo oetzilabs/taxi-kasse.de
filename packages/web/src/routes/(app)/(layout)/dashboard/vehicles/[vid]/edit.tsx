@@ -23,11 +23,6 @@ export const route = {
     const vehicle = getVehicleById(props.params.vid);
     return { session, vehicle };
   },
-  load: async (props) => {
-    const session = await getAuthenticatedSession();
-    const vehicle = getVehicleById(props.params.vid);
-    return { session, vehicle };
-  },
 } satisfies RouteDefinition;
 
 const VehicleForm = (props: { vehicle: Vehicles.Info }) => {

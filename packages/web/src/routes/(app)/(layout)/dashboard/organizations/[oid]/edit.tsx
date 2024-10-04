@@ -19,11 +19,6 @@ export const route = {
     const organization = getOrganizationById(props.params.cid);
     return { session, organization };
   },
-  load: async (props) => {
-    const session = await getAuthenticatedSession();
-    const organization = getOrganizationById(props.params.cid);
-    return { session, organization };
-  },
 } satisfies RouteDefinition;
 
 const OrganizationForm = (props: { organization: Organizations.Info }) => {

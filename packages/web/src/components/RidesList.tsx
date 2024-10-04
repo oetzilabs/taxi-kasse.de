@@ -27,7 +27,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TextField, TextFieldRoot } from "@/components/ui/textfield";
-import { A } from "@solidjs/router";
+import { removeRideBulk } from "@/lib/api/rides";
+import { A, useAction, useSubmission } from "@solidjs/router";
 import { compareItems, RankingInfo, rankItem } from "@tanstack/match-sorter-utils";
 import {
   createSolidTable,
@@ -37,15 +38,26 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
 } from "@tanstack/solid-table";
+import dayjs from "dayjs";
 import CheckCircle from "lucide-solid/icons/check-circle";
-// import { dataTable } from "./data-table-data";
+import ChevronDown from "lucide-solid/icons/chevron-down";
+import ChevronLeft from "lucide-solid/icons/chevron-left";
+import ChevronRight from "lucide-solid/icons/chevron-right";
+import ChevronUp from "lucide-solid/icons/chevron-up";
+import ChevronDoubleLeft from "lucide-solid/icons/chevrons-left";
+import ChevronDoubleRight from "lucide-solid/icons/chevrons-right";
+import ChevronUpDown from "lucide-solid/icons/chevrons-up-down";
 import Eye from "lucide-solid/icons/eye";
+import EyeOff from "lucide-solid/icons/eye-off";
 import Loader2 from "lucide-solid/icons/loader-2";
+import Menu from "lucide-solid/icons/menu";
 import MinusCircle from "lucide-solid/icons/minus-circle";
 import Pencil from "lucide-solid/icons/pencil";
 import Trash from "lucide-solid/icons/trash";
 import { createMemo, createSignal, For, Match, Show, splitProps, Switch } from "solid-js";
+import { toast } from "solid-sonner";
 import { language } from "./stores/Language";
+import "@fontsource/geist-mono";
 
 declare module "@tanstack/solid-table" {
   //add fuzzy filter to the filterFns
@@ -79,7 +91,7 @@ const columns: ColumnDef<Rides.Info>[] = [
         checked={props.table.getIsAllPageRowsSelected()}
         onChange={(value) => props.table.toggleAllPageRowsSelected(value)}
         aria-label="Select all"
-        class="translate-y-[2px]"
+        class="mx-1"
       >
         <CheckboxControl />
       </Checkbox>
@@ -89,13 +101,34 @@ const columns: ColumnDef<Rides.Info>[] = [
         checked={props.row.getIsSelected()}
         onChange={(value) => props.row.toggleSelected(value)}
         aria-label="Select row"
-        class="translate-y-[2px]"
+        class="mx-1"
       >
         <CheckboxControl />
       </Checkbox>
     ),
     enableSorting: false,
     enableHiding: false,
+  },
+  {
+    accessorKey: "status",
+    header: (props) => <TableColumnHeader column={props.column} title="Status" />,
+    cell: (props) => (
+      <div class="flex w-max gap-2 items-center border rounded-xl px-1.5 py-1">
+        <Switch>
+          <Match when={props.row.original.status === "cancelled"}>
+            <MinusCircle class="size-4 text-muted-foreground" />
+          </Match>
+          <Match when={props.row.original.status === "accepted"}>
+            <CheckCircle class="size-4 text-muted-foreground" />
+          </Match>
+          <Match when={props.row.original.status === "pending"}>
+            <Loader2 class="size-4 animate-spin" />
+          </Match>
+        </Switch>
+        <span class="capitalize text-xs">{props.row.original.status}</span>
+      </div>
+    ),
+    filterFn: "fuzzy",
   },
   {
     id: "vehicle",
@@ -108,8 +141,6 @@ const columns: ColumnDef<Rides.Info>[] = [
         </Show>
       </div>
     ),
-    enableSorting: false,
-    enableHiding: false,
     filterFn: "fuzzy",
   },
   {
@@ -147,63 +178,85 @@ const columns: ColumnDef<Rides.Info>[] = [
     filterFn: "fuzzy",
   },
   {
-    accessorKey: "status",
-    header: (props) => <TableColumnHeader column={props.column} title="Status" />,
-    cell: (props) => (
-      <div class="flex w-max gap-2 items-center">
-        <Switch>
-          <Match when={props.row.original.status === "cancelled"}>
-            <MinusCircle class="size-4 text-muted-foreground" />
-          </Match>
-          <Match when={props.row.original.status === "accepted"}>
-            <CheckCircle class="size-4 text-muted-foreground" />
-          </Match>
-          <Match when={props.row.original.status === "pending"}>
-            <Loader2 class="size-4 animate-spin" />
-          </Match>
-        </Switch>
-        <span class="capitalize">{props.row.original.status}</span>
-      </div>
-    ),
+    id: "duration",
+    accessorFn: (row) => `${dayjs(row.endedAt).diff(dayjs(row.startedAt), "minute")} minutes`,
+    header: (props) => <TableColumnHeader column={props.column} title="Duration" />,
+    cell: (props) => {
+      const dur = dayjs(props.row.original.endedAt).diff(dayjs(props.row.original.startedAt), "minute");
+      return (
+        <div class="flex space-x-2">
+          <span class="max-w-[250px] truncate font-medium">{dur} minutes</span>
+        </div>
+      );
+    },
     filterFn: "fuzzy",
   },
   {
     id: "actions",
+    header: (props) => {
+      const removeRideBulkAction = useAction(removeRideBulk);
+      const removeRideStatus = useSubmission(removeRideBulk);
+      return (
+        <div class="flex items-center justify-end">
+          <DropdownMenu placement="bottom-end">
+            <DropdownMenuTrigger
+              as={Button}
+              size="sm"
+              variant="outline"
+              disabled={removeRideStatus.pending || props.table.getSelectedRowModel().rows.length === 0}
+            >
+              Actions
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                onSelect={() => {
+                  if (removeRideStatus.pending) return;
+                  const rows = props.table.getSelectedRowModel().rows;
+                  if (rows.length === 0) return;
+                  const rides = rows.map((r) => r.original.id);
+                  toast.promise(removeRideBulkAction(rides), {
+                    loading: "Deleting rides...",
+                    success: "Rides deleted",
+                    error: "Failed to delete rides",
+                  });
+                }}
+                disabled={props.table.getSelectedRowModel().rows.length === 0 || removeRideStatus.pending}
+              >
+                <Trash class="size-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      );
+    },
     cell: (props) => (
-      <DropdownMenu placement="bottom-end">
-        <DropdownMenuTrigger class="flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 24 24">
-            <path
-              fill="none"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0m7 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0m7 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"
-            />
-            <title>Action</title>
-          </svg>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem as={A} href={`/dashboard/rides/${props.row.original.id}`} class="flex items-center gap-2">
-            <Eye class="size-4"></Eye>
-            View
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            as={A}
-            href={`/dashboard/rides/${props.row.original.id}/edit`}
-            class="flex items-center gap-2"
-          >
-            <Pencil class="size-4"></Pencil>
-            Edit
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem class="flex items-center gap-2">
-            <Trash class="size-4"></Trash>
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div class="flex items-center justify-end">
+        <DropdownMenu placement="bottom-end">
+          <DropdownMenuTrigger as={Button} size="icon" class="size-6">
+            <Menu class="size-3" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem as={A} href={`/dashboard/rides/${props.row.original.id}`} class="flex items-center gap-2">
+              <Eye class="size-4" />
+              View
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              as={A}
+              href={`/dashboard/rides/${props.row.original.id}/edit`}
+              class="flex items-center gap-2"
+            >
+              <Pencil class="size-4"></Pencil>
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem class="flex items-center gap-2">
+              <Trash class="size-4"></Trash>
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     ),
   },
 ];
@@ -236,43 +289,12 @@ const TableColumnHeader = <TData extends Rides.Info, TValue>(
               >
                 <span>{local.title}</span>
                 <div class="ml-1">
-                  <Switch
-                    fallback={
-                      <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5" viewBox="0 0 24 24" aria-hidden="true">
-                        <path
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="m8 9l4-4l4 4m0 6l-4 4l-4-4"
-                        />
-                      </svg>
-                    }
-                  >
+                  <Switch fallback={<ChevronUpDown class="size-3.5" />}>
                     <Match when={local.column.getIsSorted() === "asc"}>
-                      <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5" viewBox="0 0 24 24" aria-hidden="true">
-                        <path
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 5v14m4-10l-4-4M8 9l4-4"
-                        />
-                      </svg>
+                      <ChevronUp class="size-3.5" />
                     </Match>
                     <Match when={local.column.getIsSorted() === "desc"}>
-                      <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5" viewBox="0 0 24 24" aria-hidden="true">
-                        <path
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 5v14m4-4l-4 4m-4-4l4 4"
-                        />
-                      </svg>
+                      <ChevronDown class="size-3.5" />
                     </Match>
                   </Switch>
                 </div>
@@ -282,39 +304,11 @@ const TableColumnHeader = <TData extends Rides.Info, TValue>(
           <DropdownMenuContent>
             <Show when={local.column.getCanSort()}>
               <DropdownMenuItem aria-label="Sort ascending" onClick={() => local.column.toggleSorting(false, true)}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="mr-2 size-4 text-muted-foreground/70"
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 5v14m4-10l-4-4M8 9l4-4"
-                  />
-                </svg>
+                <ChevronUpDown class="size-4" />
                 Asc
               </DropdownMenuItem>
               <DropdownMenuItem aria-label="Sort descending" onClick={() => local.column.toggleSorting(true, true)}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="mr-2 size-4 text-muted-foreground/70"
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 5v14m4-4l-4 4m-4-4l4 4"
-                  />
-                </svg>
+                <ChevronDown class="size-4" />
                 Desc
               </DropdownMenuItem>
             </Show>
@@ -325,21 +319,7 @@ const TableColumnHeader = <TData extends Rides.Info, TValue>(
 
             <Show when={local.column.getCanHide()}>
               <DropdownMenuItem aria-label="Hide column" onClick={() => local.column.toggleVisibility(false)}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="mr-2 size-4 text-muted-foreground/70"
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M21 9c-2.4 2.667-5.4 4-9 4c-3.6 0-6.6-1.333-9-4m0 6l2.5-3.8M21 14.976L18.508 11.2M9 17l.5-4m5.5 4l-.5-4"
-                  />
-                </svg>
+                <EyeOff class="size-4" />
                 Hide
               </DropdownMenuItem>
             </Show>
@@ -529,8 +509,8 @@ export const RidesList = (props: RidesListProps) => {
           </DropdownMenu>
         </div>
       </div>
-      <div class="rounded-md border">
-        <Table class=" font-mono">
+      <div class="rounded-md border w-full flex flex-col h-full">
+        <Table class="font-['Geist_Mono',_ui-monospace]">
           <TableHeader>
             <For each={table.getHeaderGroups()}>
               {(headerGroup) => (
@@ -574,7 +554,7 @@ export const RidesList = (props: RidesListProps) => {
           </TableBody>
         </Table>
       </div>
-      <div class="flex w-full flex-col-reverse items-center justify-between gap-4 overflow-auto px-2 py-1 sm:flex-row">
+      <div class="flex w-full flex-col-reverse items-center justify-between gap-4 overflow-auto px-2 py-1 sm:flex-row font-['Geist_Mono',_ui-monospace]">
         <div class="flex-1 whitespace-nowrap text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s)
           selected.
@@ -594,7 +574,7 @@ export const RidesList = (props: RidesListProps) => {
               <SelectContent />
             </Select>
           </div>
-          <div class="flex items-center justify-center whitespace-nowrap text-sm font-medium">
+          <div class="flex items-center justify-center whitespace-nowrap text-sm font-medium gap-2 ">
             Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
           </div>
           <div class="flex items-center space-x-2">
@@ -605,16 +585,7 @@ export const RidesList = (props: RidesListProps) => {
               onClick={() => table.setPageIndex(0)}
               disabled={!table.getCanPreviousPage()}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="size-4" aria-hidden="true" viewBox="0 0 24 24">
-                <path
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="m11 7l-5 5l5 5m6-10l-5 5l5 5"
-                />
-              </svg>
+              <ChevronDoubleLeft class="size-4" />
             </Button>
             <Button
               aria-label="Go to previous page"
@@ -624,16 +595,7 @@ export const RidesList = (props: RidesListProps) => {
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="size-4" aria-hidden="true" viewBox="0 0 24 24">
-                <path
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="m15 6l-6 6l6 6"
-                />
-              </svg>
+              <ChevronLeft class="size-4" />
             </Button>
             <Button
               aria-label="Go to next page"
@@ -643,16 +605,7 @@ export const RidesList = (props: RidesListProps) => {
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="size-4" aria-hidden="true" viewBox="0 0 24 24">
-                <path
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="m9 6l6 6l-6 6"
-                />
-              </svg>
+              <ChevronRight class="size-4" />
             </Button>
             <Button
               aria-label="Go to last page"
@@ -662,16 +615,7 @@ export const RidesList = (props: RidesListProps) => {
               onClick={() => table.setPageIndex(table.getPageCount() - 1)}
               disabled={!table.getCanNextPage()}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="size-4" aria-hidden="true" viewBox="0 0 24 24">
-                <path
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="m7 7l5 5l-5 5m6-10l5 5l-5 5"
-                />
-              </svg>
+              <ChevronDoubleRight class="size-4" />
             </Button>
           </div>
         </div>

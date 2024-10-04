@@ -41,12 +41,6 @@ export const route = {
     const ride = await getRide(rid);
     return { ride, session };
   },
-  load: async (props) => {
-    const session = await getAuthenticatedSession();
-    const rid = props.params.rid;
-    const ride = await getRide(rid);
-    return { ride, session };
-  },
 } satisfies RouteDefinition;
 
 export default function RideRidPage(props: RouteSectionProps) {

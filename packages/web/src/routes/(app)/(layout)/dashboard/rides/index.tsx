@@ -1,32 +1,16 @@
-import type { Rides } from "@taxikassede/core/src/entities/rides";
 import AddRideModal from "@/components/forms/AddRide";
-import { language } from "@/components/stores/Language";
-import { Badge } from "@/components/ui/badge";
+import { RidesList } from "@/components/RidesList";
 import { Button } from "@/components/ui/button";
-import { TextField, TextFieldRoot } from "@/components/ui/textfield";
 import { getLanguage } from "@/lib/api/application";
 import { getRides } from "@/lib/api/rides";
 import { getAuthenticatedSession } from "@/lib/auth/util";
-import { cn } from "@/lib/utils";
 import { A, createAsync, revalidate, RouteDefinition, useSearchParams } from "@solidjs/router";
-import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
-import dayjs from "dayjs";
-import Car from "lucide-solid/icons/car";
-import Check from "lucide-solid/icons/check";
 import Loader2 from "lucide-solid/icons/loader-2";
 import RotateClockwise from "lucide-solid/icons/rotate-cw";
-import SquareArrowOutUpRight from "lucide-solid/icons/square-arrow-out-up-right";
-import X from "lucide-solid/icons/x";
-import { For, Match, Show, Suspense, Switch } from "solid-js";
-import { RidesList } from "../../../../../components/RidesList";
+import { Show, Suspense } from "solid-js";
 
 export const route = {
   preload: async () => {
-    const session = await getAuthenticatedSession();
-    const rides = await getRides();
-    return { rides, session };
-  },
-  load: async () => {
     const session = await getAuthenticatedSession();
     const rides = await getRides();
     return { rides, session };

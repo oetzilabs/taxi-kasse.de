@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { getAuthenticatedSession } from "@/lib/auth/util";
-import { A } from "@solidjs/router";
+import { A, RouteDefinition } from "@solidjs/router";
 import { createSignal, For, JSX } from "solid-js";
 
 type SVGAttributes = Partial<JSX.SvgSVGAttributes<SVGSVGElement>>;
@@ -10,11 +10,7 @@ export const route = {
     const session = await getAuthenticatedSession();
     return { session };
   },
-  load: async () => {
-    const session = await getAuthenticatedSession();
-    return { session };
-  },
-};
+} satisfies RouteDefinition;
 
 const generateAuthUrl = (provider: string) => {
   const url = new URL(`${import.meta.env.VITE_AUTH_URL}${provider}/authorize`);
@@ -73,9 +69,7 @@ export default function LoginPage() {
           </div>
           <div class="p-8 w-full">
             <div class="mx-auto flex w-full flex-col justify-center space-y-6 max-w-[300px]">
-              <div class="relative z-20 flex lg:hidden items-center text-lg font-bold gap-2 justify-center">
-                Caby
-              </div>
+              <div class="relative z-20 flex lg:hidden items-center text-lg font-bold gap-2 justify-center">Caby</div>
               <div class="flex flex-col space-y-4 text-center">
                 <h1 class="text-2xl font-semibold tracking-tight">Caby</h1>
                 <p class="text-sm text-muted-foreground">Login via your preferred method</p>

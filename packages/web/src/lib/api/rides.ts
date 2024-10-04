@@ -120,6 +120,36 @@ export const removeRide = action(async (rid: string) => {
   return removed;
 });
 
+export const removeRideBulk = action(async (rids: Array<string>) => {
+  "use server";
+  const [ctx, _event] = await getContext();
+  if (!ctx)
+    throw redirect("/auth/login", {
+      statusText: "Please login",
+      status: 401,
+    });
+  if (!ctx.session)
+    throw redirect("/auth/login", {
+      statusText: "Please login",
+      status: 401,
+    });
+  if (!ctx.user)
+    throw redirect("/auth/login", {
+      statusText: "Please login",
+      status: 401,
+    });
+  const rides = await Rides.findManyById(rids);
+  if (!rides)
+    throw redirect("/404", {
+      status: 404,
+      statusText: "Ride not found",
+    });
+  const owner_id = rides[0].user.id;
+  if (ctx.user.id !== owner_id) throw new Error("You are not the owner of this ride");
+  const removed = await Rides.markDeletedBulk(rids);
+  return removed;
+});
+
 export const setRoutes = action(async (rid: string, routeWaypoints: Array<[number, number]>) => {
   "use server";
   const [ctx, _event] = await getContext();

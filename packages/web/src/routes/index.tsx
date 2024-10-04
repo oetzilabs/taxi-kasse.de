@@ -25,10 +25,6 @@ export const route = {
     const session = await getAuthenticatedSession();
     return { session };
   },
-  load: async () => {
-    const session = await getAuthenticatedSession();
-    return { session };
-  },
 } satisfies RouteDefinition;
 
 export default function Dashboard() {
@@ -142,8 +138,8 @@ export default function Dashboard() {
             }}
           >
             <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl">
-              Caby transforms your taxi business for the digital age — streamlined, intuitive, and designed
-              with your needs in mind.
+              Caby transforms your taxi business for the digital age — streamlined, intuitive, and designed with your
+              needs in mind.
             </p>
           </div>
         </div>

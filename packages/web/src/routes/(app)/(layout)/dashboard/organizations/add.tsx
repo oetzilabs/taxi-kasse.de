@@ -12,10 +12,6 @@ export const route = {
     const session = await getAuthenticatedSession();
     return { session };
   },
-  load: async () => {
-    const session = await getAuthenticatedSession();
-    return { session };
-  },
 } satisfies RouteDefinition;
 
 export default function OrganizationAddPage() {

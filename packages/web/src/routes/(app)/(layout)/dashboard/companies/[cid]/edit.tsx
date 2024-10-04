@@ -39,11 +39,6 @@ export const route = {
     const company = getCompanyById(props.params.cid);
     return { session, company };
   },
-  load: async (props) => {
-    const session = await getAuthenticatedSession();
-    const company = getCompanyById(props.params.cid);
-    return { session, company };
-  },
 } satisfies RouteDefinition;
 
 const CompanyForm = (props: { organizations: Organizations.Info[]; company: Accessor<Companies.Info> }) => {

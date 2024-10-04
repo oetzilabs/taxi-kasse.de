@@ -13,12 +13,6 @@ export const route = {
     const allRegions = await getAllRegions();
     return { session, company };
   },
-  load: async (props) => {
-    const session = await getAuthenticatedSession();
-    const company = await getCompanyById(props.params.cid);
-    const allRegions = await getAllRegions();
-    return { session, company };
-  },
 } satisfies RouteDefinition;
 
 export const CompanyPage = (props: RouteSectionProps) => {

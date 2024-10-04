@@ -7,16 +7,16 @@ import { language } from "@/components/stores/Language";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TextField, TextFieldRoot } from "@/components/ui/textfield";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Weather } from "@/components/Weather";
 import { getLanguage } from "@/lib/api/application";
 import { getHotspots } from "@/lib/api/hotspots";
 import { getRides } from "@/lib/api/rides";
 import { getStatistics } from "@/lib/api/statistics";
+import { getSystemNotifications } from "@/lib/api/system_notifications";
 import { getAuthenticatedSession } from "@/lib/auth/util";
 import { cn } from "@/lib/utils";
 import { A, createAsync, revalidate, RouteDefinition, useSearchParams } from "@solidjs/router";
-import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
-import { getSystemNotifications } from "~/lib/api/system_notifications";
 import dayjs from "dayjs";
 import Box from "lucide-solid/icons/box";
 import Car from "lucide-solid/icons/car";
@@ -32,14 +32,6 @@ import { For, JSX, Match, Show, Suspense, Switch } from "solid-js";
 
 export const route = {
   preload: async () => {
-    const session = await getAuthenticatedSession();
-    const notification = await getSystemNotifications();
-    const rides = await getRides();
-    const stats = await getStatistics();
-    const hotspot = await getHotspots();
-    return { notification, rides, session, stats, hotspot };
-  },
-  load: async () => {
     const session = await getAuthenticatedSession();
     const notification = await getSystemNotifications();
     const rides = await getRides();
@@ -136,6 +128,46 @@ const Statistic = (props: {
     </div>
   </div>
 );
+type DotNotation<T, Prefix extends string = ""> = {
+  [K in keyof T]: T[K] extends object
+    ? DotNotation<T[K], `${Prefix}${Prefix extends "" ? "" : "."}${Extract<K, string>}`>
+    : `${Prefix}${Prefix extends "" ? "" : "."}${Extract<K, string>}`;
+}[keyof T];
+
+const stringify = <T extends any>(obj: T) => {
+  const t = typeof obj;
+  if (t === "string") return obj as string;
+  if (t === "number") return (obj as number).toString();
+  if (t === "boolean") return (obj as boolean).toString();
+  if (t === "object") {
+    if (obj === null) return "null";
+    if (Array.isArray(obj)) {
+      const arr: Array<string> = [];
+      for (let i = 0; i < obj.length; i++) {
+        arr.push(stringify(obj[i]));
+      }
+      return `[${arr.join(",")}]`;
+    }
+    const o = obj as Record<string, unknown>;
+    const objKeys = Object.keys(o);
+    const objValues: any[] = objKeys.map((k) => stringify(o[k]));
+    return `{${objKeys.map((k, i) => `${k}:${objValues[i]}`).join(",")}}`;
+  }
+  return "null";
+};
+
+const traverse = <T,>(obj: any, path: DotNotation<T>) => {
+  const paths = path.split(".");
+  let current = obj;
+  for (let i = 0; i < paths.length; i++) {
+    const path = paths[i];
+    if (current[path] === undefined) {
+      return undefined;
+    }
+    current = current[path];
+  }
+  return current;
+};
 
 export default function DashboardPage() {
   const stats = createAsync(() => getStatistics());
@@ -212,13 +244,21 @@ export default function DashboardPage() {
 
   const filteredRides = (rides: Array<Rides.Info>) => {
     if (!search.query) return rides;
-    // simple json search
+    type X = DotNotation<
+      Omit<Rides.Info, "vehicle" | "user" | "routes"> & { vehicle: NonNullable<Rides.Info["vehicle"]> }
+    >;
+    const fields: Array<X> = ["id", "added_by", "distance", "income", "rating", "status", "vehicle.name"];
     const found: Array<Rides.Info> = [];
     for (let i = 0; i < rides.length; i++) {
       const ride = rides[i];
-      const jString = JSON.stringify(ride);
-      if (jString.toLowerCase().includes(search.query.toLowerCase())) {
-        found.push(ride);
+      for (let j = 0; j < fields.length; j++) {
+        const k = fields[j];
+        const value = traverse(ride, k);
+        if (value !== undefined) {
+          if (value.toLowerCase().includes(search.query.toLowerCase())) {
+            found.push(ride);
+          }
+        }
       }
     }
     return found;
@@ -377,7 +417,7 @@ export default function DashboardPage() {
                                         {([month, rides], i) => (
                                           <div class="flex flex-col gap-0 w-full">
                                             <div
-                                              class={cn("flex flex-row items-center w-full px-4  py-4", {
+                                              class={cn("flex flex-row items-center w-full px-8 py-4", {
                                                 "px-0": i() === 0,
                                               })}
                                             >

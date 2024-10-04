@@ -289,4 +289,58 @@ export module Rides {
     const updatedRide = await findById(isValid.output.id, tsx);
     return updatedRide!;
   };
+
+  export const findManyById = async (rids: Array<InferInput<typeof Validator.Cuid2Schema>>) => {
+    const isValid = safeParse(array(Validator.Cuid2Schema), rids);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+    const ridesFound = await db.query.rides.findMany({
+      where: (fields, ops) => ops.and(ops.inArray(fields.id, isValid.output)),
+      with: {
+        ...Rides._with,
+        vehicle: {
+          with: {
+            owner: true,
+            model: true,
+          },
+        },
+        routes: {
+          orderBy: (fields, ops) => ops.desc(fields.createdAt),
+          with: {
+            segments: {
+              with: {
+                points: true,
+              },
+              orderBy: (fields, ops) => ops.desc(fields.createdAt),
+            },
+            waypoints: {
+              orderBy: (fields, ops) => ops.desc(fields.createdAt),
+            },
+          },
+        },
+      },
+      orderBy: (fields, ops) => ops.desc(fields.createdAt),
+    });
+
+    return ridesFound;
+  };
+
+  export const markDeletedBulk = async (rids: Array<InferInput<typeof Validator.Cuid2Schema>>) => {
+    return db.transaction(async (tsx) => {
+      const isValid = safeParse(array(Validator.Cuid2Schema), rids);
+      if (!isValid.success) {
+        throw isValid.issues;
+      }
+      const ridesToDelete = await findManyById(isValid.output);
+
+      if (ridesToDelete.length === 0) return [];
+
+      for (const ride of ridesToDelete) {
+        await tsx.update(rides).set({ deletedAt: new Date(), updatedAt: new Date() }).where(eq(rides.id, ride.id));
+      }
+
+      return ridesToDelete;
+    });
+  };
 }

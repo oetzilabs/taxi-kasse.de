@@ -31,11 +31,6 @@ export const route = {
     const vehicles = getVehicles();
     return { session, vehicles };
   },
-  load: async () => {
-    const session = await getAuthenticatedSession();
-    const vehicles = getVehicles();
-    return { session, vehicles };
-  },
 } satisfies RouteDefinition;
 
 export default function VehiclesPage() {

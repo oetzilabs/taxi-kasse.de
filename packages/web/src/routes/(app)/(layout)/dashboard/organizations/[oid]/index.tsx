@@ -14,12 +14,6 @@ export const route = {
     const allRegions = await getAllRegions();
     return { session, org, allRegions };
   },
-  load: async (props) => {
-    const session = await getAuthenticatedSession();
-    const org = await getOrganizationById(props.params.oid);
-    const allRegions = await getAllRegions();
-    return { session, org, allRegions };
-  },
 } satisfies RouteDefinition;
 
 export const CompanyPage = (props: RouteSectionProps) => {

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { checkVerification, getAuthenticatedSession, sendVerificationEmail } from "@/lib/auth/util";
-import { createAsync, redirect, revalidate, useAction, useNavigate, useSubmission } from "@solidjs/router";
+import { createAsync, revalidate, RouteDefinition, useNavigate, useSubmission } from "@solidjs/router";
 import Loader2 from "lucide-solid/icons/loader-2";
 import Send from "lucide-solid/icons/send";
 import { onCleanup, onMount, Show } from "solid-js";
@@ -11,12 +11,7 @@ export const route = {
     const verified = await checkVerification();
     return { session, verified };
   },
-  load: async () => {
-    const session = await getAuthenticatedSession();
-    const verified = await checkVerification();
-    return { session, verified };
-  },
-};
+} satisfies RouteDefinition;
 
 export default function VerifyEmailPage() {
   const sendingVerification = useSubmission(sendVerificationEmail);

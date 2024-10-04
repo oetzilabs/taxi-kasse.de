@@ -1,4 +1,4 @@
-import { A } from "@solidjs/router";
+import { A, RouteDefinition } from "@solidjs/router";
 import { Button } from "../components/ui/button";
 import { getAuthenticatedSession } from "../lib/auth/util";
 
@@ -7,11 +7,7 @@ export const route = {
     const session = await getAuthenticatedSession();
     return { session };
   },
-  load: async () => {
-    const session = await getAuthenticatedSession();
-    return { session };
-  },
-};
+} satisfies RouteDefinition;
 
 export default function NotFound() {
   return (
