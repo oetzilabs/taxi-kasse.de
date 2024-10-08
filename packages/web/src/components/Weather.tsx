@@ -13,11 +13,11 @@ export const Weather = (props: WeatherProps) => {
     <div class="flex flex-col h-full w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl min-h-40">
       <div class="p-4 flex-col flex h-full w-full grow gap-4">
         <div class="flex flex-row items-center justify-between gap-2">
-          <span class="font-bold text-black select-none">Weather</span>
+          <span class="font-bold select-none">Weather</span>
           <div class="w-max flex flex-row items-center gap-2">
             <Button
               size="icon"
-              class="md:flex flex-row items-center gap-2 size-8 text-black hidden"
+              class="md:flex flex-row items-center gap-2 size-8 hidden"
               variant="ghost"
               onClick={async () => {
                 await revalidate([getWeather.key]);
@@ -38,8 +38,8 @@ export const Weather = (props: WeatherProps) => {
             when={weather() && weather()}
             keyed
             fallback={
-              <div class="flex flex-col gap-1 h-full grow bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-neutral-200 shadow-sm select-none items-center justify-center">
-                <span class="text-sm text-black text-center">No Weather informations available</span>
+              <div class="flex flex-col gap-1 h-full grow bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-neutral-200 dark:border-neutral-800 shadow-sm select-none items-center justify-center">
+                <span class="text-sm text-center">No Weather informations available</span>
               </div>
             }
           >

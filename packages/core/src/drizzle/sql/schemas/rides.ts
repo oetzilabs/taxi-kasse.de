@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { decimal, text, timestamp } from "drizzle-orm/pg-core";
 import { companies } from "./companies";
+import { customer_payments } from "./customer_payments";
 import { commonTable } from "./entity";
 import { routes } from "./routes";
 import { users } from "./users";
@@ -26,6 +27,7 @@ export const rides = commonTable(
       .references(() => users.id, { onDelete: "cascade" }),
     company_id: text("company_id").references(() => companies.id, { onDelete: "set null" }),
     income: decimal("income", { scale: 2 }).notNull().default("0.00"),
+    payment_id: text("payment_id").references(() => customer_payments.id, { onDelete: "set null" }),
     distance: decimal("distance", { scale: 3 }).notNull().default("0.000"),
     vehicle_id: text("vehicle_id").references(() => vehicles.id, { onDelete: "set null" }),
     rating: decimal("rating", { scale: 2 }).notNull().default("0.00"),
@@ -34,7 +36,7 @@ export const rides = commonTable(
     startedAt: timestamp("startedAt").notNull(),
     endedAt: timestamp("endedAt").notNull(),
   },
-  "ride",
+  "ride"
 );
 
 export type RideSelect = typeof rides.$inferSelect;
@@ -54,4 +56,8 @@ export const ride_relation = relations(rides, ({ one, many }) => ({
     references: [companies.id],
   }),
   routes: many(routes),
+  payment: one(customer_payments, {
+    fields: [rides.payment_id],
+    references: [customer_payments.id],
+  }),
 }));

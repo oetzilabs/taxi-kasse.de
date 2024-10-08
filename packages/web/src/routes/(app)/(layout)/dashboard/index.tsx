@@ -62,7 +62,7 @@ const Statistic = (props: {
 }) => (
   <div
     class={cn(
-      "flex flex-col w-full gap-0 select-none border-l first:border-l-0 border-neutral-200 dark:border-neutral-800 relative overflow-clip group",
+      "flex flex-col w-full gap-0 select-none border-l first:border-l-0 border-neutral-200 dark:border-neutral-800 relative overflow-clip group"
     )}
   >
     <div class="flex flex-row items-center justify-between gap-2 md:px-6 md:pb-4 md:pt-6 px-3 py-2">
@@ -121,13 +121,14 @@ const Statistic = (props: {
         "transition-all w-full border-b border-neutral-200 dark:border-neutral-800 py-4 px-6 leading-none text-muted-foreground absolute -top-full group-hover:top-0 left-0 right-0 backdrop-blur hidden md:flex",
         {
           "bg-neutral-950/10 dark:bg-neutral-100/10 text-black dark:text-white": props.priority === 1,
-        },
+        }
       )}
     >
       <span class="text-xs">{props.description}</span>
     </div>
   </div>
 );
+
 type DotNotation<T, Prefix extends string = ""> = {
   [K in keyof T]: T[K] extends object
     ? DotNotation<T[K], `${Prefix}${Prefix extends "" ? "" : "."}${Extract<K, string>}`>
@@ -156,7 +157,9 @@ const stringify = <T extends any>(obj: T) => {
   return "null";
 };
 
-const traverse = <T,>(obj: any, path: DotNotation<T>) => {
+type DotN = Omit<Rides.Info, "vehicle" | "user" | "routes"> & { vehicle: NonNullable<Rides.Info["vehicle"]> };
+
+const traverse = <T extends DotN>(obj: any, path: DotNotation<T>) => {
   const paths = path.split(".");
   let current = obj;
   for (let i = 0; i < paths.length; i++) {
@@ -172,13 +175,12 @@ const traverse = <T,>(obj: any, path: DotNotation<T>) => {
 export default function DashboardPage() {
   const stats = createAsync(() => getStatistics());
   const rides = createAsync(() => getRides());
-  const hotspot = createAsync(() => getHotspots());
   const session = createAsync(() => getAuthenticatedSession());
   const [search, setSearchParams] = useSearchParams();
 
   const beginningOfRide = (routes: Rides.Info["routes"]) => {
     // get the starting segment of the route and return the streetname
-    let found = "No Street Found";
+    let found = "No Department";
     type SegmentPoint = NonNullable<NonNullable<(typeof routes)[number]["segments"][number]>["points"][number]>;
     let foundSegmentPoint: SegmentPoint | null = null;
     for (let i = 0; i < routes.length; i++) {
@@ -213,7 +215,7 @@ export default function DashboardPage() {
 
   const endOfRide = (routes: Rides.Info["routes"]) => {
     // get the ending segment of the route and return the streetname
-    let found = "No Street Found";
+    let found = "No Arrival";
     type SegmentPoint = NonNullable<NonNullable<(typeof routes)[number]["segments"][number]>["points"][number]>;
     let foundSegmentPoint: SegmentPoint | null = null;
     for (let i = 0; i < routes.length; i++) {
@@ -244,13 +246,22 @@ export default function DashboardPage() {
 
   const filteredRides = (rides: Array<Rides.Info>) => {
     if (!search.query) return rides;
-    type X = DotNotation<
-      Omit<Rides.Info, "vehicle" | "user" | "routes"> & { vehicle: NonNullable<Rides.Info["vehicle"]> }
-    >;
-    const fields: Array<X> = ["id", "added_by", "distance", "income", "rating", "status", "vehicle.name"];
+
+    const fields: Array<DotNotation<DotN>> = [
+      "id",
+      "added_by",
+      "distance",
+      "income",
+      "rating",
+      "status",
+      "vehicle.name",
+    ];
     const found: Array<Rides.Info> = [];
     for (let i = 0; i < rides.length; i++) {
       const ride = rides[i];
+      // if (ride.vehicle === null) {
+      //   continue;
+      // }
       for (let j = 0; j < fields.length; j++) {
         const k = fields[j];
         const value = traverse(ride, k);

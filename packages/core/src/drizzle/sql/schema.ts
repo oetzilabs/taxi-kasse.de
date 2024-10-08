@@ -27,6 +27,8 @@ export * from "./schemas/user_organizations";
 export * from "./schemas/organization_regions";
 export * from "./schemas/organization_discounts";
 
+export * from "./schemas/customer_payments";
+
 export * from "./schemas/roles";
 
 export * from "./schemas/addresses";
