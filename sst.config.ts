@@ -20,7 +20,7 @@ export default $config({
     await import("./stacks/Domain");
     // const storage = await import("./stacks/Storage");
     // const notification = await import("./stacks/Notification");
-    // const websocket = await import("./stacks/Websocket");
+    const { realtime } = await import("./stacks/Realtime");
     const auth = await import("./stacks/Auth");
     const api = await import("./stacks/Api");
     const solidStart = await import("./stacks/SolidStart");
@@ -36,6 +36,7 @@ export default $config({
       // notificationArn: notification.notifications.arn,
       // notificationUrn: notification.notifications.urn,
       // websocket: websocket.ws.url,
+      realtimeUrn: realtime.urn,
 
       // mainEmailWorker: mainEmailWorker.url,
       // mainEmailWorkerUrn: mainEmailWorker.urn,

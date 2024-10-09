@@ -21,6 +21,8 @@ import "@fontsource/ibm-plex-sans/500.css";
 import "@fontsource/ibm-plex-sans/600.css";
 import "@fontsource/ibm-plex-sans/700.css";
 import "@fontsource-variable/plus-jakarta-sans";
+import { Realtime } from "./components/Realtime";
+import { Resource } from "sst";
 
 export default function App() {
   const authLink = import.meta.env.VITE_AUTH_URL;
@@ -89,6 +91,7 @@ export default function App() {
                       }}
                       gap={4}
                     />
+                    <Realtime endpoint={import.meta.env.VITE_MQTT_CONNECTION_STRING} authorizer={import.meta.env.VITE_MQTT_AUTHORIZER}>
                     <div
                       class="w-full flex flex-col h-full overflow-clip"
                       style={{
@@ -98,6 +101,7 @@ export default function App() {
                       <Header />
                       {props.children}
                     </div>
+                    </Realtime>
                   </ColorModeProvider>
                 </Suspense>
               </MetaProvider>

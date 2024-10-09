@@ -38,6 +38,11 @@ declare module "sst" {
       "sender": string
       "type": "sst.aws.Email"
     }
+    "RealtimeServer": {
+      "authorizer": string
+      "endpoint": string
+      "type": "sst.aws.Realtime"
+    }
     "SolidStartApp": {
       "type": "sst.aws.SolidStart"
       "url": string

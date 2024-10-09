@@ -1,6 +1,7 @@
 import { api } from "./Api";
 import { auth } from "./Auth";
 import { cf, domain } from "./Domain";
+import { realtime } from "./Realtime";
 import { allSecrets } from "./Secrets";
 
 // import { bucket } from "./Storage";
@@ -15,6 +16,7 @@ export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
     api,
     auth,
     ...allSecrets,
+    realtime,
   ],
   path: "packages/web",
   buildCommand: "pnpm build",
@@ -23,6 +25,8 @@ export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
     VITE_APP_URL: main_app_url,
     VITE_AUTH_URL: auth.authenticator.url,
     VITE_LOGIN_REDIRECT_URI: `${main_app_url}/api/auth/callback`,
+    VITE_MQTT_CONNECTION_STRING: realtime.endpoint,
+    VITE_MQTT_AUTHORIZER: realtime.authorizer,
     // VITE_WS_LINK: ws.url,
   },
   domain: {

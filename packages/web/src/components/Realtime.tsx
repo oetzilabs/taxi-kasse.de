@@ -1,8 +1,9 @@
+import type { Realtimed } from "@taxikassede/core/src/entities/realtime";
 import type { Accessor, JSX, Setter } from "solid-js";
-import * as mqtt from "mqtt";
+import mqtt from "mqtt";
 import { createContext, createSignal, onCleanup, onMount, useContext } from "solid-js";
 
-const RealtimeContext = createContext<{
+export const RealtimeContext = createContext<{
   client: Accessor<mqtt.MqttClient | null>;
   connected: Accessor<boolean>;
   setConnected: Setter<boolean>;
@@ -10,25 +11,38 @@ const RealtimeContext = createContext<{
 
 export type RealtimeProps = {
   children: JSX.Element;
-  connectionString: string;
+  endpoint: string;
+  authorizer: string;
 };
 
+const [client, setClient] = createSignal<mqtt.MqttClient | null>(null);
+
 export const Realtime = (props: RealtimeProps) => {
-  const [client, setClient] = createSignal<mqtt.MqttClient | null>(null);
   const [connected, setConnected] = createSignal(false);
 
   onMount(() => {
-    const c = mqtt.connect(props.connectionString);
+    console.log("connecting to ", `wss://${props.endpoint}/mqtt?x-amz-customauthorizer-name=${props.authorizer}`);
+    const c = mqtt.connect(`wss://${props.endpoint}/mqtt?x-amz-customauthorizer-name=${props.authorizer}`, {
+      protocolVersion: 5,
+      manualConnect: true,
+      username: "", // !! KEEP EMPTY !!
+      password: "PLACEHOLDER_TOKEN", // Passed as the token to the authorizer
+      clientId: `client_${window.crypto.randomUUID()}`,
+    });
+
     c.on("connect", (cp) => {
       setConnected(true);
       console.log("MQTT Client Identifier", cp.properties?.assignedClientIdentifier);
       setClient(c);
     });
+
+    c.on("error", console.error);
   });
 
   onCleanup(() => {
     const c = client();
     if (c) {
+      console.log("CLEANING REALTIME PROVIDER UP")
       c.end();
       setClient(null);
     }
@@ -47,23 +61,9 @@ export const Realtime = (props: RealtimeProps) => {
   );
 };
 
-type RealtimeData = {
-  "payment.received": {
-    payload: {
-      id: string;
-    };
-  };
-  "payment.sent": {
-    payload: any;
-  };
-  "ride.created": {
-    payload: any;
-  };
-};
-
-export const useRealtime = <K extends keyof RealtimeData>(
+export const useRealtime = <K extends keyof Realtimed.Events>(
   subscriber: K,
-  fn: (payload: RealtimeData[K]) => Promise<void>
+  fn: (payload: Realtimed.Events[K]["payload"]) => Promise<void>
 ) => {
   const ctx = useContext(RealtimeContext);
 
@@ -74,28 +74,33 @@ export const useRealtime = <K extends keyof RealtimeData>(
   const client = ctx.client();
 
   if (!client) {
-    throw new Error("MqttClient not found");
+    return;
   }
 
   return {
     subscribe: () => {
-      client.subscribe(subscriber);
+      client.subscribe(subscriber, { qos: 1 });
       client.on("message", async (topic, payload) => {
         if (topic !== subscriber) {
           return;
         }
         const td = new TextDecoder();
-        const data = td.decode(payload);
+        const data = td.decode(new Uint8Array(payload));
         try {
-          const parsed = JSON.parse(data) as RealtimeData[K];
+          const parsed = JSON.parse(data) as Realtimed.Events[K]["payload"];
           await fn(parsed);
         } catch (e) {
           console.error(e);
         }
       });
+
     },
     unsubscribe: () => {
       client.unsubscribe(subscriber);
+    },
+    publish: async (payload: Realtimed.Events[K]["payload"]) => {
+      console.log("sending payload to topic:", subscriber)
+      await client.publishAsync(subscriber, JSON.stringify(payload));
     },
     client,
   };
