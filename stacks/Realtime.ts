@@ -21,6 +21,6 @@ realtime.subscribe(
     timeout: "30 seconds",
   },
   {
-    filter: `${$app.name}/${$app.stage}/`,
-  }
+    filter: `${$app.name}/${$app.stage}/#`,
+  },
 );

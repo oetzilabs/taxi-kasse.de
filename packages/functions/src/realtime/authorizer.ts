@@ -1,7 +1,6 @@
+import { Realtimed } from "@taxikassede/core/src/entities/realtime";
 import { Resource } from "sst";
 import { realtime } from "sst/aws/realtime";
-import { Realtimed } from "@taxikassede/core/src/entities/realtime"
-
 
 export const handler = realtime.authorizer(async (token) => {
   // Validate the token

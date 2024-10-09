@@ -27,6 +27,7 @@ export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
     VITE_LOGIN_REDIRECT_URI: `${main_app_url}/api/auth/callback`,
     VITE_MQTT_CONNECTION_STRING: realtime.endpoint,
     VITE_MQTT_AUTHORIZER: realtime.authorizer,
+    VITE_REALTIME_TOPIC_PREFIX: `${$app.name}/${$app.stage}/`,
     // VITE_WS_LINK: ws.url,
   },
   domain: {
