@@ -32,6 +32,7 @@ export const Realtime = (props: RealtimeProps) => {
 
   onMount(() => {
     if (isServer) {
+      console.log("RealtimeContext: realtime is not available on the server");
       return;
     }
     // Connect to MQTT broker
@@ -53,6 +54,7 @@ export const Realtime = (props: RealtimeProps) => {
 
     onCleanup(() => {
       if (mqttClient) {
+        mqttClient.removeAllListeners();
         mqttClient.end();
       }
     });
@@ -68,12 +70,12 @@ export const Realtime = (props: RealtimeProps) => {
         subscribe: <T extends Topic>(topic: T, callback: (payload: Realtimed.Events[T]["payload"]) => void) => {
           const subs = subscriptions();
           if (subs.has(topic)) {
+            console.log(`subscription for '${topic}' already has been setup`);
             return;
           }
           const c = client();
           if (c) {
-            c.subscribe(props.topic.concat(topic));
-            setSubscriptions((s) => s.add(topic));
+            c.subscribe(props.topic.concat(topic), { qos: 1 });
             c.on("message", (receivedTopic, message) => {
               if (receivedTopic === props.topic.concat(topic)) {
                 let payload: Realtimed.Events[T]["payload"];
@@ -87,6 +89,7 @@ export const Realtime = (props: RealtimeProps) => {
                 callback(payload);
               }
             });
+            setSubscriptions((s) => s.add(topic));
           }
         },
         unsubscribe: <T extends Topic>(topic: T) => {
@@ -107,7 +110,7 @@ export const Realtime = (props: RealtimeProps) => {
           const c = client();
           if (c) {
             const payload = typeof message === "object" ? JSON.stringify(message) : message.toString();
-            c.publish(props.topic.concat(topic), payload);
+            c.publish(props.topic.concat(topic), payload, { qos: 1 });
           }
         },
       }}
