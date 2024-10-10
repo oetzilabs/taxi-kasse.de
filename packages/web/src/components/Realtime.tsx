@@ -89,7 +89,10 @@ export const Realtime = (props: RealtimeProps) => {
                 callback(payload);
               }
             });
-            setSubscriptions((s) => s.add(topic));
+            setSubscriptions((s) => {
+              s.add(topic);
+              return s;
+            });
           }
         },
         unsubscribe: <T extends Topic>(topic: T) => {
