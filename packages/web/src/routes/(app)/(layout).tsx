@@ -53,9 +53,9 @@ export default function DashboardLayout(props: RouteSectionProps) {
         return;
       }
 
-      console.log("realtime connected");
+      // console.log("realtime connected");
       rt.subscribe("systemnotification.created", (payload) => {
-        console.log("received system notification", payload);
+        // console.log("received system notification", payload);
         const concatted = concat(realtimeNotifications, payload);
         setRealtimeNotifications(concatted());
         if (payload.id !== currentNotificationId()) {
