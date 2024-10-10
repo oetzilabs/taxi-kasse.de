@@ -4,12 +4,19 @@ import mqtt from "mqtt";
 import { createContext, createSignal, onCleanup, onMount, useContext } from "solid-js";
 import { isServer } from "solid-js/web";
 
-export const RealtimeContext = createContext<{
-  client: Accessor<mqtt.MqttClient | null>;
-  connected: Accessor<boolean>;
-  setConnected: Setter<boolean>;
+type Topic = keyof Realtimed.Events;
+
+type MqttContextType = {
   prefix: string;
-}>();
+  client: () => mqtt.MqttClient | null;
+  isConnected: () => boolean;
+  subscribe: <T extends Topic>(topic: T, callback: (payload: Realtimed.Events[T]["payload"]) => void) => void;
+  unsubscribe: <T extends Topic>(topic: T) => void;
+  publish: <T extends Topic>(topic: T, message: Realtimed.Events[T]["payload"]) => void;
+  subscriptions: () => Topic[];
+};
+
+export const RealtimeContext = createContext<MqttContextType>();
 
 export type RealtimeProps = {
   children: JSX.Element;
@@ -18,42 +25,36 @@ export type RealtimeProps = {
   topic: string;
 };
 
-const [client, setClient] = createSignal<mqtt.MqttClient | null>(null);
-
 export const Realtime = (props: RealtimeProps) => {
-  const [connected, setConnected] = createSignal(false);
+  const [client, setClient] = createSignal<mqtt.MqttClient | null>(null);
+  const [subscriptions, setSubscriptions] = createSignal<Set<Topic>>(new Set());
+  const [isConnected, setIsConnected] = createSignal(false);
 
   onMount(() => {
-    const c = mqtt.connect(`wss://${props.endpoint}/mqtt?x-amz-customauthorizer-name=${props.authorizer}`, {
+    if (isServer) {
+      return;
+    }
+    // Connect to MQTT broker
+    const mqttClient = mqtt.connect(`wss://${props.endpoint}/mqtt?x-amz-customauthorizer-name=${props.authorizer}`, {
       protocolVersion: 5,
       manualConnect: true,
       username: "", // !! KEEP EMPTY !!
       password: "PLACEHOLDER_TOKEN", // Passed as the token to the authorizer
       clientId: `client_${window.crypto.randomUUID()}`,
     });
-    c.on("connect", (cp) => {
-      setConnected(true);
+
+    mqttClient.on("connect", () => {
+      console.log("Connected to MQTT broker");
+      setIsConnected(true);
+      setClient(mqttClient);
     });
-    c.on("disconnect", (cp) => {
-      setConnected(false);
-    });
 
-    c.on("error", console.error);
-
-    console.log("connecting to mqtt");
-    c.connect();
-
-    setClient(c);
+    mqttClient.connect();
 
     onCleanup(() => {
-      const c = client();
-      if (!c) {
-        console.log("no mqtt client to cleanup");
-        return;
+      if (mqttClient) {
+        mqttClient.end();
       }
-      console.log("CLEANING REALTIME PROVIDER UP");
-      c.end();
-      setClient(null);
     });
   });
 
@@ -61,9 +62,54 @@ export const Realtime = (props: RealtimeProps) => {
     <RealtimeContext.Provider
       value={{
         client,
-        connected,
-        setConnected,
+        isConnected,
         prefix: props.topic,
+        subscriptions: () => Array.from(subscriptions().values()),
+        subscribe: <T extends Topic>(topic: T, callback: (payload: Realtimed.Events[T]["payload"]) => void) => {
+          const subs = subscriptions();
+          if (subs.has(topic)) {
+            return;
+          }
+          const c = client();
+          if (c) {
+            c.subscribe(props.topic.concat(topic));
+            setSubscriptions((s) => s.add(topic));
+            c.on("message", (receivedTopic, message) => {
+              if (receivedTopic === props.topic.concat(topic)) {
+                let payload: Realtimed.Events[T]["payload"];
+                const td = new TextDecoder();
+                const pl = td.decode(message);
+                try {
+                  payload = JSON.parse(pl);
+                } catch {
+                  payload = pl as Realtimed.Events[T]["payload"];
+                }
+                callback(payload);
+              }
+            });
+          }
+        },
+        unsubscribe: <T extends Topic>(topic: T) => {
+          const subs = subscriptions();
+          if (!subs.has(topic)) {
+            return;
+          }
+          const c = client();
+          if (c) {
+            c.unsubscribe(props.topic.concat(topic));
+            setSubscriptions((s) => {
+              s.delete(topic);
+              return s;
+            });
+          }
+        },
+        publish: <T extends Topic>(topic: T, message: Realtimed.Events[T]["payload"]) => {
+          const c = client();
+          if (c) {
+            const payload = typeof message === "object" ? JSON.stringify(message) : message.toString();
+            c.publish(props.topic.concat(topic), payload);
+          }
+        },
       }}
     >
       {props.children}
@@ -78,32 +124,4 @@ export const useRealtime = () => {
   }
 
   return ctx;
-  // return {
-  //   subscribe: () => {
-  //     client?.subscribe(ctx?.prefix + subscriber, { qos: 1 });
-  //     client?.on("message", async (topic, payload) => {
-  //       console.log({ topic });
-  //       if (topic !== ctx?.prefix + subscriber) {
-  //         return;
-  //       }
-  //       const td = new TextDecoder();
-  //       const data = td.decode(new Uint8Array(payload));
-  //       try {
-  //         const parsed = JSON.parse(data) as Realtimed.Events[K]["payload"];
-  //         fn(parsed);
-  //       } catch (e) {
-  //         console.error(e);
-  //       }
-  //     });
-  //     console.log("subscribed to: ", ctx?.prefix + subscriber);
-  //   },
-  //   unsubscribe: () => {
-  //     client?.unsubscribe(ctx?.prefix + subscriber);
-  //   },
-  //   publish: (payload: Realtimed.Events[K]["payload"]) => {
-  //     console.log("sending payload to topic:", ctx?.prefix + subscriber, payload);
-  //     client?.publish(ctx?.prefix + subscriber, JSON.stringify(payload));
-  //   },
-  //   client,
-  // };
 };

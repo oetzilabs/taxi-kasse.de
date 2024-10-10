@@ -14,6 +14,7 @@ export module Realtimed {
     "systemnotification.created": {
       payload: {
         id: string;
+        title: string;
         message: string;
         link: string | null;
         createdAt: Date;
