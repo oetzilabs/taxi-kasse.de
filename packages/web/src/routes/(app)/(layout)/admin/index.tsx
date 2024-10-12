@@ -11,11 +11,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Weather } from "@/components/Weather";
 import { getLanguage } from "@/lib/api/application";
 import { getHotspots } from "@/lib/api/hotspots";
-import { getRides } from "@/lib/api/rides";
-import { getStatistics } from "@/lib/api/statistics";
+import { getSystemRides } from "@/lib/api/rides";
+import { getSystemStatistics } from "@/lib/api/statistics";
 import { getSystemNotifications } from "@/lib/api/system_notifications";
 import { getAuthenticatedSession } from "@/lib/auth/util";
 import { cn } from "@/lib/utils";
+import { concat } from "@solid-primitives/signal-builders";
 import { A, createAsync, revalidate, RouteDefinition, useSearchParams } from "@solidjs/router";
 import dayjs from "dayjs";
 import Box from "lucide-solid/icons/box";
@@ -28,14 +29,15 @@ import ShoppingBag from "lucide-solid/icons/shopping-bag";
 import SquareArrowOutUpRight from "lucide-solid/icons/square-arrow-out-up-right";
 import TrendingUp from "lucide-solid/icons/trending-up";
 import X from "lucide-solid/icons/x";
-import { For, JSX, Match, Show, Suspense, Switch } from "solid-js";
+import { createSignal, For, JSX, Match, Show, Suspense, Switch } from "solid-js";
+import { Transition } from "solid-transition-group";
 
 export const route = {
   preload: async () => {
     const session = await getAuthenticatedSession();
     const notification = await getSystemNotifications();
-    const rides = await getRides();
-    const stats = await getStatistics();
+    const rides = await getSystemRides();
+    const stats = await getSystemStatistics();
     const hotspot = await getHotspots();
     return { notification, rides, session, stats, hotspot };
   },
@@ -173,11 +175,13 @@ const traverse = <T extends DotN>(obj: any, path: DotNotation<T>) => {
   return current;
 };
 
-export default function DashboardPage() {
-  const stats = createAsync(() => getStatistics());
-  const rides = createAsync(() => getRides());
+export default function AdminDashboardPage() {
+  const stats = createAsync(() => getSystemStatistics());
+  const rides = createAsync(() => getSystemRides());
   const session = createAsync(() => getAuthenticatedSession());
   const [search, setSearchParams] = useSearchParams();
+
+  const [hiddenMonths, setHiddenMonths] = createSignal<Array<string>>([]);
 
   const beginningOfRide = (routes: Rides.Info["routes"]) => {
     // get the starting segment of the route and return the streetname
@@ -328,14 +332,7 @@ export default function DashboardPage() {
             >
               {(c) => (
                 <div class="flex flex-col w-full gap-0 grow relative py-4">
-                  <div class="flex flex-col w-full gap-3 p-6 bg-neutral-100 dark:bg-neutral-800 rounded-xl">
-                    <h2 class="text-lg font-bold leading-none">{c().name}</h2>
-                    <div class="flex flex-row items-center gap-2">
-                      <span class="text-sm font-medium text-muted-foreground">{c().email}</span>
-                      <span class="text-sm font-medium text-muted-foreground">({c().phoneNumber})</span>
-                    </div>
-                  </div>
-                  <div class="flex flex-col w-full py-4 gap-4 grow">
+                  <div class="flex flex-col w-full pb-4 gap-4 grow">
                     <div class="grid grid-flow-col md:grid-cols-4 gap-0 w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-clip">
                       <Suspense
                         fallback={
@@ -391,20 +388,20 @@ export default function DashboardPage() {
                                 class="flex flex-row items-center gap-2 select-none size-8 md:size-auto p-2 md:px-3 md:py-2"
                                 variant="secondary"
                                 onClick={async () => {
-                                  await revalidate([getRides.key, getLanguage.key, getStatistics.key]);
+                                  await revalidate([getSystemRides.key, getLanguage.key, getSystemStatistics.key]);
                                 }}
                               >
                                 <span class="sr-only md:not-sr-only">Refresh</span>
                                 <RotateClockwise class="size-4" />
                               </Button>
-                              <AddRideModal
+                              {/* <AddRideModal
                                 vehicle_id_saved={null}
                                 vehicle_id_used_last_time={null}
                                 base_charge={Number(c().base_charge)}
                                 distance_charge={Number(c().distance_charge)}
                                 time_charge={Number(c().time_charge)}
                                 currency_code={s().user?.currency_code ?? "USD"}
-                              />
+                              /> */}
                             </div>
                           </div>
                           <Suspense
@@ -430,15 +427,20 @@ export default function DashboardPage() {
                                         {([month, rides], i) => (
                                           <div class="flex flex-col gap-0 w-full">
                                             <div
-                                              class={cn("flex flex-row items-center w-full px-8 py-4", {
-                                                "px-0": i() === 0,
-                                              })}
+                                              class={cn(
+                                                "flex flex-row items-center w-full px-8 py-4 transition-[padding] duration-300",
+                                                {
+                                                  "px-0":
+                                                    i() === 0 || hiddenMonths().includes(`${month}-${rides.length}`),
+                                                  "pb-0": hiddenMonths().includes(`${month}-${rides.length}`),
+                                                },
+                                              )}
                                             >
                                               <div class="flex flex-row items-center w-full">
                                                 <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
                                               </div>
-                                              <div class="flex flex-row items-center w-max">
-                                                <span class="text-xs text-muted-foreground w-max px-2 font-medium select-none">
+                                              <div class="flex flex-row items-center w-max px-2 gap-1">
+                                                <span class="text-xs text-muted-foreground w-max font-medium select-none">
                                                   <Show
                                                     when={i() === 0}
                                                     fallback={`${month} - ${rides.length} Ride${rides.length > 1 ? "s" : ""}`}
@@ -446,122 +448,157 @@ export default function DashboardPage() {
                                                     This Month - {rides.length} Ride{rides.length > 1 ? "s" : ""}
                                                   </Show>
                                                 </span>
+                                                <span class="text-xs text-muted-foreground w-max font-medium select-none">
+                                                  -
+                                                </span>
+                                                <div
+                                                  class="text-xs text-muted-foreground w-max font-medium select-none hover:underline cursor-pointer"
+                                                  onClick={() => {
+                                                    const isH = hiddenMonths().includes(`${month}-${rides.length}`);
+                                                    if (isH) {
+                                                      setHiddenMonths(
+                                                        hiddenMonths().filter((m) => m !== `${month}-${rides.length}`),
+                                                      );
+                                                    } else {
+                                                      const concatted = concat(
+                                                        hiddenMonths,
+                                                        `${month}-${rides.length}`,
+                                                      );
+                                                      setHiddenMonths(concatted());
+                                                    }
+                                                  }}
+                                                >
+                                                  <Show
+                                                    when={!hiddenMonths().includes(`${month}-${rides.length}`)}
+                                                    fallback="Show"
+                                                  >
+                                                    Hide
+                                                  </Show>
+                                                </div>
                                               </div>
                                               <div class="flex flex-row items-center w-full">
                                                 <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
                                               </div>
                                             </div>
-                                            <div class="w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl flex flex-col overflow-clip">
-                                              <For
-                                                each={rides}
-                                                fallback={
-                                                  <div class="h-40 w-full flex flex-col items-center justify-center select-none bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl">
-                                                    <span class="text-muted-foreground">
-                                                      There are currently no rides
-                                                    </span>
-                                                  </div>
-                                                }
-                                              >
-                                                {(ride) => (
-                                                  <div class="h-max w-full flex flex-col border-b border-neutral-200 dark:border-neutral-800 last:border-b-0">
-                                                    <div class="flex flex-row w-full px-6 pt-6 pb-4 items-center justify-between gap-2">
-                                                      <div class="flex items-center justify-center gap-2 select-none">
-                                                        <Tooltip>
-                                                          <TooltipTrigger>
-                                                            <div class="size-5 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-800">
-                                                              <Switch>
-                                                                <Match when={ride.status === "accepted"}>
-                                                                  <Check class="size-3 text-muted-foreground" />
-                                                                </Match>
-                                                                <Match when={ride.status === "pending"}>
-                                                                  <Loader2 class="size-3 animate-spin" />
-                                                                </Match>
-                                                                <Match when={ride.status === "rejected"}>
-                                                                  <X class="size-3 text-red-500" />
-                                                                </Match>
-                                                              </Switch>
-                                                            </div>
-                                                          </TooltipTrigger>
-                                                          <TooltipContent class="uppercase font-bold">
-                                                            {ride.status}
-                                                          </TooltipContent>
-                                                        </Tooltip>
-                                                        <Badge
-                                                          variant="outline"
-                                                          class="flex flex-row items-center gap-2"
-                                                        >
-                                                          <Car class="size-4 text-muted-foreground" />
-                                                          <Show
-                                                            when={ride.vehicle}
-                                                            fallback={<span class="text-sm font-bold">Unknown</span>}
-                                                          >
-                                                            {(v) => <span class="text-sm font-bold">{v().name}</span>}
-                                                          </Show>
-                                                        </Badge>
-                                                      </div>
-                                                      <div class="">
-                                                        <span class="font-bold">
-                                                          {new Intl.NumberFormat(language() ?? "en-US", {
-                                                            style: "currency",
-                                                            currency: s().user!.currency_code,
-                                                          }).format(Number(ride.income))}
+                                            <Transition name="slide-fade-up">
+                                              <Show when={!hiddenMonths().includes(`${month}-${rides.length}`)}>
+                                                <div class="w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl flex flex-col overflow-clip">
+                                                  <For
+                                                    each={rides}
+                                                    fallback={
+                                                      <div class="h-40 w-full flex flex-col items-center justify-center select-none bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl">
+                                                        <span class="text-muted-foreground">
+                                                          There are currently no rides
                                                         </span>
                                                       </div>
-                                                    </div>
-                                                    <div class="flex flex-col w-full pt-4 pb-6 px-6 gap-2 select-none">
-                                                      <div class="flex flex-row items-center">
-                                                        <div class="flex flex-row items-center w-full">
-                                                          <div class="size-3.5 rounded-full border-2 border-black dark:border-white p-[2px]">
-                                                            <div class="h-full w-full bg-black dark:bg-white rounded-full"></div>
+                                                    }
+                                                  >
+                                                    {(ride) => (
+                                                      <div class="h-max w-full flex flex-col border-b border-neutral-200 dark:border-neutral-800 last:border-b-0">
+                                                        <div class="flex flex-row w-full px-6 pt-6 pb-4 items-center justify-between gap-2">
+                                                          <div class="flex items-center justify-center gap-2 select-none">
+                                                            <Tooltip>
+                                                              <TooltipTrigger>
+                                                                <div class="size-5 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-800">
+                                                                  <Switch>
+                                                                    <Match when={ride.status === "accepted"}>
+                                                                      <Check class="size-3 text-muted-foreground" />
+                                                                    </Match>
+                                                                    <Match when={ride.status === "pending"}>
+                                                                      <Loader2 class="size-3 animate-spin" />
+                                                                    </Match>
+                                                                    <Match when={ride.status === "rejected"}>
+                                                                      <X class="size-3 text-red-500" />
+                                                                    </Match>
+                                                                  </Switch>
+                                                                </div>
+                                                              </TooltipTrigger>
+                                                              <TooltipContent class="uppercase font-bold">
+                                                                {ride.status}
+                                                              </TooltipContent>
+                                                            </Tooltip>
+                                                            <Badge
+                                                              variant="outline"
+                                                              class="flex flex-row items-center gap-2"
+                                                            >
+                                                              <Car class="size-4 text-muted-foreground" />
+                                                              <Show
+                                                                when={ride.vehicle}
+                                                                fallback={
+                                                                  <span class="text-sm font-bold">Unknown</span>
+                                                                }
+                                                              >
+                                                                {(v) => (
+                                                                  <span class="text-sm font-bold">{v().name}</span>
+                                                                )}
+                                                              </Show>
+                                                            </Badge>
                                                           </div>
-                                                          <div class="h-[2px] flex-1 flex bg-muted-foreground"></div>
+                                                          <div class="">
+                                                            <span class="font-bold">
+                                                              {new Intl.NumberFormat(language() ?? "en-US", {
+                                                                style: "currency",
+                                                                currency: s().user!.currency_code,
+                                                              }).format(Number(ride.income))}
+                                                            </span>
+                                                          </div>
                                                         </div>
-                                                        <div class="flex flex-row items-center w-max">
-                                                          <span class="text-xs text-muted-foreground w-max px-2">
-                                                            {new Intl.NumberFormat(language() ?? "en-US", {
-                                                              style: "unit",
-                                                              unit: "kilometer",
-                                                              unitDisplay: "short",
-                                                            }).format(Number(ride.distance) / 1000)}
-                                                          </span>
-                                                        </div>
-                                                        <div class="flex flex-row items-center w-full">
-                                                          <div class="h-[2px] flex-1 flex bg-muted-foreground"></div>
-                                                          <div class="size-3.5 rounded-full bg-black dark:bg-white"></div>
+                                                        <div class="flex flex-col w-full pt-4 pb-6 px-6 gap-2 select-none">
+                                                          <div class="flex flex-row items-center">
+                                                            <div class="flex flex-row items-center w-full">
+                                                              <div class="size-3.5 rounded-full border-2 border-black dark:border-white p-[2px]">
+                                                                <div class="h-full w-full bg-black dark:bg-white rounded-full"></div>
+                                                              </div>
+                                                              <div class="h-[2px] flex-1 flex bg-muted-foreground"></div>
+                                                            </div>
+                                                            <div class="flex flex-row items-center w-max">
+                                                              <span class="text-xs text-muted-foreground w-max px-2">
+                                                                {new Intl.NumberFormat(language() ?? "en-US", {
+                                                                  style: "unit",
+                                                                  unit: "kilometer",
+                                                                  unitDisplay: "short",
+                                                                }).format(Number(ride.distance) / 1000)}
+                                                              </span>
+                                                            </div>
+                                                            <div class="flex flex-row items-center w-full">
+                                                              <div class="h-[2px] flex-1 flex bg-muted-foreground"></div>
+                                                              <div class="size-3.5 rounded-full bg-black dark:bg-white"></div>
+                                                            </div>
+                                                          </div>
+                                                          <div class="flex flex-row items-center">
+                                                            <div class="flex flex-row items-center w-full">
+                                                              <span class="font-bold text-sm">
+                                                                {beginningOfRide(ride.routes)}
+                                                              </span>
+                                                            </div>
+                                                            <div class="flex flex-row items-center w-max"></div>
+                                                            <div class="flex flex-row items-center w-full justify-end">
+                                                              <span class="font-bold text-sm">
+                                                                {endOfRide(ride.routes)}
+                                                              </span>
+                                                            </div>
+                                                          </div>
+                                                          <div class="flex flex-row items-center justify-end w-full pt-4">
+                                                            <div class="flex flex-row items-center w-max">
+                                                              <Button
+                                                                size="sm"
+                                                                variant="secondary"
+                                                                class="flex flex-row items-center gap-2"
+                                                                as={A}
+                                                                href={`/dashboard/rides/${ride.id}`}
+                                                              >
+                                                                <span>Open</span>
+                                                                <SquareArrowOutUpRight class="size-4" />
+                                                              </Button>
+                                                            </div>
+                                                          </div>
                                                         </div>
                                                       </div>
-                                                      <div class="flex flex-row items-center">
-                                                        <div class="flex flex-row items-center w-full">
-                                                          <span class="font-bold text-sm">
-                                                            {beginningOfRide(ride.routes)}
-                                                          </span>
-                                                        </div>
-                                                        <div class="flex flex-row items-center w-max"></div>
-                                                        <div class="flex flex-row items-center w-full justify-end">
-                                                          <span class="font-bold text-sm">
-                                                            {endOfRide(ride.routes)}
-                                                          </span>
-                                                        </div>
-                                                      </div>
-                                                      <div class="flex flex-row items-center justify-end w-full pt-4">
-                                                        <div class="flex flex-row items-center w-max">
-                                                          <Button
-                                                            size="sm"
-                                                            variant="secondary"
-                                                            class="flex flex-row items-center gap-2"
-                                                            as={A}
-                                                            href={`/dashboard/rides/${ride.id}`}
-                                                          >
-                                                            <span>Open</span>
-                                                            <SquareArrowOutUpRight class="size-4" />
-                                                          </Button>
-                                                        </div>
-                                                      </div>
-                                                    </div>
-                                                  </div>
-                                                )}
-                                              </For>
-                                            </div>
+                                                    )}
+                                                  </For>
+                                                </div>
+                                              </Show>
+                                            </Transition>
                                           </div>
                                         )}
                                       </For>

@@ -10,7 +10,7 @@ export const getSystemNotifications = cache(async () => {
   if (!ctx.session) throw redirect("/auth/login");
   if (!ctx.user) throw redirect("/auth/login");
 
-  const notifications = await SystemNotifications.all();
+  const notifications = await SystemNotifications.allNonHiddenByUser(ctx.user.id);
 
   return notifications;
 }, "system-notifications");

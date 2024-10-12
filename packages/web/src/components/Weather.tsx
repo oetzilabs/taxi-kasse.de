@@ -38,7 +38,7 @@ export const Weather = (props: WeatherProps) => {
             when={weather() && weather()}
             keyed
             fallback={
-              <div class="flex flex-col gap-1 h-full grow bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-neutral-200 dark:border-neutral-800 shadow-sm select-none items-center justify-center">
+              <div class="flex flex-col gap-1 h-full grow bg-black/5 dark:bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-neutral-200 dark:border-neutral-800 shadow-sm select-none items-center justify-center">
                 <span class="text-sm text-center">No Weather informations available</span>
               </div>
             }

@@ -1,3 +1,5 @@
+import { Notifications } from "./notifications";
+
 export module Realtimed {
   export type Events = {
     "payment.received": {
@@ -12,13 +14,7 @@ export module Realtimed {
       payload: any;
     };
     "systemnotification.created": {
-      payload: {
-        id: string;
-        title: string;
-        message: string;
-        link: string | null;
-        createdAt: Date;
-      };
+      payload: Notifications.Info;
     };
   };
 

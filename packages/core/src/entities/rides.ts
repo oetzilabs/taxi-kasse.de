@@ -343,4 +343,64 @@ export module Rides {
       return ridesToDelete;
     });
   };
+
+  export const all = async (tsx = db) => {
+    const rides = await tsx.query.rides.findMany({
+      with: {
+        ...Rides._with,
+        vehicle: {
+          with: {
+            owner: true,
+            model: true,
+          },
+        },
+        routes: {
+          orderBy: (fields, ops) => ops.desc(fields.createdAt),
+          with: {
+            segments: {
+              with: {
+                points: true,
+              },
+              orderBy: (fields, ops) => ops.desc(fields.createdAt),
+            },
+            waypoints: {
+              orderBy: (fields, ops) => ops.desc(fields.createdAt),
+            },
+          },
+        },
+      },
+      orderBy: (fields, ops) => ops.desc(fields.createdAt),
+    });
+    return rides;
+  };
+  export const allNonDeleted = async (tsx = db) => {
+    const rides = await tsx.query.rides.findMany({
+      where: (fields, ops) => ops.isNull(fields.deletedAt),
+      with: {
+        ...Rides._with,
+        vehicle: {
+          with: {
+            owner: true,
+            model: true,
+          },
+        },
+        routes: {
+          orderBy: (fields, ops) => ops.desc(fields.createdAt),
+          with: {
+            segments: {
+              with: {
+                points: true,
+              },
+              orderBy: (fields, ops) => ops.desc(fields.createdAt),
+            },
+            waypoints: {
+              orderBy: (fields, ops) => ops.desc(fields.createdAt),
+            },
+          },
+        },
+      },
+      orderBy: (fields, ops) => ops.desc(fields.createdAt),
+    });
+    return rides;
+  };
 }

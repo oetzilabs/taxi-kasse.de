@@ -4,6 +4,7 @@ import { db } from "../drizzle/sql";
 import { user_hidden_system_notifications } from "../drizzle/sql/schema";
 import { system_notifications } from "../drizzle/sql/schemas/system_notifications";
 import { Validator } from "../validator";
+import { Notifications } from "./notifications";
 
 export module SystemNotifications {
   export const CreateSchema = object({
@@ -54,9 +55,58 @@ export module SystemNotifications {
   };
 
   export const all = async (tsx = db) => {
-    return tsx.query.system_notifications.findMany({
+    const notifications = await tsx.query.system_notifications.findMany({
       with: _with,
+      where: (fields, ops) => ops.isNull(fields.deletedAt),
     });
+    const ns: Array<Notifications.Info> = [];
+    for (const n of notifications) {
+      ns.push({
+        id: n.id,
+        type: "system",
+        title: n.title,
+        message: n.message,
+        link: n.action?.type === "open:link" ? n.action.href : null,
+        createdAt: n.createdAt,
+        updatedAt: n.updatedAt,
+        deletedAt: n.deletedAt,
+      });
+    }
+    return ns;
+  };
+
+  export const allNonHiddenByUser = async (user_id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+    const isValid = safeParse(Validator.Cuid2Schema, user_id);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+    const notifications = await tsx.query.system_notifications.findMany({
+      with: _with,
+      where: (fields, ops) => ops.isNull(fields.deletedAt),
+    });
+    const ns: Array<Notifications.Info> = [];
+    for (const n of notifications) {
+      ns.push({
+        id: n.id,
+        title: n.title,
+        type: "system",
+        message: n.message,
+        link: n.action?.type === "open:link" ? n.action.href : null,
+        createdAt: n.createdAt,
+        updatedAt: n.updatedAt,
+        deletedAt: n.deletedAt,
+      });
+    }
+    const hidden = await tsx.query.user_hidden_system_notifications.findMany({
+      where: (fields, ops) => ops.eq(fields.user_id, isValid.output),
+    });
+    for (const h of hidden) {
+      const index = ns.findIndex((n) => n.id === h.system_notification_id);
+      if (index >= 0) {
+        ns.splice(index, 1);
+      }
+    }
+    return ns;
   };
 
   export const update = async (data: InferInput<typeof SystemNotifications.UpdateSchema>, tsx = db) => {

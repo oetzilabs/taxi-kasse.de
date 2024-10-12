@@ -168,4 +168,19 @@ export module Orders {
     // !TODO: We need to gather the address of the centerpoint of the hotspot
     return valid_subsets;
   };
+
+  export const all = async (tsx = db) => {
+    const orders = await tsx.query.orders.findMany({
+      with: _with,
+    });
+    return orders;
+  };
+
+  export const allNonDeleted = async (tsx = db) => {
+    const orders = await tsx.query.orders.findMany({
+      where: (fields, ops) => ops.isNull(fields.deletedAt),
+      with: _with,
+    });
+    return orders;
+  };
 }

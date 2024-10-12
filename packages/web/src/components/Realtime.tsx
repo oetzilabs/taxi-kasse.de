@@ -13,7 +13,7 @@ type MqttContextType = {
   subscribe: <T extends Topic>(topic: T, callback: (payload: Realtimed.Events[T]["payload"]) => void) => void;
   unsubscribe: <T extends Topic>(topic: T) => void;
   publish: <T extends Topic>(topic: T, message: Realtimed.Events[T]["payload"]) => void;
-  subscriptions: () => Topic[];
+  subscriptions: () => Set<Topic>;
 };
 
 export const RealtimeContext = createContext<MqttContextType>();
@@ -56,6 +56,7 @@ export const Realtime = (props: RealtimeProps) => {
       if (mqttClient) {
         mqttClient.removeAllListeners();
         mqttClient.end();
+        setIsConnected(false);
       }
     });
   });
@@ -66,7 +67,7 @@ export const Realtime = (props: RealtimeProps) => {
         client,
         isConnected,
         prefix: props.topic,
-        subscriptions: () => Array.from(subscriptions().values()),
+        subscriptions,
         subscribe: <T extends Topic>(topic: T, callback: (payload: Realtimed.Events[T]["payload"]) => void) => {
           const subs = subscriptions();
           if (subs.has(topic)) {

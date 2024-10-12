@@ -283,3 +283,13 @@ export const setStatus = action(async (rid: string, status: InferInput<typeof Ri
 
   return updated;
 });
+
+export const getSystemRides = cache(async () => {
+  "use server";
+  const [ctx, _event] = await getContext();
+  if (!ctx) return [];
+  if (!ctx.session) return [];
+  if (!ctx.user) return [];
+  const rides = await Rides.allNonDeleted();
+  return rides;
+}, "system-rides");
