@@ -1,6 +1,7 @@
 import type { CurrencyCode } from "@/lib/api/application";
 import type { Rides } from "@taxikassede/core/src/entities/rides";
 import type { LucideProps } from "lucide-solid";
+import { Events } from "@/components/Events";
 import AddRideModal from "@/components/forms/AddRide";
 import { Hotspots } from "@/components/Hotspots";
 import { language } from "@/components/stores/Language";
@@ -120,7 +121,7 @@ const Statistic = (props: {
     </div>
     <div
       class={cn(
-        "transition-all w-full border-b border-neutral-200 dark:border-neutral-800 py-4 px-6 leading-none text-muted-foreground absolute -top-full group-hover:top-0 left-0 right-0 backdrop-blur hidden md:flex",
+        "transition-all w-full border-b border-neutral-200 dark:border-neutral-800 py-6 px-6 leading-none text-muted-foreground absolute -top-full group-hover:top-0 left-0 right-0 backdrop-blur hidden md:flex",
         {
           "bg-neutral-950/10 dark:bg-neutral-100/10 text-black dark:text-white": props.priority === 1,
         },
@@ -174,6 +175,8 @@ const traverse = <T extends DotN>(obj: any, path: DotNotation<T>) => {
   }
   return current;
 };
+
+const dFormat = (d: Date) => dayjs(d).format("MMMM-YYYY");
 
 export default function AdminDashboardPage() {
   const stats = createAsync(() => getSystemStatistics());
@@ -289,15 +292,17 @@ export default function AdminDashboardPage() {
   };
 
   const groupByMonth = (rides: Array<Rides.Info>) => {
-    const months: Record<string, Array<Rides.Info>> = {};
+    const months: Record<string, [Array<Rides.Info>, Date]> = {};
     const sorted = sortByStartedAt(rides);
     for (let i = 0; i < sorted.length; i++) {
       const ride = sorted[i];
       const month = dayjs(ride.startedAt).format("MMMM YYYY");
+      const d = dayjs(ride.startedAt).toDate();
       if (!months[month]) {
-        months[month] = [];
+        months[month] = [[ride], d];
+        continue;
       }
-      months[month].push(ride);
+      months[month][0].push(ride);
     }
     return months;
   };
@@ -424,15 +429,14 @@ export default function AdminDashboardPage() {
                                           </div>
                                         }
                                       >
-                                        {([month, rides], i) => (
+                                        {([month, [rides, d]], i) => (
                                           <div class="flex flex-col gap-0 w-full">
                                             <div
                                               class={cn(
                                                 "flex flex-row items-center w-full px-8 py-4 transition-[padding] duration-300",
                                                 {
-                                                  "px-0":
-                                                    i() === 0 || hiddenMonths().includes(`${month}-${rides.length}`),
-                                                  "pb-0": hiddenMonths().includes(`${month}-${rides.length}`),
+                                                  "px-0": i() === 0 || hiddenMonths().includes(dFormat(d)),
+                                                  "pb-0": hiddenMonths().includes(dFormat(d)),
                                                 },
                                               )}
                                             >
@@ -454,24 +458,17 @@ export default function AdminDashboardPage() {
                                                 <div
                                                   class="text-xs text-muted-foreground w-max font-medium select-none hover:underline cursor-pointer"
                                                   onClick={() => {
-                                                    const isH = hiddenMonths().includes(`${month}-${rides.length}`);
+                                                    const df = dFormat(d);
+                                                    const isH = hiddenMonths().includes(df);
                                                     if (isH) {
-                                                      setHiddenMonths(
-                                                        hiddenMonths().filter((m) => m !== `${month}-${rides.length}`),
-                                                      );
+                                                      setHiddenMonths(hiddenMonths().filter((m) => m !== df));
                                                     } else {
-                                                      const concatted = concat(
-                                                        hiddenMonths,
-                                                        `${month}-${rides.length}`,
-                                                      );
+                                                      const concatted = concat(hiddenMonths, df);
                                                       setHiddenMonths(concatted());
                                                     }
                                                   }}
                                                 >
-                                                  <Show
-                                                    when={!hiddenMonths().includes(`${month}-${rides.length}`)}
-                                                    fallback="Show"
-                                                  >
+                                                  <Show when={!hiddenMonths().includes(dFormat(d))} fallback="Show">
                                                     Hide
                                                   </Show>
                                                 </div>
@@ -481,7 +478,7 @@ export default function AdminDashboardPage() {
                                               </div>
                                             </div>
                                             <Transition name="slide-fade-up">
-                                              <Show when={!hiddenMonths().includes(`${month}-${rides.length}`)}>
+                                              <Show when={!hiddenMonths().includes(dFormat(d))}>
                                                 <div class="w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl flex flex-col overflow-clip">
                                                   <For
                                                     each={rides}
@@ -610,9 +607,12 @@ export default function AdminDashboardPage() {
                           </Suspense>
                         </div>
                       </div>
-                      <div class="gap-4 flex flex-row xl:flex-col xl:w-max w-full xl:min-w-80 h-max min-h-40 max-h-40 md:max-h-full ">
-                        <Hotspots />
-                        <Weather />
+                      <div class="gap-4 flex flex-col xl:w-max w-full xl:min-w-80 h-max min-h-40 ">
+                        <div class="grid gap-4 grid-cols-2 xl:grid-cols-1">
+                          <Hotspots />
+                          <Weather />
+                        </div>
+                        <Events />
                       </div>
                     </div>
                   </div>

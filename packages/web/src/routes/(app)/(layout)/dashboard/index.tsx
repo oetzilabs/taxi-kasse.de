@@ -1,6 +1,7 @@
 import type { CurrencyCode } from "@/lib/api/application";
 import type { Rides } from "@taxikassede/core/src/entities/rides";
 import type { LucideProps } from "lucide-solid";
+import { Events } from "@/components/Events";
 import AddRideModal from "@/components/forms/AddRide";
 import { Hotspots } from "@/components/Hotspots";
 import { language } from "@/components/stores/Language";
@@ -118,7 +119,7 @@ const Statistic = (props: {
     </div>
     <div
       class={cn(
-        "transition-all w-full border-b border-neutral-200 dark:border-neutral-800 py-4 px-6 leading-none text-muted-foreground absolute -top-full group-hover:top-0 left-0 right-0 backdrop-blur hidden md:flex",
+        "transition-all w-full border-b border-neutral-200 dark:border-neutral-800 py-6 px-6 leading-none text-muted-foreground absolute -top-full group-hover:top-0 left-0 right-0 backdrop-blur hidden md:flex",
         {
           "bg-neutral-950/10 dark:bg-neutral-100/10 text-black dark:text-white": props.priority === 1,
         },
@@ -574,8 +575,11 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <div class="gap-4 flex flex-row xl:flex-col xl:w-max w-full xl:min-w-80 h-max min-h-40 max-h-40 md:max-h-full ">
-                        <Hotspots />
-                        <Weather />
+                        <div class="grid gap-4 grid-cols-2 xl:grid-cols-1">
+                          <Hotspots />
+                          <Weather />
+                        </div>
+                        <Events />
                       </div>
                     </div>
                   </div>

@@ -93,16 +93,17 @@ export module Users {
       {
         prefix: string;
         sufix: string;
+        code: (typeof currency_code.enumValues)[number];
       }
     > = {
-      USD: { prefix: "$", sufix: "USD" },
-      EUR: { prefix: "", sufix: "€" },
-      GBP: { prefix: "", sufix: "£" },
-      CHF: { prefix: "", sufix: "CHF" },
-      JPY: { prefix: "¥", sufix: "JPY" },
-      AUD: { prefix: "$", sufix: "AUD" },
-      CAD: { prefix: "$", sufix: "CAD" },
-      NZD: { prefix: "$", sufix: "NZD" },
+      USD: { prefix: "$", sufix: "USD", code: "USD" },
+      EUR: { prefix: "", sufix: "€", code: "EUR" },
+      GBP: { prefix: "", sufix: "£", code: "GBP" },
+      CHF: { prefix: "", sufix: "CHF", code: "CHF" },
+      JPY: { prefix: "¥", sufix: "JPY", code: "JPY" },
+      AUD: { prefix: "$", sufix: "AUD", code: "AUD" },
+      CAD: { prefix: "$", sufix: "CAD", code: "CAD" },
+      NZD: { prefix: "$", sufix: "NZD", code: "NZD" },
     };
 
     const result = await tsx.select({ currency: users.currency_code }).from(users).where(eq(users.id, isValid.output));
