@@ -403,4 +403,34 @@ export module Rides {
     });
     return rides;
   };
+
+  export const sumAllNonDeleted = async (field: keyof RideSelect, tsx = db) => {
+    const result = await tsx
+      .select({ sum: sum(rides[field]) })
+      .from(rides)
+      .where(isNull(rides.deletedAt));
+
+    const _sum = result[0].sum;
+    if (_sum === null) return 0;
+    const __sum = Number(_sum);
+    if (Number.isNaN(__sum)) return 0;
+    return __sum;
+  };
+
+  export const sumAllNonDeletedThisMonth = async (field: keyof RideSelect, tsx = db) => {
+    const startDate = dayjs().startOf("month").toDate();
+    const endDate = dayjs().endOf("month").toDate();
+    const result = await tsx
+      .select({ sum: sum(rides[field]) })
+      .from(rides)
+      .where(and(gte(rides.startedAt, startDate), lte(rides.endedAt, endDate), isNull(rides.deletedAt)));
+
+    if (result.length === 0) return 0;
+
+    const _sum = result[0].sum;
+    if (_sum === null) return 0;
+    const __sum = Number(_sum);
+    if (Number.isNaN(__sum)) return 0;
+    return __sum;
+  };
 }

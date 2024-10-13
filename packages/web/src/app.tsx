@@ -1,6 +1,12 @@
 // @refresh reload
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
+import "@fontsource-variable/plus-jakarta-sans";
+import "@fontsource/geist-mono";
+import "@fontsource/ibm-plex-sans/400.css";
+import "@fontsource/ibm-plex-sans/500.css";
+import "@fontsource/ibm-plex-sans/600.css";
+import "@fontsource/ibm-plex-sans/700.css";
 import { ColorModeProvider, ColorModeScript, cookieStorageManagerSSR } from "@kobalte/core";
 import { MetaProvider, Title } from "@solidjs/meta";
 import { Router } from "@solidjs/router";
@@ -13,16 +19,10 @@ import Loader2 from "lucide-solid/icons/loader-2";
 import { ErrorBoundary, Show, Suspense } from "solid-js";
 import { isServer } from "solid-js/web";
 import { Toaster } from "solid-sonner";
+import "./app.css";
+import { Realtime } from "./components/Realtime";
 import { ServiceWorker } from "./components/ServiceWorker";
 import { logout } from "./utils/api/actions";
-import "./app.css";
-import "@fontsource/ibm-plex-sans/400.css";
-import "@fontsource/ibm-plex-sans/500.css";
-import "@fontsource/ibm-plex-sans/600.css";
-import "@fontsource/ibm-plex-sans/700.css";
-import "@fontsource-variable/plus-jakarta-sans";
-import { Resource } from "sst";
-import { Realtime } from "./components/Realtime";
 
 export default function App() {
   const authLink = import.meta.env.VITE_AUTH_URL;

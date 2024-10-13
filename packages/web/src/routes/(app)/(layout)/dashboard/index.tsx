@@ -1,14 +1,10 @@
 import type { CurrencyCode } from "@/lib/api/application";
 import type { Rides } from "@taxikassede/core/src/entities/rides";
-import type { LucideProps } from "lucide-solid";
 import { Events } from "@/components/Events";
-import AddRideModal from "@/components/forms/AddRide";
 import { Hotspots } from "@/components/Hotspots";
 import { language } from "@/components/stores/Language";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TextField, TextFieldRoot } from "@/components/ui/textfield";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Weather } from "@/components/Weather";
 import { getLanguage } from "@/lib/api/application";
 import { getHotspots } from "@/lib/api/hotspots";
@@ -17,19 +13,20 @@ import { getStatistics } from "@/lib/api/statistics";
 import { getSystemNotifications } from "@/lib/api/system_notifications";
 import { getAuthenticatedSession } from "@/lib/auth/util";
 import { cn } from "@/lib/utils";
+import { concat } from "@solid-primitives/signal-builders";
 import { A, createAsync, revalidate, RouteDefinition, useSearchParams } from "@solidjs/router";
 import dayjs from "dayjs";
+import { type LucideProps } from "lucide-solid";
 import Box from "lucide-solid/icons/box";
 import Car from "lucide-solid/icons/car";
-import Check from "lucide-solid/icons/check";
+import ChevronRight from "lucide-solid/icons/chevron-right";
 import DollarSign from "lucide-solid/icons/dollar-sign";
 import Loader2 from "lucide-solid/icons/loader-2";
 import RotateClockwise from "lucide-solid/icons/rotate-cw";
 import ShoppingBag from "lucide-solid/icons/shopping-bag";
-import SquareArrowOutUpRight from "lucide-solid/icons/square-arrow-out-up-right";
 import TrendingUp from "lucide-solid/icons/trending-up";
-import X from "lucide-solid/icons/x";
-import { For, JSX, Match, Show, Suspense, Switch } from "solid-js";
+import { createSignal, For, JSX, Show, Suspense } from "solid-js";
+import { Transition } from "solid-transition-group";
 
 export const route = {
   preload: async () => {
@@ -79,7 +76,7 @@ const Statistic = (props: {
         </Show>
         <span>
           {props.type === "currency"
-            ? new Intl.NumberFormat(language() ?? "en-US", {
+            ? new Intl.NumberFormat(language(), {
                 style: "currency",
                 currency: props.currency,
               })
@@ -102,7 +99,7 @@ const Statistic = (props: {
         </Show>
         <span>
           {props.type === "currency"
-            ? new Intl.NumberFormat(language() ?? "en-US", {
+            ? new Intl.NumberFormat(language(), {
                 style: "currency",
                 currency: props.currency,
               })
@@ -160,6 +157,8 @@ const stringify = <T extends any>(obj: T) => {
 
 type DotN = Omit<Rides.Info, "vehicle" | "user" | "routes"> & { vehicle: NonNullable<Rides.Info["vehicle"]> };
 
+const dFormat = (d: Date) => dayjs(d).format("MMMM-YYYY");
+
 const traverse = <T extends DotN>(obj: any, path: DotNotation<T>) => {
   // @ts-ignore
   const paths = path.split(".");
@@ -179,6 +178,8 @@ export default function DashboardPage() {
   const rides = createAsync(() => getRides());
   const session = createAsync(() => getAuthenticatedSession());
   const [search, setSearchParams] = useSearchParams();
+
+  const [hiddenMonths, setHiddenMonths] = createSignal<Array<string>>([]);
 
   const beginningOfRide = (routes: Rides.Info["routes"]) => {
     // get the starting segment of the route and return the streetname
@@ -286,15 +287,17 @@ export default function DashboardPage() {
   };
 
   const groupByMonth = (rides: Array<Rides.Info>) => {
-    const months: Record<string, Array<Rides.Info>> = {};
+    const months: Record<string, [Array<Rides.Info>, Date]> = {};
     const sorted = sortByStartedAt(rides);
     for (let i = 0; i < sorted.length; i++) {
       const ride = sorted[i];
       const month = dayjs(ride.startedAt).format("MMMM YYYY");
+      const d = dayjs(ride.startedAt).toDate();
       if (!months[month]) {
-        months[month] = [];
+        months[month] = [[ride], d];
+        continue;
       }
-      months[month].push(ride);
+      months[month][0].push(ride);
     }
     return months;
   };
@@ -398,14 +401,14 @@ export default function DashboardPage() {
                                 <span class="sr-only md:not-sr-only">Refresh</span>
                                 <RotateClockwise class="size-4" />
                               </Button>
-                              <AddRideModal
+                              {/* <AddRideModal
                                 vehicle_id_saved={null}
                                 vehicle_id_used_last_time={null}
                                 base_charge={Number(c().base_charge)}
                                 distance_charge={Number(c().distance_charge)}
                                 time_charge={Number(c().time_charge)}
                                 currency_code={s().user?.currency_code ?? "USD"}
-                              />
+                              /> */}
                             </div>
                           </div>
                           <Suspense
@@ -428,18 +431,22 @@ export default function DashboardPage() {
                                           </div>
                                         }
                                       >
-                                        {([month, rides], i) => (
+                                        {([month, [rides, d]], i) => (
                                           <div class="flex flex-col gap-0 w-full">
                                             <div
-                                              class={cn("flex flex-row items-center w-full px-8 py-4", {
-                                                "px-0": i() === 0,
-                                              })}
+                                              class={cn(
+                                                "flex flex-row items-center w-full px-8 py-4 transition-[padding] duration-300",
+                                                {
+                                                  "px-0": i() === 0 || hiddenMonths().includes(dFormat(d)),
+                                                  "pb-0": hiddenMonths().includes(dFormat(d)),
+                                                },
+                                              )}
                                             >
                                               <div class="flex flex-row items-center w-full">
                                                 <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
                                               </div>
-                                              <div class="flex flex-row items-center w-max">
-                                                <span class="text-xs text-muted-foreground w-max px-2 font-medium select-none">
+                                              <div class="flex flex-row items-center w-max px-2 gap-1">
+                                                <span class="text-xs text-muted-foreground w-max font-medium select-none">
                                                   <Show
                                                     when={i() === 0}
                                                     fallback={`${month} - ${rides.length} Ride${rides.length > 1 ? "s" : ""}`}
@@ -447,122 +454,131 @@ export default function DashboardPage() {
                                                     This Month - {rides.length} Ride{rides.length > 1 ? "s" : ""}
                                                   </Show>
                                                 </span>
+                                                <span class="text-xs text-muted-foreground w-max font-medium select-none">
+                                                  -
+                                                </span>
+                                                <div
+                                                  class="text-xs text-muted-foreground w-max font-medium select-none hover:underline cursor-pointer"
+                                                  onClick={() => {
+                                                    const df = dFormat(d);
+                                                    const isH = hiddenMonths().includes(df);
+                                                    if (isH) {
+                                                      setHiddenMonths(hiddenMonths().filter((m) => m !== df));
+                                                    } else {
+                                                      const concatted = concat(hiddenMonths, df);
+                                                      setHiddenMonths(concatted());
+                                                    }
+                                                  }}
+                                                >
+                                                  <Show when={!hiddenMonths().includes(dFormat(d))} fallback="Show">
+                                                    Hide
+                                                  </Show>
+                                                </div>
                                               </div>
                                               <div class="flex flex-row items-center w-full">
                                                 <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
                                               </div>
                                             </div>
-                                            <div class="w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl flex flex-col overflow-clip">
-                                              <For
-                                                each={rides}
-                                                fallback={
-                                                  <div class="h-40 w-full flex flex-col items-center justify-center select-none bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl">
-                                                    <span class="text-muted-foreground">
-                                                      There are currently no rides
-                                                    </span>
-                                                  </div>
-                                                }
-                                              >
-                                                {(ride) => (
-                                                  <div class="h-max w-full flex flex-col border-b border-neutral-200 dark:border-neutral-800 last:border-b-0">
-                                                    <div class="flex flex-row w-full px-6 pt-6 pb-4 items-center justify-between gap-2">
-                                                      <div class="flex items-center justify-center gap-2 select-none">
-                                                        <Tooltip>
-                                                          <TooltipTrigger>
-                                                            <div class="size-5 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-800">
-                                                              <Switch>
-                                                                <Match when={ride.status === "accepted"}>
-                                                                  <Check class="size-3 text-muted-foreground" />
-                                                                </Match>
-                                                                <Match when={ride.status === "pending"}>
-                                                                  <Loader2 class="size-3 animate-spin" />
-                                                                </Match>
-                                                                <Match when={ride.status === "rejected"}>
-                                                                  <X class="size-3 text-red-500" />
-                                                                </Match>
-                                                              </Switch>
-                                                            </div>
-                                                          </TooltipTrigger>
-                                                          <TooltipContent class="uppercase font-bold">
-                                                            {ride.status}
-                                                          </TooltipContent>
-                                                        </Tooltip>
-                                                        <Badge
-                                                          variant="outline"
-                                                          class="flex flex-row items-center gap-2"
-                                                        >
-                                                          <Car class="size-4 text-muted-foreground" />
-                                                          <Show
-                                                            when={ride.vehicle}
-                                                            fallback={<span class="text-sm font-bold">Unknown</span>}
-                                                          >
-                                                            {(v) => <span class="text-sm font-bold">{v().name}</span>}
-                                                          </Show>
-                                                        </Badge>
-                                                      </div>
-                                                      <div class="">
-                                                        <span class="font-bold">
-                                                          {new Intl.NumberFormat(language() ?? "en-US", {
-                                                            style: "currency",
-                                                            currency: s().user!.currency_code,
-                                                          }).format(Number(ride.income))}
+                                            <Transition name="slide-fade-up">
+                                              <Show when={!hiddenMonths().includes(dFormat(d))}>
+                                                <div class="w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl flex flex-col overflow-clip">
+                                                  <For
+                                                    each={rides}
+                                                    fallback={
+                                                      <div class="h-40 w-full flex flex-col items-center justify-center select-none bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl">
+                                                        <span class="text-muted-foreground">
+                                                          There are currently no rides
                                                         </span>
                                                       </div>
-                                                    </div>
-                                                    <div class="flex flex-col w-full pt-4 pb-6 px-6 gap-2 select-none">
-                                                      <div class="flex flex-row items-center">
-                                                        <div class="flex flex-row items-center w-full">
-                                                          <div class="size-3.5 rounded-full border-2 border-black dark:border-white p-[2px]">
-                                                            <div class="h-full w-full bg-black dark:bg-white rounded-full"></div>
+                                                    }
+                                                  >
+                                                    {(ride) => (
+                                                      <div class="h-max w-full flex flex-col border-b border-neutral-200 dark:border-neutral-800 last:border-b-0">
+                                                        <div class="flex flex-row w-full p-6 items-center justify-between">
+                                                          <div class="flex items-center justify-center select-none gap-2">
+                                                            <div class="flex flex-row items-center">
+                                                              <Show
+                                                                when={ride.vehicle}
+                                                                fallback={
+                                                                  <span class="text-sm font-bold font-['Geist_Mono',_ui-monospace]">
+                                                                    Unknown
+                                                                  </span>
+                                                                }
+                                                              >
+                                                                {(v) => (
+                                                                  <span class="text-sm font-bold">{v().name}</span>
+                                                                )}
+                                                              </Show>
+                                                            </div>
+                                                            <div class="flex flex-row w-max gap-2 select-none items-center">
+                                                              <div class="flex flex-row items-center w-max">
+                                                                <span class="text-sm text-muted-foreground w-max">
+                                                                  {new Intl.NumberFormat(language(), {
+                                                                    style: "unit",
+                                                                    unit: "kilometer",
+                                                                    unitDisplay: "short",
+                                                                  }).format(Number(ride.distance) / 1000)}
+                                                                </span>
+                                                              </div>
+                                                              <div class="flex flex-row items-center w-max">
+                                                                <span class="text-sm text-muted-foreground w-max">
+                                                                  {new Intl.NumberFormat(language(), {
+                                                                    style: "unit",
+                                                                    unit: "minute",
+                                                                    unitDisplay: "short",
+                                                                  }).format(
+                                                                    Number(
+                                                                      dayjs(ride.startedAt).diff(
+                                                                        ride.endedAt,
+                                                                        "minute",
+                                                                      ),
+                                                                    ),
+                                                                  )}
+                                                                </span>
+                                                              </div>
+                                                            </div>
                                                           </div>
-                                                          <div class="h-[2px] flex-1 flex bg-muted-foreground"></div>
-                                                        </div>
-                                                        <div class="flex flex-row items-center w-max">
-                                                          <span class="text-xs text-muted-foreground w-max px-2">
-                                                            {new Intl.NumberFormat(language() ?? "en-US", {
-                                                              style: "unit",
-                                                              unit: "kilometer",
-                                                              unitDisplay: "short",
-                                                            }).format(Number(ride.distance) / 1000)}
-                                                          </span>
-                                                        </div>
-                                                        <div class="flex flex-row items-center w-full">
-                                                          <div class="h-[2px] flex-1 flex bg-muted-foreground"></div>
-                                                          <div class="size-3.5 rounded-full bg-black dark:bg-white"></div>
-                                                        </div>
-                                                      </div>
-                                                      <div class="flex flex-row items-center">
-                                                        <div class="flex flex-row items-center w-full">
-                                                          <span class="font-bold text-sm">
-                                                            {beginningOfRide(ride.routes)}
-                                                          </span>
-                                                        </div>
-                                                        <div class="flex flex-row items-center w-max"></div>
-                                                        <div class="flex flex-row items-center w-full justify-end">
-                                                          <span class="font-bold text-sm">
-                                                            {endOfRide(ride.routes)}
-                                                          </span>
-                                                        </div>
-                                                      </div>
-                                                      <div class="flex flex-row items-center justify-end w-full pt-4">
-                                                        <div class="flex flex-row items-center w-max">
-                                                          <Button
-                                                            size="sm"
-                                                            variant="secondary"
-                                                            class="flex flex-row items-center gap-2"
-                                                            as={A}
-                                                            href={`/dashboard/rides/${ride.id}`}
-                                                          >
-                                                            <span>Open</span>
-                                                            <SquareArrowOutUpRight class="size-4" />
-                                                          </Button>
+                                                          <div class="w-max flex flex-row items-center gap-2">
+                                                            <Button
+                                                              size="sm"
+                                                              variant="secondary"
+                                                              class="flex flex-row items-center gap-2 leading-none"
+                                                              as={A}
+                                                              href={`/dashboard/rides/${ride.id}`}
+                                                            >
+                                                              <span class="font-bold">
+                                                                {new Intl.NumberFormat(language(), {
+                                                                  style: "currency",
+                                                                  currency: s().user!.currency_code,
+                                                                }).format(Number(ride.income))}
+                                                              </span>
+                                                              <Show
+                                                                when={
+                                                                  ride.payment !== undefined &&
+                                                                  Number(ride.payment!.tip) !== 0 &&
+                                                                  Number(ride.payment!.tip)
+                                                                }
+                                                              >
+                                                                {(tip) => (
+                                                                  <span>
+                                                                    {new Intl.NumberFormat(language(), {
+                                                                      style: "currency",
+                                                                      currency: s().user!.currency_code,
+                                                                      unitDisplay: "short",
+                                                                    }).format(Number(tip() ?? 0))}
+                                                                  </span>
+                                                                )}
+                                                              </Show>
+                                                              <ChevronRight class="size-4" />
+                                                            </Button>
+                                                          </div>
                                                         </div>
                                                       </div>
-                                                    </div>
-                                                  </div>
-                                                )}
-                                              </For>
-                                            </div>
+                                                    )}
+                                                  </For>
+                                                </div>
+                                              </Show>
+                                            </Transition>
                                           </div>
                                         )}
                                       </For>
@@ -574,8 +590,8 @@ export default function DashboardPage() {
                           </Suspense>
                         </div>
                       </div>
-                      <div class="gap-4 flex flex-row xl:flex-col xl:w-max w-full xl:min-w-80 h-max min-h-40 max-h-40 md:max-h-full ">
-                        <div class="grid gap-4 grid-cols-2 xl:grid-cols-1">
+                      <div class="gap-4 flex flex-col xl:w-max w-full xl:min-w-80 h-max min-h-40">
+                        <div class="grid gap-4 grid-cols-2 xl:grid-cols-1 w-full">
                           <Hotspots />
                           <Weather />
                         </div>

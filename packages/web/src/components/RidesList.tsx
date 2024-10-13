@@ -57,7 +57,6 @@ import Trash from "lucide-solid/icons/trash";
 import { createMemo, createSignal, For, Match, Show, splitProps, Switch } from "solid-js";
 import { toast } from "solid-sonner";
 import { language } from "./stores/Language";
-import "@fontsource/geist-mono";
 
 declare module "@tanstack/solid-table" {
   //add fuzzy filter to the filterFns

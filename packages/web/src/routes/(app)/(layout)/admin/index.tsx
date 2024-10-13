@@ -23,6 +23,7 @@ import dayjs from "dayjs";
 import Box from "lucide-solid/icons/box";
 import Car from "lucide-solid/icons/car";
 import Check from "lucide-solid/icons/check";
+import ChevronRight from "lucide-solid/icons/chevron-right";
 import DollarSign from "lucide-solid/icons/dollar-sign";
 import Loader2 from "lucide-solid/icons/loader-2";
 import RotateClockwise from "lucide-solid/icons/rotate-cw";
@@ -492,102 +493,83 @@ export default function AdminDashboardPage() {
                                                   >
                                                     {(ride) => (
                                                       <div class="h-max w-full flex flex-col border-b border-neutral-200 dark:border-neutral-800 last:border-b-0">
-                                                        <div class="flex flex-row w-full px-6 pt-6 pb-4 items-center justify-between gap-2">
-                                                          <div class="flex items-center justify-center gap-2 select-none">
-                                                            <Tooltip>
-                                                              <TooltipTrigger>
-                                                                <div class="size-5 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-800">
-                                                                  <Switch>
-                                                                    <Match when={ride.status === "accepted"}>
-                                                                      <Check class="size-3 text-muted-foreground" />
-                                                                    </Match>
-                                                                    <Match when={ride.status === "pending"}>
-                                                                      <Loader2 class="size-3 animate-spin" />
-                                                                    </Match>
-                                                                    <Match when={ride.status === "rejected"}>
-                                                                      <X class="size-3 text-red-500" />
-                                                                    </Match>
-                                                                  </Switch>
-                                                                </div>
-                                                              </TooltipTrigger>
-                                                              <TooltipContent class="uppercase font-bold">
-                                                                {ride.status}
-                                                              </TooltipContent>
-                                                            </Tooltip>
-                                                            <Badge
-                                                              variant="outline"
-                                                              class="flex flex-row items-center gap-2"
-                                                            >
-                                                              <Car class="size-4 text-muted-foreground" />
+                                                        <div class="flex flex-row w-full p-6 items-center justify-between">
+                                                          <div class="flex items-center justify-center select-none gap-2">
+                                                            <div class="flex flex-row items-center">
                                                               <Show
                                                                 when={ride.vehicle}
                                                                 fallback={
-                                                                  <span class="text-sm font-bold">Unknown</span>
+                                                                  <span class="text-sm font-bold font-['Geist_Mono',_ui-monospace]">
+                                                                    Unknown
+                                                                  </span>
                                                                 }
                                                               >
                                                                 {(v) => (
                                                                   <span class="text-sm font-bold">{v().name}</span>
                                                                 )}
                                                               </Show>
-                                                            </Badge>
-                                                          </div>
-                                                          <div class="">
-                                                            <span class="font-bold">
-                                                              {new Intl.NumberFormat(language() ?? "en-US", {
-                                                                style: "currency",
-                                                                currency: s().user!.currency_code,
-                                                              }).format(Number(ride.income))}
-                                                            </span>
-                                                          </div>
-                                                        </div>
-                                                        <div class="flex flex-col w-full pt-4 pb-6 px-6 gap-2 select-none">
-                                                          <div class="flex flex-row items-center">
-                                                            <div class="flex flex-row items-center w-full">
-                                                              <div class="size-3.5 rounded-full border-2 border-black dark:border-white p-[2px]">
-                                                                <div class="h-full w-full bg-black dark:bg-white rounded-full"></div>
+                                                            </div>
+                                                            <div class="flex flex-row w-max gap-2 select-none items-center">
+                                                              <div class="flex flex-row items-center w-max">
+                                                                <span class="text-sm text-muted-foreground w-max">
+                                                                  {new Intl.NumberFormat(language(), {
+                                                                    style: "unit",
+                                                                    unit: "kilometer",
+                                                                    unitDisplay: "short",
+                                                                  }).format(Number(ride.distance) / 1000)}
+                                                                </span>
                                                               </div>
-                                                              <div class="h-[2px] flex-1 flex bg-muted-foreground"></div>
-                                                            </div>
-                                                            <div class="flex flex-row items-center w-max">
-                                                              <span class="text-xs text-muted-foreground w-max px-2">
-                                                                {new Intl.NumberFormat(language() ?? "en-US", {
-                                                                  style: "unit",
-                                                                  unit: "kilometer",
-                                                                  unitDisplay: "short",
-                                                                }).format(Number(ride.distance) / 1000)}
-                                                              </span>
-                                                            </div>
-                                                            <div class="flex flex-row items-center w-full">
-                                                              <div class="h-[2px] flex-1 flex bg-muted-foreground"></div>
-                                                              <div class="size-3.5 rounded-full bg-black dark:bg-white"></div>
-                                                            </div>
-                                                          </div>
-                                                          <div class="flex flex-row items-center">
-                                                            <div class="flex flex-row items-center w-full">
-                                                              <span class="font-bold text-sm">
-                                                                {beginningOfRide(ride.routes)}
-                                                              </span>
-                                                            </div>
-                                                            <div class="flex flex-row items-center w-max"></div>
-                                                            <div class="flex flex-row items-center w-full justify-end">
-                                                              <span class="font-bold text-sm">
-                                                                {endOfRide(ride.routes)}
-                                                              </span>
+                                                              <div class="flex flex-row items-center w-max">
+                                                                <span class="text-sm text-muted-foreground w-max">
+                                                                  {new Intl.NumberFormat(language(), {
+                                                                    style: "unit",
+                                                                    unit: "minute",
+                                                                    unitDisplay: "short",
+                                                                  }).format(
+                                                                    Number(
+                                                                      dayjs(ride.startedAt).diff(
+                                                                        ride.endedAt,
+                                                                        "minute",
+                                                                      ),
+                                                                    ),
+                                                                  )}
+                                                                </span>
+                                                              </div>
                                                             </div>
                                                           </div>
-                                                          <div class="flex flex-row items-center justify-end w-full pt-4">
-                                                            <div class="flex flex-row items-center w-max">
-                                                              <Button
-                                                                size="sm"
-                                                                variant="secondary"
-                                                                class="flex flex-row items-center gap-2"
-                                                                as={A}
-                                                                href={`/dashboard/rides/${ride.id}`}
+                                                          <div class="w-max flex flex-row items-center gap-2">
+                                                            <Button
+                                                              size="sm"
+                                                              variant="secondary"
+                                                              class="flex flex-row items-center gap-2 leading-none"
+                                                              as={A}
+                                                              href={`/dashboard/rides/${ride.id}`}
+                                                            >
+                                                              <span class="font-bold">
+                                                                {new Intl.NumberFormat(language(), {
+                                                                  style: "currency",
+                                                                  currency: s().user!.currency_code,
+                                                                }).format(Number(ride.income))}
+                                                              </span>
+                                                              <Show
+                                                                when={
+                                                                  ride.payment !== undefined &&
+                                                                  Number(ride.payment!.tip) !== 0 &&
+                                                                  Number(ride.payment!.tip)
+                                                                }
                                                               >
-                                                                <span>Open</span>
-                                                                <SquareArrowOutUpRight class="size-4" />
-                                                              </Button>
-                                                            </div>
+                                                                {(tip) => (
+                                                                  <span>
+                                                                    {new Intl.NumberFormat(language(), {
+                                                                      style: "currency",
+                                                                      currency: s().user!.currency_code,
+                                                                      unitDisplay: "short",
+                                                                    }).format(Number(tip() ?? 0))}
+                                                                  </span>
+                                                                )}
+                                                              </Show>
+                                                              <ChevronRight class="size-4" />
+                                                            </Button>
                                                           </div>
                                                         </div>
                                                       </div>
@@ -607,7 +589,7 @@ export default function AdminDashboardPage() {
                           </Suspense>
                         </div>
                       </div>
-                      <div class="gap-4 flex flex-col xl:w-max w-full xl:min-w-80 h-max min-h-40 ">
+                      <div class="gap-4 flex flex-col xl:w-max w-full xl:min-w-80 h-max min-h-40">
                         <div class="grid gap-4 grid-cols-2 xl:grid-cols-1">
                           <Hotspots />
                           <Weather />

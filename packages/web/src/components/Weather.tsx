@@ -17,13 +17,13 @@ export const Weather = (props: WeatherProps) => {
           <div class="w-max flex flex-row items-center gap-2">
             <Button
               size="icon"
-              class="md:flex flex-row items-center gap-2 size-8 hidden"
+              class="md:flex flex-row items-center gap-2 size-6 hidden"
               variant="ghost"
               onClick={async () => {
                 await revalidate([getWeather.key]);
               }}
             >
-              <RotateClockwise class="size-4" />
+              <RotateClockwise class="size-3" />
             </Button>
           </div>
         </div>

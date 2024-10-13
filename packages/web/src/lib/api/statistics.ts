@@ -65,16 +65,9 @@ export const getSystemStatistics = cache(async () => {
   let preffered_currency = await Users.getPreferredCurrencyByUserId(ctx.user.id);
   const rs = await Rides.allNonDeleted();
   const rides = rs.length;
-  let total_earnings: string | number = 0;
-  let earningsThisMonth = 0;
-  for (const r of rs) {
-    const earnings = Number(r.income);
-    if (Number.isNaN(earnings)) continue;
-    total_earnings += earnings;
-    if (r.startedAt.getMonth() === new Date().getMonth()) {
-      earningsThisMonth += earnings;
-    }
-  }
+  let total_earnings: string | number = await Rides.sumAllNonDeleted("income");
+  let earningsThisMonth = await Rides.sumAllNonDeletedThisMonth("income");
+
   let language = "en";
   // check cookie
   const c = getCookie("language");
@@ -93,6 +86,7 @@ export const getSystemStatistics = cache(async () => {
   // without the currency code
   const t_e = t_es.filter((p) => p.type !== "currency");
   total_earnings = t_e.map((p) => p.value).join("");
+
   const os = await Orders.allNonDeleted();
   const orders = os.length;
   const performance = 0;

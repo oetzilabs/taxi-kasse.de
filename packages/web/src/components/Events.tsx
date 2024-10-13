@@ -17,13 +17,13 @@ export const Events = (props: EventsProps) => {
           <div class="w-max flex flex-row items-center gap-2">
             <Button
               size="icon"
-              class="flex flex-row items-center gap-2 size-8"
+              class="flex flex-row items-center gap-2 size-6"
               variant="ghost"
               onClick={async () => {
                 await revalidate([getEvents.key]);
               }}
             >
-              <RotateClockwise class="size-4" />
+              <RotateClockwise class="size-3" />
             </Button>
           </div>
         </div>
