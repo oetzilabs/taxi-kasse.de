@@ -15,6 +15,7 @@ import { getStatistics } from "../lib/api/statistics";
 import { cn } from "../lib/utils";
 import { useRealtime } from "./Realtime";
 import { language } from "./stores/Language";
+import { Checkbox, CheckboxControl } from "./ui/checkbox";
 
 type RealtimeRidesListProps = {
   ridesList: Accessor<Rides.Info[]>;
@@ -164,6 +165,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
     }
   });
 
+  let listRef: HTMLDivElement;
   const [highlightedRows, setHighlightedRows] = createSignal<string[]>([]);
   const [currentHighlightedRow, setCurrentHighlightedRow] = createSignal<string | undefined>(undefined);
 
@@ -207,7 +209,8 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
         setHighlightedRows([]);
       }
 
-      if (event.key === "s") {
+      if (event.key === "s" || event.key === " ") {
+        event.preventDefault();
         const hr = highlightedRows();
         if (rowId) {
           if (hr.includes(rowId)) {
@@ -224,11 +227,19 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
 
     const keyupEventHandler = (event: KeyboardEvent) => {};
 
+    const mouseClickOutsideOfList = (event: MouseEvent) => {
+      // if (listRef && listRef.contains(event.target as Node)) return;
+      // setHighlightedRows([]);
+      // setCurrentHighlightedRow(undefined);
+    };
+
     window.addEventListener("keydown", keydownEventHandler);
+    window.addEventListener("click", mouseClickOutsideOfList);
     window.addEventListener("keyup", keyupEventHandler);
 
     onCleanup(() => {
       window.removeEventListener("keydown", keydownEventHandler);
+      window.removeEventListener("click", mouseClickOutsideOfList);
       window.removeEventListener("keyup", keyupEventHandler);
     });
   });
@@ -276,7 +287,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
         </div>
         <Show when={filteredRides(rides())}>
           {(_rides) => (
-            <div class="h-max w-full flex flex-col">
+            <div class="h-max w-full flex flex-col" ref={listRef!}>
               <For
                 each={Object.entries(groupByMonth(_rides()))}
                 fallback={
@@ -357,7 +368,22 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                                 )}
                               >
                                 <div class="flex flex-row w-full p-6 items-center justify-between">
-                                  <div class="flex items-center justify-center select-none gap-2">
+                                  <div class="flex items-center justify-center select-none gap-4">
+                                    <div class="flex flex-row items-center gap-4">
+                                      <Checkbox
+                                        checked={highlightedRows().includes(ride.id)}
+                                        onChange={(value) => {
+                                          if (value) {
+                                            setHighlightedRows(concat(highlightedRows, ride.id));
+                                          } else {
+                                            setHighlightedRows(remove(highlightedRows, ride.id));
+                                          }
+                                          setCurrentHighlightedRow(ride.id)
+                                        }}
+                                      >
+                                        <CheckboxControl />
+                                      </Checkbox>
+                                    </div>
                                     <div class="flex flex-row items-center">
                                       <Show
                                         when={ride.vehicle}
