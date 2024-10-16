@@ -88,12 +88,15 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
   const filteredRides = createMemo(() => {
     if (!search.query) return rides();
     const fieldValues = filterValue();
-    const fields: Array<DotNotation<DotN>> = ["id", "added_by", "income", "vehicle.name"];
+    const fields: Array<DotNotation<DotN>> = ["id", "added_by", "income", "vehicle.name", "distance"];
 
     const found: Array<Rides.Info> = [];
     const rs = rides();
     for (let i = 0; i < rs.length; i++) {
       const ride = rs[i];
+      if (ride.deletedAt) {
+        continue;
+      }
       // if (ride.vehicle === null) {
       //   continue;
       // }
