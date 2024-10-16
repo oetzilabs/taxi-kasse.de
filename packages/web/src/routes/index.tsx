@@ -46,7 +46,7 @@ export default function Dashboard() {
       },
       {
         threshold: 0.1, // Trigger when 10% of the banner is visible
-      },
+      }
     );
 
     const observer = new IntersectionObserver(
@@ -58,7 +58,7 @@ export default function Dashboard() {
       },
       {
         threshold: 0.1, // Trigger when 10% of the banner is visible
-      },
+      }
     );
 
     const heroObserver = new IntersectionObserver(
@@ -70,7 +70,7 @@ export default function Dashboard() {
       },
       {
         threshold: 0.05, // Trigger when 10% of the banner is visible
-      },
+      }
     );
 
     if (bannerRef) {
@@ -105,7 +105,9 @@ export default function Dashboard() {
       <section class="flex flex-col gap-8 py-20 container mx-auto h-max">
         <div class="flex flex-col gap-6 ">
           <div
-            class={cn("transition-all flex flex-col gap-4 duration-1000 ease-in-out opacity-0 translate-y-10", {
+            class={cn("flex flex-col gap-4", {
+              "transition-all opacity-0 translate-y-10 duration-1000 ease-in-out":
+                session() && session()!.user === null,
               "opacity-100 translate-y-0": titleVisible(),
             })}
           >
@@ -126,7 +128,9 @@ export default function Dashboard() {
             </h2>
           </div>
           <div
-            class={cn("transition-all flex flex-col gap-4 duration-1000 ease-in-out opacity-0 translate-y-10", {
+            class={cn("flex flex-col gap-4", {
+              "transition-all opacity-0 translate-y-10 duration-1000 ease-in-out":
+                session() && session()!.user === null,
               "opacity-100 translate-y-0": titleVisible(),
             })}
             style={{
@@ -144,7 +148,8 @@ export default function Dashboard() {
           </div>
         </div>
         <div
-          class={cn("transition-all flex flex-col gap-4 duration-1000 ease-in-out opacity-0 translate-y-10", {
+          class={cn("flex flex-col gap-4", {
+            "transition-all opacity-0 translate-y-10 duration-1000 ease-in-out": session() && session()!.user === null,
             "opacity-100 translate-y-0": titleVisible(),
           })}
           style={{
@@ -165,7 +170,7 @@ export default function Dashboard() {
               }
             >
               <Button as={A} href="/dashboard">
-                Go to Dashboard!
+                Open Dashboard!
               </Button>
             </Show>
             <Button as={A} href="/about" variant="secondary">
@@ -180,10 +185,10 @@ export default function Dashboard() {
             src="/assets/images/hero.png"
             alt="Dashboard"
             class={cn(
-              "transition-all bg-white dark:bg-neutral-900 rounded-t-xl w-full aspect-video -z-10 border-x border-t border-neutral-300 dark:border-neutral-800 opacity-0 translate-y-40 ease-in-out",
+              "transition-all bg-white dark:bg-neutral-900 rounded-t-xl w-full aspect-video -z-10 border-x border-t border-neutral-300 dark:border-neutral-800 opacity-5 translate-y-40 ease-in-out",
               {
                 "opacity-100 translate-y-0": showHero(),
-              },
+              }
             )}
             style={{
               "transform-origin": "top center",
@@ -259,7 +264,7 @@ export default function Dashboard() {
                     "transition-all flex flex-col gap-4 duration-1000 delay-500  ease-in-out opacity-0 translate-y-10",
                     {
                       "opacity-100 translate-y-0": isVisible(),
-                    },
+                    }
                   )}
                 >
                   <p class="text-xs font-bold text-white/50 dark:text-black/50">

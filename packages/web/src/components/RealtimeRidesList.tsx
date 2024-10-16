@@ -1,12 +1,14 @@
 import type { Rides } from "@taxikassede/core/src/entities/rides";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
 import { TextField, TextFieldRoot } from "@/components/ui/textfield";
 import { concat, remove } from "@solid-primitives/signal-builders";
 import { A, revalidate, useSearchParams } from "@solidjs/router";
 import dayjs from "dayjs";
 import ChevronRight from "lucide-solid/icons/chevron-right";
+import Filter from "lucide-solid/icons/filter";
 import RotateClockwise from "lucide-solid/icons/rotate-cw";
-import { Accessor, createEffect, createSignal, For, onCleanup, onMount, Show } from "solid-js";
+import { Accessor, createEffect, createSignal, For, onCleanup, Show } from "solid-js";
 import { isServer } from "solid-js/web";
 import { Transition } from "solid-transition-group";
 import { getLanguage } from "../lib/api/application";
@@ -166,6 +168,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
   });
 
   let listRef: HTMLDivElement;
+  let searchRef: HTMLInputElement;
   const [highlightedRows, setHighlightedRows] = createSignal<string[]>([]);
   const [currentHighlightedRow, setCurrentHighlightedRow] = createSignal<string | undefined>(undefined);
 
@@ -182,7 +185,10 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
 
       if (event.key === "ArrowDown") {
         if (!rowId) {
-          rowId = rs_without_hiddenMonth[0].id;
+          const row = rs_without_hiddenMonth[0];
+          if (row) {
+            rowId = row.id;
+          }
         } else {
           const currentIndex = rs_without_hiddenMonth.findIndex((r) => r.id === rowId);
           const nextRow = rs_without_hiddenMonth[Math.min(rs.length, currentIndex + 1)];
@@ -194,7 +200,10 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
 
       if (event.key === "ArrowUp") {
         if (!rowId) {
-          rowId = rs_without_hiddenMonth[rs.length - 1].id;
+          const row = rs_without_hiddenMonth[0];
+          if (row) {
+            rowId = row.id;
+          }
         } else {
           const currentIndex = rs_without_hiddenMonth.findIndex((r) => r.id === rowId);
           const nextRow = rs_without_hiddenMonth[Math.max(0, currentIndex - 1)];
@@ -210,7 +219,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
       }
 
       if (event.key === "s" || event.key === " ") {
-        event.preventDefault();
+        if (searchRef && !searchRef.contains(event.target as Node)) event.preventDefault();
         const hr = highlightedRows();
         if (rowId) {
           if (hr.includes(rowId)) {
@@ -260,10 +269,20 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
               class="w-full max-w-full"
             >
               <TextField
+                ref={searchRef!}
                 placeholder={`Search across ${filteredRides(rides())?.length} rides`}
                 class="w-full max-w-full h-8 text-xs"
               />
             </TextFieldRoot>
+            <Popover>
+              <PopoverTrigger as={Button} size="sm" class="gap-2">
+                <Filter class="size-4" />
+                <span>Filter</span>
+              </PopoverTrigger>
+              <PopoverContent>
+                <PopoverTitle class="text-sm font-medium">Setup Filters</PopoverTitle>
+              </PopoverContent>
+            </Popover>
             <Button
               size="sm"
               class="flex flex-row items-center gap-2 select-none size-8 md:size-auto p-2 md:px-3 md:py-2"
@@ -378,7 +397,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                                           } else {
                                             setHighlightedRows(remove(highlightedRows, ride.id));
                                           }
-                                          setCurrentHighlightedRow(ride.id)
+                                          setCurrentHighlightedRow(ride.id);
                                         }}
                                       >
                                         <CheckboxControl />

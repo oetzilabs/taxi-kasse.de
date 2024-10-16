@@ -9,21 +9,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserSession } from "@/lib/auth/util";
-import { A, useAction, useSubmission } from "@solidjs/router";
-import Cloud from "lucide-solid/icons/cloud";
-import Eye from "lucide-solid/icons/eye";
-import EyeOff from "lucide-solid/icons/eye-off";
-import Keyboard from "lucide-solid/icons/keyboard";
-import LifeBuoy from "lucide-solid/icons/life-buoy";
+import { A, useSubmission } from "@solidjs/router";
 import Loader2 from "lucide-solid/icons/loader-2";
 import LogOut from "lucide-solid/icons/log-out";
 import Settings from "lucide-solid/icons/settings";
 import User from "lucide-solid/icons/user";
-import { Match, Show, Switch } from "solid-js";
+import { Match, Switch } from "solid-js";
 import { logout } from "../utils/api/actions";
 
 export default function UserMenu(props: { user: UserSession["user"] }) {
-  const logoutAction = useAction(logout);
   const isLoggingOut = useSubmission(logout);
 
   return (

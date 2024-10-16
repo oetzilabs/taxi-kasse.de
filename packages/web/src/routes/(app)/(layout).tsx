@@ -1,27 +1,25 @@
 import type { Notifications } from "@taxikassede/core/src/entities/notifications";
-import type { Realtimed } from "@taxikassede/core/src/entities/realtime";
-import type { SystemNotifications } from "@taxikassede/core/src/entities/system_notifications";
 import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { getAuthenticatedSession } from "@/lib/auth/util";
-import { concat, filter } from "@solid-primitives/signal-builders";
-import { A, createAsync, revalidate, RouteDefinition, RouteSectionProps, useAction } from "@solidjs/router";
+import { concat } from "@solid-primitives/signal-builders";
+import { A, createAsync, RouteDefinition, RouteSectionProps, useAction } from "@solidjs/router";
 import { useRealtime } from "~/components/Realtime";
-import { getSystemNotifications, hideSystemNotification } from "~/lib/api/system_notifications";
+import { getSystemNotifications } from "~/lib/api/system_notifications";
 import dayjs from "dayjs";
 import ArrowLeft from "lucide-solid/icons/arrow-left";
 import ArrowRight from "lucide-solid/icons/arrow-right";
 import Info from "lucide-solid/icons/info";
 import Loader2 from "lucide-solid/icons/loader-2";
 import X from "lucide-solid/icons/x";
-import { Accessor, createEffect, createSignal, For, Match, onCleanup, onMount, Show, Suspense, Switch } from "solid-js";
+import { Accessor, createEffect, createSignal, onCleanup, Show, Suspense } from "solid-js";
 import { isServer } from "solid-js/web";
 import { toast } from "solid-sonner";
 import { Transition } from "solid-transition-group";
 import { getAllNotifications, hideNotification } from "../../lib/api/notifications";
 
 export const route = {
-  preload: (props) => {
+  preload: () => {
     const session = getAuthenticatedSession();
     const notification = getSystemNotifications();
 
@@ -184,8 +182,6 @@ const NotificationList = (props: {
 };
 
 export default function DashboardLayout(props: RouteSectionProps) {
-  const system_notifications = createAsync(() => getSystemNotifications());
-  const hideSystemNotificationAction = useAction(hideSystemNotification);
   const allNotifications = createAsync(() => getAllNotifications());
   const hideNotificationAction = useAction(hideNotification);
 
