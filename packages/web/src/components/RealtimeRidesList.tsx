@@ -1,14 +1,12 @@
 import type { Rides } from "@taxikassede/core/src/entities/rides";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
 import { TextField, TextFieldRoot } from "@/components/ui/textfield";
 import { concat, remove } from "@solid-primitives/signal-builders";
 import { A, revalidate, useSearchParams } from "@solidjs/router";
 import dayjs from "dayjs";
 import ChevronRight from "lucide-solid/icons/chevron-right";
-import Filter from "lucide-solid/icons/filter";
 import RotateClockwise from "lucide-solid/icons/rotate-cw";
-import { Accessor, createEffect, createSignal, For, onCleanup, Show } from "solid-js";
+import { Accessor, createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
 import { isServer } from "solid-js/web";
 import { Transition } from "solid-transition-group";
 import { getLanguage } from "../lib/api/application";
@@ -16,6 +14,7 @@ import { getRides } from "../lib/api/rides";
 import { getStatistics } from "../lib/api/statistics";
 import { cn } from "../lib/utils";
 import { useRealtime } from "./Realtime";
+import { FilterValue, RideFilters } from "./RidesFilter";
 import { language } from "./stores/Language";
 import { Checkbox, CheckboxControl } from "./ui/checkbox";
 
@@ -77,22 +76,24 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
   const rt = useRealtime();
   const [search, setSearchParams] = useSearchParams();
   const [hiddenMonths, setHiddenMonths] = createSignal<Array<string>>([]);
+  const [filterValue, setFilterValue] = createSignal<FilterValue>({
+    dateRange: undefined,
+    duration: undefined,
+    distance: undefined,
+    income: undefined,
+    status: undefined,
+    rideType: undefined,
+  });
 
-  const filteredRides = (rides: Array<Rides.Info>) => {
-    if (!search.query) return rides;
+  const filteredRides = createMemo(() => {
+    if (!search.query) return rides();
+    const fieldValues = filterValue();
+    const fields: Array<DotNotation<DotN>> = ["id", "added_by", "income", "vehicle.name"];
 
-    const fields: Array<DotNotation<DotN>> = [
-      "id",
-      "added_by",
-      "distance",
-      "income",
-      "rating",
-      "status",
-      "vehicle.name",
-    ];
     const found: Array<Rides.Info> = [];
-    for (let i = 0; i < rides.length; i++) {
-      const ride = rides[i];
+    const rs = rides();
+    for (let i = 0; i < rs.length; i++) {
+      const ride = rs[i];
       // if (ride.vehicle === null) {
       //   continue;
       // }
@@ -107,8 +108,63 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
         }
       }
     }
-    return found;
-  };
+
+    // use the filterValues to find the rides.
+    const found2: Array<Rides.Info> = [];
+    const ff = Object.values(fieldValues).filter((v) => v !== undefined);
+    if (ff.length === 0) return found;
+    const fields2 = Object.entries(fieldValues);
+    for (let i = 0; i < found.length; i++) {
+      const ride = rs[i];
+
+      keyVLoop: for (const [key, value] of fields2) {
+        if (!value) continue keyVLoop;
+        switch (key) {
+          case "dateRange":
+            const vStartEnd = value as { start?: string; end?: string };
+            if (vStartEnd.start && vStartEnd.end) {
+              if (dayjs(ride.startedAt).isAfter(vStartEnd.start) && dayjs(ride.startedAt).isBefore(vStartEnd.end)) {
+                found2.push(ride);
+              }
+            }
+            break;
+          case "duration":
+            const vDuration = value as [number, number];
+            const duration = Math.abs(dayjs(ride.endedAt).diff(ride.startedAt, "minute"));
+            if (duration >= vDuration[0] && duration <= vDuration[1]) {
+              found2.push(ride);
+            }
+            break;
+          case "distance":
+            const vDistance = value as [number, number];
+            if (Number(ride.distance) >= vDistance[0] && Number(ride.distance) <= vDistance[1]) {
+              found2.push(ride);
+            }
+            break;
+          case "income":
+            const vIncome = value as [number, number];
+            if (Number(ride.income) >= vIncome[0] && Number(ride.income) <= vIncome[1]) {
+              found2.push(ride);
+            }
+            break;
+          case "status":
+            const vStatus = value as string[];
+            if (ride.status && vStatus.includes(ride.status)) {
+              found2.push(ride);
+            }
+            break;
+          case "rideType":
+            break;
+          case "vehicleTypes":
+            break;
+          default:
+            console.info("nothing found");
+            break;
+        }
+      }
+    }
+    return found2;
+  });
 
   const sortByStartedAt = (rides: Array<Rides.Info>) => {
     const sortedRides = rides.sort((a, b) => {
@@ -270,19 +326,11 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
             >
               <TextField
                 ref={searchRef!}
-                placeholder={`Search across ${filteredRides(rides())?.length} rides`}
+                placeholder={`Search across ${filteredRides().length} rides`}
                 class="w-full max-w-full h-8 text-xs"
               />
             </TextFieldRoot>
-            <Popover>
-              <PopoverTrigger as={Button} size="sm" class="gap-2">
-                <Filter class="size-4" />
-                <span>Filter</span>
-              </PopoverTrigger>
-              <PopoverContent>
-                <PopoverTitle class="text-sm font-medium">Setup Filters</PopoverTitle>
-              </PopoverContent>
-            </Popover>
+            <RideFilters filterValue={filterValue()} onFilterChange={setFilterValue} />
             <Button
               size="sm"
               class="flex flex-row items-center gap-2 select-none size-8 md:size-auto p-2 md:px-3 md:py-2"
@@ -304,7 +352,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                 /> */}
           </div>
         </div>
-        <Show when={filteredRides(rides())}>
+        <Show when={filteredRides()}>
           {(_rides) => (
             <div class="h-max w-full flex flex-col" ref={listRef!}>
               <For
@@ -383,7 +431,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                                       rideIndex() !== 0 &&
                                       currentHighlightedRow() !== ride.id &&
                                       !highlightedRows().includes(ride.id),
-                                  }
+                                  },
                                 )}
                               >
                                 <div class="flex flex-row w-full p-6 items-center justify-between">
