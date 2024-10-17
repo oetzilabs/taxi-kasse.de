@@ -10,6 +10,8 @@ export const stringify = <T extends any>(obj: T) => {
   if (t === "string") return obj as string;
   if (t === "number") return (obj as number).toString();
   if (t === "boolean") return (obj as boolean).toString();
+
+  if (obj instanceof Date) return dayjs(obj).toISOString();
   if (t === "object") {
     if (obj === null) return "null";
     if (Array.isArray(obj)) {
@@ -29,16 +31,21 @@ export const stringify = <T extends any>(obj: T) => {
 
 export const dFormat = (d: Date) => dayjs(d).format("MMMM-YYYY");
 
-export const traverse = <T>(obj: any, path: DotNotation<T>) => {
+export const traverse = <T>(obj: any, path: DotNotation<T>): any => {
   // @ts-ignore
   const paths = path.split(".");
   let current = obj;
+
   for (let i = 0; i < paths.length; i++) {
-    const path = paths[i];
-    if (current[path] === undefined) {
+    const key = paths[i] as keyof typeof current;
+
+    // Check if the current object contains the key
+    if (current[key] === undefined) {
       return undefined;
     }
-    current = current[path];
+
+    current = current[key];
   }
+
   return current;
 };

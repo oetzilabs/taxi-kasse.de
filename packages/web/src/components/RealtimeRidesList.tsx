@@ -361,12 +361,12 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
               >
                 <Show
                   when={highlightedRows().length !== filteredRides().length}
-                  fallback={<span class="w-max">Unselect</span>}
+                  fallback={<span class="w-max">Clear Selection</span>}
                 >
                   <span class="w-max">Select All</span>
                 </Show>
               </Button>
-              <RideSelectionMenu selected={highlightedRows} />
+              <RideSelectionMenu selected={highlightedRows} rides={rides} />
               {/* <RideFilters filterValue={filterValue()} onFilterChange={setFilterValue} /> */}
               <Button
                 size="sm"
@@ -460,7 +460,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                             when={rides.filter((r) => highlightedRows().includes(r.id)).length === rides.length}
                             fallback="Select All"
                           >
-                            Unselect All
+                            Clear Selection
                           </Show>
                         </div>
                       </div>
