@@ -231,6 +231,10 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
   const [highlightedRows, setHighlightedRows] = createSignal<string[]>([]);
   const [currentHighlightedRow, setCurrentHighlightedRow] = createSignal<string | undefined>(undefined);
 
+  const [isDragging, setIsDragging] = createSignal(false);
+  const [dragStartIndex, setDragStartIndex] = createSignal<number | null>(null);
+  const [dragCurrentIndex, setDragCurrentIndex] = createSignal<number | null>(null);
+
   createEffect(() => {
     if (isServer) {
       return;
@@ -296,19 +300,71 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
     const keyupEventHandler = (event: KeyboardEvent) => {};
 
     const mouseClickOutsideOfList = (event: MouseEvent) => {
-      // if (listRef && listRef.contains(event.target as Node)) return;
+      if (listRef && listRef.contains(event.target as Node)) return;
       // setHighlightedRows([]);
-      // setCurrentHighlightedRow(undefined);
+      setCurrentHighlightedRow(undefined);
+    };
+
+    const onMouseDown = (event: MouseEvent) => {
+      if (listRef && listRef.contains(event.target as Node)) {
+        setIsDragging(true);
+        const targetIndex = getElementIndexFromEvent(event);
+        if (targetIndex !== null) {
+          setDragStartIndex(targetIndex);
+          setDragCurrentIndex(targetIndex);
+        }
+      }
+    };
+
+    const onMouseMove = (event: MouseEvent) => {
+      if (isDragging()) {
+        const targetIndex = getElementIndexFromEvent(event);
+        if (targetIndex !== null && targetIndex !== dragCurrentIndex()) {
+          setDragCurrentIndex(targetIndex);
+
+          // Determine range between start and current index for selection
+          const start = Math.min(dragStartIndex()!, targetIndex);
+          const end = Math.max(dragStartIndex()!, targetIndex);
+
+          const rs_without_hiddenMonth = rides().filter((r) => !hiddenMonths().includes(dFormat(r.createdAt)));
+
+          const draggedRows = rs_without_hiddenMonth.slice(start, end + 1).map((r) => r.id);
+          setHighlightedRows(draggedRows);
+        }
+      }
+    };
+
+    const onMouseUp = () => {
+      if (isDragging()) {
+        setIsDragging(false);
+        setDragStartIndex(null);
+        setDragCurrentIndex(null);
+      }
+    };
+
+    const getElementIndexFromEvent = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      const rideElement = target.closest("[data-ride-id]") as HTMLElement | null;
+      if (rideElement) {
+        return Array.from(listRef!.querySelectorAll("[data-ride-id]")).indexOf(rideElement);
+      }
+      return null;
     };
 
     window.addEventListener("keydown", keydownEventHandler);
     window.addEventListener("click", mouseClickOutsideOfList);
     window.addEventListener("keyup", keyupEventHandler);
+    window.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mouseup", onMouseUp);
+    window.addEventListener("mousemove", onMouseMove);
 
     onCleanup(() => {
       window.removeEventListener("keydown", keydownEventHandler);
       window.removeEventListener("click", mouseClickOutsideOfList);
       window.removeEventListener("keyup", keyupEventHandler);
+      window.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("mousemove", onMouseMove);
     });
   });
 
@@ -422,19 +478,33 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                           >
                             {(ride, rideIndex) => (
                               <div
+                                data-ride-id={ride.id}
                                 class={cn(
                                   "h-max w-full flex flex-col border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900/50",
                                   {
+                                    // Highlighted Row Styles
                                     "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950":
                                       highlightedRows().includes(ride.id),
                                     "border-blue-500 dark:border-blue-500": currentHighlightedRow() === ride.id,
+
+                                    // Remove top border if the previous row is also highlighted
+                                    "!border-t-transparent":
+                                      rideIndex() > 0 &&
+                                      highlightedRows().includes(rides[rideIndex() - 1].id) &&
+                                      currentHighlightedRow() !== ride.id,
+
+                                    // Apply rounded corners to first and last items only if not highlighted
                                     "rounded-t-2xl": rideIndex() === 0,
                                     "rounded-b-2xl": rideIndex() === rides.length - 1,
-                                    "!border-t-transparent":
-                                      rideIndex() !== 0 &&
-                                      currentHighlightedRow() !== ride.id &&
-                                      !highlightedRows().includes(ride.id),
-                                  },
+
+                                    // Remove bottom border if the next row is highlighted
+                                    "!border-b-transparent":
+                                      rideIndex() < rides.length - 1 &&
+                                      highlightedRows().includes(rides[rideIndex() + 1].id) &&
+                                      currentHighlightedRow() !== ride.id,
+                                  },{
+                                    "!border-b-transparent": rideIndex() < rides.length - 1 && highlightedRows()[highlightedRows().length - 1] !== ride.id,
+                                  }
                                 )}
                               >
                                 <div class="flex flex-row w-full p-6 items-center justify-between">
