@@ -349,20 +349,24 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
             <div class="flex flex-row items-center gap-2">
               <Button
                 onClick={() => {
-                  setHighlightedRows(rides().map((r) => r.id));
+                  const allSelected = highlightedRows().length === filteredRides().length;
+                  if (allSelected) {
+                    setHighlightedRows([]);
+                  } else {
+                    setHighlightedRows(filteredRides().map((r) => r.id));
+                  }
                 }}
-                disabled={highlightedRows().length === rides().length}
                 size="sm"
                 variant="outline"
               >
-                <span class="w-max">Select All</span>
+                <Show
+                  when={highlightedRows().length !== filteredRides().length}
+                  fallback={<span class="w-max">Unselect</span>}
+                >
+                  <span class="w-max">Select All</span>
+                </Show>
               </Button>
-              <RideSelectionMenu
-                selected={highlightedRows}
-                unSelect={() => {
-                  setHighlightedRows([]);
-                }}
-              />
+              <RideSelectionMenu selected={highlightedRows} />
               {/* <RideFilters filterValue={filterValue()} onFilterChange={setFilterValue} /> */}
               <Button
                 size="sm"

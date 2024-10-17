@@ -12,7 +12,6 @@ import {
 
 type RideSelectionMenuProps = {
   selected: Accessor<Array<string>>;
-  unSelect: () => void;
 };
 
 export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
@@ -45,15 +44,8 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
           Create Report
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => {}}>Export to CSV</DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => {}}>Delete</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onSelect={() => {
-            props.unSelect();
-          }}
-        >
-          Unselect
-        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => {}}>Delete</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
