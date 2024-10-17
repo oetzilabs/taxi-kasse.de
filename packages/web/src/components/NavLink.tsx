@@ -8,15 +8,16 @@ export default function NavLink(props: AnchorProps & { exact?: boolean }) {
 
   return (
     <A
-      class={cn(
-        "flex flex-row items-center gap-3 pb-2 px-3 pt-6 text-sm w-max border-b-2 border-neutral-300 dark:border-neutral-800 select-none hover:border-neutral-400 dark:hover:border-neutral-700 leading-none",
-        {
-          "border-neutral-800 dark:border-neutral-200 hover:border-neutral-800 dark:hover:border-neutral-200 font-bold":
-            isActive(),
-        },
-      )}
+      class={cn("flex flex-col items-center gap-2 py-2 text-sm w-max select-none leading-none group")}
       {...props}
       href={props.href}
-    />
+    >
+      <div class={cn("flex flex-row items-center gap-2", { "font-bold": isActive() })}>{props.children}</div>
+      <div
+        class={cn("size-1 xl:w-full  group-hover:bg-neutral-300 dark:group-hover:bg-neutral-700 rounded-full", {
+          "bg-neutral-800 dark:bg-neutral-200 group-hover:bg-neutral-800 dark:group-hover:bg-neutral-200": isActive(),
+        })}
+      />
+    </A>
   );
 }

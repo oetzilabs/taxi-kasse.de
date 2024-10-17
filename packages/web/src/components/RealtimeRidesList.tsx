@@ -1,7 +1,9 @@
 import type { Rides } from "@taxikassede/core/src/entities/rides";
+import type { DotNotation } from "../utils";
 import { Button } from "@/components/ui/button";
+import { Checkbox, CheckboxControl } from "@/components/ui/checkbox";
 import { TextField, TextFieldRoot } from "@/components/ui/textfield";
-import { concat, remove } from "@solid-primitives/signal-builders";
+import { concat, remove, removeItems } from "@solid-primitives/signal-builders";
 import { A, revalidate, useSearchParams } from "@solidjs/router";
 import dayjs from "dayjs";
 import ChevronRight from "lucide-solid/icons/chevron-right";
@@ -13,63 +15,18 @@ import { getLanguage } from "../lib/api/application";
 import { getRides } from "../lib/api/rides";
 import { getStatistics } from "../lib/api/statistics";
 import { cn } from "../lib/utils";
+import { dFormat, traverse } from "../utils";
 import { useRealtime } from "./Realtime";
+import { RideSelectionMenu } from "./RideSelectionMenu";
 import { FilterValue, RideFilters } from "./RidesFilter";
 import { language } from "./stores/Language";
-import { Checkbox, CheckboxControl } from "./ui/checkbox";
 
 type RealtimeRidesListProps = {
   ridesList: Accessor<Rides.Info[]>;
   currency_code: Accessor<string>;
 };
 
-type DotNotation<T, Prefix extends string = ""> = {
-  [K in keyof T]: T[K] extends object
-    ? DotNotation<T[K], `${Prefix}${Prefix extends "" ? "" : "."}${Extract<K, string>}`>
-    : `${Prefix}${Prefix extends "" ? "" : "."}${Extract<K, string>}`;
-}[keyof T];
-
-//` keep this here... neovim struggles with the highlighting
-
-const stringify = <T extends any>(obj: T) => {
-  const t = typeof obj;
-  if (t === "string") return obj as string;
-  if (t === "number") return (obj as number).toString();
-  if (t === "boolean") return (obj as boolean).toString();
-  if (t === "object") {
-    if (obj === null) return "null";
-    if (Array.isArray(obj)) {
-      const arr: Array<string> = [];
-      for (let i = 0; i < obj.length; i++) {
-        arr.push(stringify(obj[i]));
-      }
-      return `[${arr.join(",")}]`;
-    }
-    const o = obj as Record<string, unknown>;
-    const objKeys = Object.keys(o);
-    const objValues: any[] = objKeys.map((k) => stringify(o[k]));
-    return `{${objKeys.map((k, i) => `${k}:${objValues[i]}`).join(",")}}`;
-  }
-  return "null";
-};
-
 type DotN = Omit<Rides.Info, "vehicle" | "user" | "routes"> & { vehicle: NonNullable<Rides.Info["vehicle"]> };
-
-const dFormat = (d: Date) => dayjs(d).format("MMMM-YYYY");
-
-const traverse = <T extends DotN>(obj: any, path: DotNotation<T>) => {
-  // @ts-ignore
-  const paths = path.split(".");
-  let current = obj;
-  for (let i = 0; i < paths.length; i++) {
-    const path = paths[i];
-    if (current[path] === undefined) {
-      return undefined;
-    }
-    current = current[path];
-  }
-  return current;
-};
 
 export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
   const [rides, setRides] = createSignal(props.ridesList());
@@ -389,19 +346,36 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                 class="w-full max-w-full h-8 text-xs"
               />
             </TextFieldRoot>
-            <RideFilters filterValue={filterValue()} onFilterChange={setFilterValue} />
-            <Button
-              size="sm"
-              class="flex flex-row items-center gap-2 select-none size-8 md:size-auto p-2 md:px-3 md:py-2"
-              variant="secondary"
-              onClick={async () => {
-                await revalidate([getRides.key, getLanguage.key, getStatistics.key]);
-              }}
-            >
-              <span class="sr-only md:not-sr-only">Refresh</span>
-              <RotateClockwise class="size-4" />
-            </Button>
-            {/* <AddRideModal
+            <div class="flex flex-row items-center gap-2">
+              <Button
+                onClick={() => {
+                  setHighlightedRows(rides().map((r) => r.id));
+                }}
+                disabled={highlightedRows().length === rides().length}
+                size="sm"
+                variant="outline"
+              >
+                <span class="w-max">Select All</span>
+              </Button>
+              <RideSelectionMenu
+                selected={highlightedRows}
+                unSelect={() => {
+                  setHighlightedRows([]);
+                }}
+              />
+              {/* <RideFilters filterValue={filterValue()} onFilterChange={setFilterValue} /> */}
+              <Button
+                size="sm"
+                class="flex flex-row items-center gap-2 select-none size-8 md:size-auto p-2 md:px-3 md:py-2"
+                variant="secondary"
+                onClick={async () => {
+                  await revalidate([getRides.key, getLanguage.key, getStatistics.key]);
+                }}
+              >
+                <span class="sr-only md:not-sr-only">Refresh</span>
+                <RotateClockwise class="size-4" />
+              </Button>
+              {/* <AddRideModal
                 vehicle_id_saved={null}
                 vehicle_id_used_last_time={null}
                 base_charge={Number(c().base_charge)}
@@ -409,6 +383,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                 time_charge={Number(c().time_charge)}
                 currency_code={s().user?.currency_code ?? "USD"}
                 /> */}
+            </div>
           </div>
         </div>
         <Show when={filteredRides()}>
@@ -460,6 +435,30 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                             Hide
                           </Show>
                         </div>
+                        <span class="text-xs text-muted-foreground w-max font-medium select-none">-</span>
+                        <div
+                          class="text-xs text-muted-foreground w-max font-medium select-none hover:underline cursor-pointer"
+                          onClick={() => {
+                            const df = dFormat(d);
+                            // highlight all from month.
+                            const rIds = rides.map((rs) => rs.id);
+                            const toBeAdded = rides.filter((r) => !highlightedRows().includes(r.id)).map((rs) => rs.id);
+                            if (toBeAdded.length > 0) {
+                              const concatted = concat(highlightedRows, toBeAdded);
+                              setHighlightedRows(concatted());
+                            } else {
+                              const filtered = removeItems(highlightedRows(), ...rIds);
+                              setHighlightedRows(filtered());
+                            }
+                          }}
+                        >
+                          <Show
+                            when={rides.filter((r) => highlightedRows().includes(r.id)).length === rides.length}
+                            fallback="Select All"
+                          >
+                            Unselect All
+                          </Show>
+                        </div>
                       </div>
                       <div class="flex flex-row items-center w-full">
                         <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
@@ -498,13 +497,17 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                                     "rounded-b-2xl": rideIndex() === rides.length - 1,
 
                                     // Remove bottom border if the next row is highlighted
-                                    "!border-b-transparent":
+                                    "!border-b-blue-200/50 dark:!border-b-blue-900/50":
                                       rideIndex() < rides.length - 1 &&
                                       highlightedRows().includes(rides[rideIndex() + 1].id) &&
                                       currentHighlightedRow() !== ride.id,
-                                  },{
-                                    "!border-b-transparent": rideIndex() < rides.length - 1 && highlightedRows()[highlightedRows().length - 1] !== ride.id,
-                                  }
+                                  },
+                                  {
+                                    "!border-b-transparent":
+                                      rideIndex() < rides.length - 1 &&
+                                      !highlightedRows().includes(ride.id) &&
+                                      currentHighlightedRow() !== ride.id,
+                                  },
                                 )}
                               >
                                 <div class="flex flex-row w-full p-6 items-center justify-between">
@@ -565,7 +568,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                                       as={A}
                                       href={`/dashboard/rides/${ride.id}`}
                                     >
-                                      <span class="font-bold">
+                                      <span class="font-bold sr-only sm:not-sr-only">
                                         {new Intl.NumberFormat(language(), {
                                           style: "currency",
                                           currency: props.currency_code(),
@@ -579,7 +582,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                                         }
                                       >
                                         {(tip) => (
-                                          <span>
+                                          <span class="sr-only sm:not-sr-only">
                                             {new Intl.NumberFormat(language(), {
                                               style: "currency",
                                               currency: props.currency_code(),
