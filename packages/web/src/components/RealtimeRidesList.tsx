@@ -5,6 +5,7 @@ import { Checkbox, CheckboxControl } from "@/components/ui/checkbox";
 import { TextField, TextFieldRoot } from "@/components/ui/textfield";
 import { concat, remove, removeItems } from "@solid-primitives/signal-builders";
 import { A, revalidate, useSearchParams } from "@solidjs/router";
+import { UserSession } from "~/lib/auth/util";
 import dayjs from "dayjs";
 import ChevronRight from "lucide-solid/icons/chevron-right";
 import RotateClockwise from "lucide-solid/icons/rotate-cw";
@@ -16,6 +17,7 @@ import { getRides } from "../lib/api/rides";
 import { getStatistics } from "../lib/api/statistics";
 import { cn } from "../lib/utils";
 import { dFormat, traverse } from "../utils";
+import AddRideModal from "./forms/AddRide";
 import { useRealtime } from "./Realtime";
 import { RideSelectionMenu } from "./RideSelectionMenu";
 import { FilterValue, RideFilters } from "./RidesFilter";
@@ -24,6 +26,7 @@ import { language } from "./stores/Language";
 type RealtimeRidesListProps = {
   ridesList: Accessor<Rides.Info[]>;
   currency_code: Accessor<string>;
+  session: Accessor<UserSession>;
 };
 
 type DotN = Omit<Rides.Info, "vehicle" | "user" | "routes"> & { vehicle: NonNullable<Rides.Info["vehicle"]> };
@@ -372,14 +375,14 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
               />
               {/* <RideFilters filterValue={filterValue()} onFilterChange={setFilterValue} /> */}
 
-              {/* <AddRideModal
+              <AddRideModal
                 vehicle_id_saved={null}
                 vehicle_id_used_last_time={null}
-                base_charge={Number(c().base_charge)}
-                distance_charge={Number(c().distance_charge)}
-                time_charge={Number(c().time_charge)}
-                currency_code={s().user?.currency_code ?? "USD"}
-                /> */}
+                base_charge={Number(props.session().company?.base_charge)}
+                distance_charge={Number(props.session().company?.distance_charge)}
+                time_charge={Number(props.session().company?.time_charge)}
+                currency_code={props.session().user?.currency_code ?? "USD"}
+              />
             </div>
           </div>
         </div>
@@ -433,7 +436,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                       <div class="flex flex-row items-center w-max px-2 gap-1">
                         <span class="text-xs text-muted-foreground w-max font-medium select-none">
                           <Show
-                            when={i() === 0}
+                            when={dFormat(d) === month}
                             fallback={`${month} - ${rides.length} Ride${rides.length > 1 ? "s" : ""}`}
                           >
                             This Month - {rides.length} Ride{rides.length > 1 ? "s" : ""}
@@ -507,7 +510,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                                       rideIndex() < rides.length - 1 &&
                                       !highlightedRows().includes(ride.id) &&
                                       currentHighlightedRow() !== ride.id,
-                                  },
+                                  }
                                 )}
                               >
                                 <div class="flex flex-row w-full p-6 items-center justify-between">

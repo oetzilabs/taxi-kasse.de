@@ -105,7 +105,7 @@ export module Orders {
 
   const MinOneRegionSchema = pipe(array(Validator.Cuid2Schema), minLength(1));
 
-  export const getHotspotByRegions = async (region_ids: InferInput<typeof MinOneRegionSchema>, tsx = db) => {
+  export const getHotspotsByRegions = async (region_ids: InferInput<typeof MinOneRegionSchema>, tsx = db) => {
     const isValid = safeParse(MinOneRegionSchema, region_ids);
     if (!isValid.success) {
       throw isValid.issues;

@@ -24,7 +24,7 @@ export const getHotspots = cache(async () => {
     r_ids.push(regions[i].region_id);
   }
 
-  const hotspot = await Orders.getHotspotByRegions(r_ids);
+  const hotspots = await Orders.getHotspotsByRegions(r_ids);
 
-  return hotspot;
+  return hotspots;
 }, "hotspot");

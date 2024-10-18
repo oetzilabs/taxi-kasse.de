@@ -202,15 +202,13 @@ export default function DashboardPage() {
                       >
                         <Show when={rides() && rides()}>
                           {(rs) => (
-                            <RealtimeRidesList ridesList={rs} currency_code={() => s().user?.currency_code ?? "USD"} />
+                            <RealtimeRidesList ridesList={rs} currency_code={() => s().user?.currency_code ?? "USD"} session={s} />
                           )}
                         </Show>
                       </Suspense>
-                      <div class="gap-4 flex flex-col xl:w-max w-full xl:min-w-80 h-max min-h-40">
-                        <div class="grid gap-4 grid-cols-2 xl:grid-cols-1 w-full">
-                          <Hotspots />
-                          <Weather />
-                        </div>
+                      <div class="gap-2 flex flex-col w-full xl:w-80 h-max">
+                        {/* <Weather /> */}
+                        <Hotspots />
                         <Events />
                       </div>
                     </div>

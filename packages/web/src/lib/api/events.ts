@@ -8,8 +8,6 @@ export const getEvents = cache(async () => {
   if (!ctx.session) throw redirect("/auth/login");
   if (!ctx.user) throw redirect("/auth/login");
 
-  return undefined;
-
   return [] as Array<{
     id: string;
     title: string;
