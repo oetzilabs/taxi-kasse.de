@@ -20,38 +20,38 @@ export default function Sidebar() {
         <div class="container flex flex-col mx-0 px-0">
           <Show when={session() && session()!.user !== null}>
             {(s) => (
-              <nav class="flex flex-col w-full border-b border-neutral-200 dark:border-neutral-800 xl:border-none shadow-sm xl:shadow-none">
+              <nav class="flex flex-col w-full border-b border-neutral-200 dark:border-neutral-800 lg:border-none shadow-sm lg:shadow-none">
                 <div class="flex flex-row w-full items-center h-max">
                   <div class="w-8" />
                   <div class="flex flex-row items-center w-full gap-4">
                     <NavLink exact href="/dashboard">
-                      <Home class="size-5 not-sr-only xl:sr-only" />
-                      <span class="sr-only xl:not-sr-only">Dashboard</span>
+                      <Home class="size-5 not-sr-only lg:sr-only" />
+                      <span class="sr-only lg:not-sr-only">Dashboard</span>
                     </NavLink>
                     <NavLink href="/dashboard/rides">
-                      <Car class="size-5 not-sr-only xl:sr-only" />
-                      <span class="sr-only xl:not-sr-only">Rides</span>
+                      <Car class="size-5 not-sr-only lg:sr-only" />
+                      <span class="sr-only lg:not-sr-only">Rides</span>
                     </NavLink>
                     <NavLink href="/dashboard/vehicles">
-                      <Truck class="size-5 not-sr-only xl:sr-only" />
-                      <span class="sr-only xl:not-sr-only">Vehicles</span>
+                      <Truck class="size-5 not-sr-only lg:sr-only" />
+                      <span class="sr-only lg:not-sr-only">Vehicles</span>
                     </NavLink>
                     <NavLink href="/dashboard/regions">
-                      <Map class="size-5 not-sr-only xl:sr-only" />
-                      <span class="sr-only xl:not-sr-only">Regions</span>
+                      <Map class="size-5 not-sr-only lg:sr-only" />
+                      <span class="sr-only lg:not-sr-only">Regions</span>
                     </NavLink>
                     <NavLink href="/dashboard/organizations">
-                      <Building2 class="size-5 not-sr-only xl:sr-only" />
-                      <span class="sr-only xl:not-sr-only">Central</span>
+                      <Building2 class="size-5 not-sr-only lg:sr-only" />
+                      <span class="sr-only lg:not-sr-only">Central</span>
                     </NavLink>
                     <NavLink href="/dashboard/companies">
-                      <Store class="size-5 not-sr-only xl:sr-only" />
-                      <span class="sr-only xl:not-sr-only">Companies</span>
+                      <Store class="size-5 not-sr-only lg:sr-only" />
+                      <span class="sr-only lg:not-sr-only">Companies</span>
                     </NavLink>
                     <div class="flex flex-1 w-full  " />
                     <NavLink href="/settings">
-                      <span class="sr-only xl:not-sr-only">Settings</span>
-                      <Settings class="size-5 xl:size-4" />
+                      <span class="sr-only lg:not-sr-only">Settings</span>
+                      <Settings class="size-5 lg:size-4" />
                     </NavLink>
                   </div>
                   <div class="w-8" />

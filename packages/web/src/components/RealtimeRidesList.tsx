@@ -348,27 +348,6 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
             </TextFieldRoot>
             <div class="flex flex-row items-center gap-2">
               <Button
-                onClick={() => {
-                  const allSelected = highlightedRows().length === filteredRides().length;
-                  if (allSelected) {
-                    setHighlightedRows([]);
-                  } else {
-                    setHighlightedRows(filteredRides().map((r) => r.id));
-                  }
-                }}
-                size="sm"
-                variant="outline"
-              >
-                <Show
-                  when={highlightedRows().length !== filteredRides().length}
-                  fallback={<span class="w-max">Clear Selection</span>}
-                >
-                  <span class="w-max">Select All</span>
-                </Show>
-              </Button>
-              <RideSelectionMenu selected={highlightedRows} rides={rides} />
-              {/* <RideFilters filterValue={filterValue()} onFilterChange={setFilterValue} /> */}
-              <Button
                 size="sm"
                 class="flex flex-row items-center gap-2 select-none size-8 md:size-auto p-2 md:px-3 md:py-2"
                 variant="secondary"
@@ -379,6 +358,20 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                 <span class="sr-only md:not-sr-only">Refresh</span>
                 <RotateClockwise class="size-4" />
               </Button>
+              <RideSelectionMenu
+                selected={highlightedRows}
+                rides={rides}
+                toggleSelectAll={() => {
+                  const allSelected = highlightedRows().length === filteredRides().length;
+                  if (allSelected) {
+                    setHighlightedRows([]);
+                  } else {
+                    setHighlightedRows(filteredRides().map((r) => r.id));
+                  }
+                }}
+              />
+              {/* <RideFilters filterValue={filterValue()} onFilterChange={setFilterValue} /> */}
+
               {/* <AddRideModal
                 vehicle_id_saved={null}
                 vehicle_id_used_last_time={null}
@@ -404,11 +397,36 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                 {([month, [rides, d]], i) => (
                   <div class="flex flex-col gap-0 w-full">
                     <div
-                      class={cn("flex flex-row items-center w-full px-8 py-4 transition-[padding] duration-300", {
-                        "px-0": i() === 0 || hiddenMonths().includes(dFormat(d)),
+                      class={cn("flex flex-row items-center w-full px-0 py-4 transition-[padding] duration-300", {
                         "pb-0": hiddenMonths().includes(dFormat(d)),
                       })}
                     >
+                      <div class="flex flex-row items-center w-16">
+                        <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
+                      </div>
+                      <div
+                        class="text-xs text-muted-foreground w-max font-medium select-none hover:underline cursor-pointer px-2 flex flex-1"
+                        onClick={() => {
+                          const rIds = rides.map((rs) => rs.id);
+                          const toBeAdded = rides.filter((r) => !highlightedRows().includes(r.id)).map((rs) => rs.id);
+                          if (toBeAdded.length > 0) {
+                            const concatted = concat(highlightedRows, toBeAdded);
+                            setHighlightedRows(concatted());
+                          } else {
+                            const filtered = removeItems(highlightedRows(), ...rIds);
+                            setHighlightedRows(filtered());
+                          }
+                        }}
+                      >
+                        <span class="w-max">
+                          <Show
+                            when={rides.filter((r) => highlightedRows().includes(r.id)).length === rides.length}
+                            fallback="Select All"
+                          >
+                            Clear Selection
+                          </Show>
+                        </span>
+                      </div>
                       <div class="flex flex-row items-center w-full">
                         <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
                       </div>
@@ -421,50 +439,28 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                             This Month - {rides.length} Ride{rides.length > 1 ? "s" : ""}
                           </Show>
                         </span>
-                        <span class="text-xs text-muted-foreground w-max font-medium select-none">-</span>
-                        <div
-                          class="text-xs text-muted-foreground w-max font-medium select-none hover:underline cursor-pointer"
-                          onClick={() => {
-                            const df = dFormat(d);
-                            const isH = hiddenMonths().includes(df);
-                            if (isH) {
-                              setHiddenMonths(hiddenMonths().filter((m) => m !== df));
-                            } else {
-                              const concatted = concat(hiddenMonths, df);
-                              setHiddenMonths(concatted());
-                            }
-                          }}
-                        >
-                          <Show when={!hiddenMonths().includes(dFormat(d))} fallback="Show">
-                            Hide
-                          </Show>
-                        </div>
-                        <span class="text-xs text-muted-foreground w-max font-medium select-none">-</span>
-                        <div
-                          class="text-xs text-muted-foreground w-max font-medium select-none hover:underline cursor-pointer"
-                          onClick={() => {
-                            const df = dFormat(d);
-                            // highlight all from month.
-                            const rIds = rides.map((rs) => rs.id);
-                            const toBeAdded = rides.filter((r) => !highlightedRows().includes(r.id)).map((rs) => rs.id);
-                            if (toBeAdded.length > 0) {
-                              const concatted = concat(highlightedRows, toBeAdded);
-                              setHighlightedRows(concatted());
-                            } else {
-                              const filtered = removeItems(highlightedRows(), ...rIds);
-                              setHighlightedRows(filtered());
-                            }
-                          }}
-                        >
-                          <Show
-                            when={rides.filter((r) => highlightedRows().includes(r.id)).length === rides.length}
-                            fallback="Select All"
-                          >
-                            Clear Selection
-                          </Show>
-                        </div>
                       </div>
                       <div class="flex flex-row items-center w-full">
+                        <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
+                      </div>
+                      <div
+                        class="text-xs text-muted-foreground w-max font-medium select-none hover:underline cursor-pointer px-2 flex flex-1"
+                        onClick={() => {
+                          const df = dFormat(d);
+                          const isH = hiddenMonths().includes(df);
+                          if (isH) {
+                            setHiddenMonths(hiddenMonths().filter((m) => m !== df));
+                          } else {
+                            const concatted = concat(hiddenMonths, df);
+                            setHiddenMonths(concatted());
+                          }
+                        }}
+                      >
+                        <Show when={!hiddenMonths().includes(dFormat(d))} fallback="Show">
+                          Hide
+                        </Show>
+                      </div>
+                      <div class="flex flex-row items-center w-16">
                         <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
                       </div>
                     </div>
