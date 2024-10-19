@@ -1,5 +1,17 @@
 import { eq, sum } from "drizzle-orm";
-import { array, InferInput, intersect, minLength, object, partial, pipe, safeParse, string } from "valibot";
+import {
+  array,
+  InferInput,
+  InferOutput,
+  intersect,
+  minLength,
+  number,
+  object,
+  partial,
+  pipe,
+  safeParse,
+  string,
+} from "valibot";
 import { db } from "../drizzle/sql";
 import { AddressSelect } from "../drizzle/sql/schema";
 import { orders } from "../drizzle/sql/schemas/orders";
@@ -26,6 +38,8 @@ export module Orders {
   };
 
   export type Info = NonNullable<Awaited<ReturnType<typeof Orders.findById>>>;
+
+  export type HotspotInfo = NonNullable<Awaited<ReturnType<typeof Orders.getHotspotsByRegions>>>[number];
 
   export const create = async (data: InferInput<typeof Orders.CreateSchema>, tsx = db) => {
     const isValid = safeParse(Orders.CreateSchema, data);
@@ -162,9 +176,11 @@ export module Orders {
         lng: Number(origin.longitude),
       });
     }
+
     const list_of_points = Array.from(hs.values());
     const { lat: clat, lng: clng } = Helper.calculateCentroid(list_of_points);
     const valid_subsets = Helper.findValidSubsets(list_of_points, clat, clng, radius);
+
     // !TODO: We need to gather the address of the centerpoint of the hotspot
     return valid_subsets;
   };

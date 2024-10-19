@@ -1,4 +1,5 @@
-import { Notifications } from "./notifications";
+import type { Notifications } from "./notifications";
+import type { Orders } from "./orders";
 
 export module Realtimed {
   export type Events = {
@@ -15,6 +16,12 @@ export module Realtimed {
     };
     "systemnotification.created": {
       payload: Notifications.Info;
+    };
+    "hotspot.created": {
+      payload: Orders.HotspotInfo;
+    };
+    "event.created": {
+      payload: any;
     };
   };
 

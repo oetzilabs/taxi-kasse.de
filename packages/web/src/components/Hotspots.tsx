@@ -1,17 +1,72 @@
+import type { Orders } from "@taxikassede/core/src/entities/orders";
 import { Button } from "@/components/ui/button";
 import { getHotspots } from "@/lib/api/hotspots";
+import { concat } from "@solid-primitives/signal-builders";
 import { A, createAsync } from "@solidjs/router";
-import Loader2 from "lucide-solid/icons/loader-2";
-import { Show, Suspense } from "solid-js";
+import { Accessor, createEffect, createSignal, onCleanup, Show, Suspense } from "solid-js";
+import { isServer } from "solid-js/web";
+import { useRealtime } from "./Realtime";
 
 export const Hotspots = () => {
   const hotspots = createAsync(() => getHotspots());
   return (
-    <Button as={A} variant="outline" href="/dashboard/hotspots" class="flex flex-row w-full gap-2 items-center justify-between rounded-lg px-3">
+    <Suspense>
+      <Show when={hotspots() && hotspots()}>{(hs) => <RealtimeHotspotButton hotspotsList={hs} />}</Show>
+    </Suspense>
+  );
+};
+
+type RealtimeHotspotButtonProps = {
+  hotspotsList: Accessor<Array<Orders.HotspotInfo>>;
+};
+
+const RealtimeHotspotButton = (props: RealtimeHotspotButtonProps) => {
+  const [hs, setHs] = createSignal(props.hotspotsList());
+  const rt = useRealtime();
+
+  createEffect(() => {
+    const hs = props.hotspotsList();
+    setHs(hs);
+  });
+
+  createEffect(() => {
+    if (isServer) {
+      console.log("realtime not available on server");
+      return;
+    }
+    const connected = rt.isConnected();
+    if (!connected) {
+      console.log("realtime not connected");
+      return;
+    } else {
+      const subs = rt.subscriptions();
+      if (subs.has("hotspot.created")) {
+        console.log("realtime already subscribed to hotspot.created, skipping");
+        return;
+      }
+
+      // console.log("realtime connected");
+      rt.subscribe("hotspot.created", (payload) => {
+        // console.log("received system notification", payload);
+        const concatted = concat(hs, payload);
+        setHs(concatted());
+      });
+
+      onCleanup(() => {
+        rt.unsubscribe("hotspot.created");
+      });
+    }
+  });
+
+  return (
+    <Button
+      as={A}
+      variant="outline"
+      href="/dashboard/hotspots"
+      class="flex flex-row w-full gap-2 items-center justify-between rounded-lg px-3"
+    >
       <span class="font-bold">Hotspots</span>
-      <Suspense fallback={<Loader2 class="size-4 animate-spin" />}>
-        <Show when={hotspots() && hotspots()}>{(hs) => <span class="">{hs().length}</span>}</Show>
-      </Suspense>
+      <span class="">{hs().length}</span>
     </Button>
   );
 };
