@@ -1,7 +1,5 @@
 import { json } from "../utils";
 
-export const handler = async (...args: any[]) => {
-  console.log({ args });
-
+export const handler = async (event: any, context: any) => {
   return json({ status: "ok" });
 };

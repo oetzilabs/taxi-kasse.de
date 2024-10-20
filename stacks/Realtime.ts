@@ -16,7 +16,7 @@ export const realtime = new sst.aws.Realtime("RealtimeServer", {
 realtime.subscribe(
   {
     handler: "packages/functions/src/realtime/subscriber.handler",
-    link,
+    link: [...link, realtime],
     copyFiles,
     timeout: "30 seconds",
   },

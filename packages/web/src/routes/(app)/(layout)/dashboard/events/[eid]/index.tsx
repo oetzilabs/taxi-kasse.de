@@ -25,7 +25,9 @@ export default function EventsListing(props: RouteSectionProps) {
   return (
     <div class="flex flex-col gap-4 w-full">
       <div class="flex flex-row items-center gap-4 justify-between">
-        <h1 class="text-2xl font-bold">Events</h1>
+        <Show when={event() && event()} fallback={<span>Loading...</span>}>
+          {(e) => <h1 class="text-2xl font-bold">{e().name}</h1>}
+        </Show>
         <div class="flex flex-row items-center gap-2">
           <Button
             size="sm"
@@ -42,7 +44,12 @@ export default function EventsListing(props: RouteSectionProps) {
             <Plus class="size-4" />
             <span>Create Event</span>
           </Button>
-          <Button size="sm" class="flex flex-row items-center gap-2" as={A} href="/dashboard/events/create">
+          <Button
+            size="sm"
+            class="flex flex-row items-center gap-2"
+            as={A}
+            href={`/dashboard/events/${props.params.eid}/edit`}
+          >
             <Pen class="size-4" />
             <span>Edit Event</span>
           </Button>

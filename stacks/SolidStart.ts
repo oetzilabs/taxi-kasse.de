@@ -38,4 +38,10 @@ export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
     paths: "all",
     wait: true,
   },
+  permissions: [
+    {
+      actions: ["iot:Publish"],
+      resources: ["*"],
+    },
+  ],
 });

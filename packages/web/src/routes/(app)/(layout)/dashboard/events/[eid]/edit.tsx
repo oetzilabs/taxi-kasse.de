@@ -171,10 +171,7 @@ const EditForm = (props: EditorFormProps) => {
             onClick={() => {
               toast.promise(updateEventAction(form), {
                 loading: "Updating Event",
-                success(data) {
-                  rt.publish("event.updated", data);
-                  return "Event Updated";
-                },
+                success: "Event Updated",
                 error: "Failed to Update Event",
               });
             }}

@@ -175,10 +175,7 @@ export default function CreateEvent() {
             onClick={() => {
               toast.promise(createEventAction(form), {
                 loading: "Creating Event",
-                success(data) {
-                  rt.publish("event.created", data);
-                  return "Event Created";
-                },
+                success: "Event Created",
                 error: "Failed to Create Event",
               });
             }}

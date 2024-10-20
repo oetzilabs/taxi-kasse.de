@@ -2,6 +2,7 @@ import type { Events } from "@taxikassede/core/src/entities/events";
 import { concat } from "@solid-primitives/signal-builders";
 import { A } from "@solidjs/router";
 import { clientOnly } from "@solidjs/start";
+import dayjs from "dayjs";
 import ChevronRight from "lucide-solid/icons/chevron-right";
 import Plus from "lucide-solid/icons/plus";
 import { Accessor, createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
@@ -20,15 +21,17 @@ export const RealtimeEventsList = (props: { eventsList: Accessor<Array<Events.In
 
   const filteredData = createMemo(() => {
     if (globalFilter().length > 0) {
-      return events().filter((e) => {
-        let found = e.origin?.streetname.toLowerCase().includes(globalFilter().toLowerCase());
-        found = e.name.toLowerCase().includes(globalFilter().toLowerCase()) || found;
-        found = e.description.toLowerCase().includes(globalFilter().toLowerCase()) || found;
-        found = e.contentText.toLowerCase().includes(globalFilter().toLowerCase()) || found;
-        return found;
-      });
+      return events()
+        .filter((e) => {
+          let found = e.origin?.streetname.toLowerCase().includes(globalFilter().toLowerCase());
+          found = e.name.toLowerCase().includes(globalFilter().toLowerCase()) || found;
+          found = e.description.toLowerCase().includes(globalFilter().toLowerCase()) || found;
+          found = e.contentText.toLowerCase().includes(globalFilter().toLowerCase()) || found;
+          return found;
+        })
+        .sort((b, a) => dayjs(a.createdAt).diff(dayjs(b.createdAt)));
     }
-    return events();
+    return events().sort((b, a) => dayjs(a.createdAt).diff(dayjs(b.createdAt)));
   });
 
   createEffect(() => {
@@ -94,7 +97,7 @@ export const RealtimeEventsList = (props: { eventsList: Accessor<Array<Events.In
         }
       >
         {(es) => (
-          <>
+          <div class="flex flex-col gap-4 w-full pb-10">
             <ClientEventsMap
               events={filteredData}
               fallback={
@@ -129,7 +132,7 @@ export const RealtimeEventsList = (props: { eventsList: Accessor<Array<Events.In
                 )}
               </For>
             </div>
-          </>
+          </div>
         )}
       </Show>
     </div>

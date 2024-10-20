@@ -1,5 +1,6 @@
 import { action, cache, json, redirect } from "@solidjs/router";
 import { Events } from "@taxikassede/core/src/entities/events";
+import { Realtimed } from "@taxikassede/core/src/entities/realtime";
 import { InferInput } from "valibot";
 import { getContext } from "../auth/context";
 
@@ -40,6 +41,11 @@ export const createEvent = action(async (data: InferInput<typeof Events.Create>)
 
   const event_ = await Events.create(mergeWithUser);
 
+  const mqttSent = await Realtimed.sendToMqtt("event.created", event_);
+  if (!mqttSent) {
+    console.error("MQTT send failed");
+  }
+
   return json(event_, { revalidate: [getEvents.key] });
 });
 
@@ -55,6 +61,11 @@ export const updateEvent = action(async (data: InferInput<typeof Events.UpdateSc
   });
 
   const event_ = await Events.update(mergeWithUser);
+
+  const mqttSent = await Realtimed.sendToMqtt("event.updated", event_);
+  if (!mqttSent) {
+    console.error("MQTT send failed");
+  }
 
   return json(event_, { revalidate: [getEvents.key] });
 });
