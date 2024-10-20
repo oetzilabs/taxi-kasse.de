@@ -50,7 +50,7 @@ const EventsMap = <T extends Events.Info>(props: EventClientMapProps<T>) => {
     markers = [];
 
     // Get the latest hotspots data
-    const event = props.events();
+    const event = props.event();
 
     // Create new markers and add them to the map
     if (!event.origin) return;
