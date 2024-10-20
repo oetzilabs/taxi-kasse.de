@@ -61,8 +61,8 @@ export const RealtimeHotspotList = (props: { hotspotsList: Accessor<Array<Orders
     <Show
       when={filteredData().length > 0 && filteredData()}
       fallback={
-        <div class="w-full bg-neutral-50 dark:bg-neutral-900 flex flex-col items-center justify-center  border border-neutral-200 dark:border-neutral-900 rounded-xl overflow-clip py-8">
-          <span class="text-sm text-muted-foreground">No hotspots found</span>
+        <div class="w-full aspect-video bg-neutral-50 dark:bg-neutral-900 flex flex-col items-center justify-center  border border-neutral-200 dark:border-neutral-900 rounded-xl overflow-clip py-8">
+          <span class="text-sm text-muted-foreground select-none">No hotspots found</span>
         </div>
       }
     >

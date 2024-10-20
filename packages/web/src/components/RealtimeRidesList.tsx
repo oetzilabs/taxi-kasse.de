@@ -365,8 +365,8 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                 selected={highlightedRows}
                 rides={rides}
                 toggleSelectAll={() => {
-                  const allSelected = highlightedRows().length === filteredRides().length;
-                  if (allSelected) {
+                  const someSelected = highlightedRows().length > 0;
+                  if (someSelected) {
                     setHighlightedRows([]);
                   } else {
                     setHighlightedRows(filteredRides().map((r) => r.id));
@@ -510,7 +510,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                                       rideIndex() < rides.length - 1 &&
                                       !highlightedRows().includes(ride.id) &&
                                       currentHighlightedRow() !== ride.id,
-                                  }
+                                  },
                                 )}
                               >
                                 <div class="flex flex-row w-full p-6 items-center justify-between">

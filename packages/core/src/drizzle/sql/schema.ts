@@ -2,6 +2,8 @@ export * from "./schemas/utils";
 
 export * from "./schemas/discounts";
 
+export * from "./schemas/events";
+
 export * from "./schemas/users";
 export * from "./schemas/vehicles";
 export * from "./schemas/vehicle_models";

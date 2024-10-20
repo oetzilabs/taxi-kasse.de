@@ -1,3 +1,4 @@
+import type { Events } from "./events";
 import type { Notifications } from "./notifications";
 import type { Orders } from "./orders";
 
@@ -21,22 +22,37 @@ export module Realtimed {
       payload: Orders.HotspotInfo;
     };
     "event.created": {
-      payload: any;
+      payload: Events.Info;
+    };
+    "event.updated": {
+      payload: Events.Info;
     };
   };
 
   export const Events = {
     Subscribe: <T extends string>(prefix: T) =>
       (
-        ["payment.sent", "payment.received", "ride.created", "systemnotification.created"] as ReadonlyArray<
-          keyof Events
-        >
+        [
+          "payment.sent",
+          "payment.received",
+          "ride.created",
+          "systemnotification.created",
+          "hotspot.created",
+          "event.created",
+          "event.updated",
+        ] as ReadonlyArray<keyof Events>
       ).map((s) => `${prefix}${s}` as const),
     Publish: <T extends string>(prefix: T) =>
       (
-        ["payment.sent", "payment.received", "ride.created", "systemnotification.created"] as ReadonlyArray<
-          keyof Events
-        >
+        [
+          "payment.sent",
+          "payment.received",
+          "ride.created",
+          "systemnotification.created",
+          "hotspot.created",
+          "event.created",
+          "event.updated",
+        ] as ReadonlyArray<keyof Events>
       ).map((s) => `${prefix}${s}` as const),
   };
 }

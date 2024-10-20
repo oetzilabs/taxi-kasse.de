@@ -85,16 +85,26 @@ type alertDialogCloseProps<T extends ValidComponent = "button"> = AlertDialogClo
   class?: string;
 };
 
+type AlertDialogCloseProps = AlertDialogCloseButtonProps & {
+  class?: string;
+};
+
 export const AlertDialogClose = <T extends ValidComponent = "button">(
-  props: PolymorphicProps<T, alertDialogCloseProps<T>>,
+  props: PolymorphicProps<T, AlertDialogCloseProps> & {
+    size?: NonNullable<Parameters<typeof buttonVariants>[0]>["size"];
+  },
 ) => {
-  const [local, rest] = splitProps(props as alertDialogCloseProps, ["class"]);
+  const [local, rest] = splitProps(
+    props as AlertDialogCloseProps & { size?: NonNullable<Parameters<typeof buttonVariants>[0]>["size"] },
+    ["class", "size"],
+  );
 
   return (
     <AlertDialogPrimitive.CloseButton
       class={cn(
         buttonVariants({
           variant: "outline",
+          size: local.size ?? "default",
         }),
         "mt-2 md:mt-0",
         local.class,
@@ -105,9 +115,33 @@ export const AlertDialogClose = <T extends ValidComponent = "button">(
 };
 
 export const AlertDialogAction = <T extends ValidComponent = "button">(
-  props: PolymorphicProps<T, alertDialogCloseProps<T>>,
+  props: PolymorphicProps<
+    T,
+    AlertDialogCloseProps & {
+      variant?: NonNullable<Parameters<typeof buttonVariants>[0]>["variant"];
+      size?: NonNullable<Parameters<typeof buttonVariants>[0]>["size"];
+    }
+  >,
 ) => {
-  const [local, rest] = splitProps(props as alertDialogCloseProps, ["class"]);
-
-  return <AlertDialogPrimitive.CloseButton class={cn(buttonVariants(), local.class)} {...rest} />;
+  const [local, rest] = splitProps(
+    props as AlertDialogCloseProps & {
+      variant?: NonNullable<Parameters<typeof buttonVariants>[0]>["variant"];
+      size?: NonNullable<Parameters<typeof buttonVariants>[0]>["size"];
+    },
+    ["class", "variant", "size"],
+  );
+  const v = local.variant ?? "default";
+  const s = local.size ?? "default";
+  return (
+    <AlertDialogPrimitive.CloseButton
+      class={cn(
+        buttonVariants({
+          variant: v,
+          size: s,
+        }),
+        local.class,
+      )}
+      {...rest}
+    />
+  );
 };
