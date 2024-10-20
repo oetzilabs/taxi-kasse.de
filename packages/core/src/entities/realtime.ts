@@ -71,7 +71,7 @@ export module Realtimed {
       });
       const response = await client.send(command);
       response_ = response;
-      console.log("Payload sent successfully:", response);
+      // console.log("Payload sent successfully:", response);
     } catch (error) {
       console.error("Error sending payload to MQTT:", error);
     }
