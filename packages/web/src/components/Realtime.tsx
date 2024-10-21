@@ -3,6 +3,7 @@ import type { Accessor, JSX, Setter } from "solid-js";
 import mqtt from "mqtt";
 import { createContext, createSignal, onCleanup, onMount, useContext } from "solid-js";
 import { isServer } from "solid-js/web";
+import { useClientId } from "./ClientId";
 
 type Topic = keyof Realtimed.Events;
 
@@ -27,6 +28,7 @@ export type RealtimeProps = {
 
 export const Realtime = (props: RealtimeProps) => {
   const [client, setClient] = createSignal<mqtt.MqttClient | null>(null);
+  const client_id = useClientId();
   const [subscriptions, setSubscriptions] = createSignal<Set<Topic>>(new Set());
   const [isConnected, setIsConnected] = createSignal(false);
 
@@ -38,10 +40,11 @@ export const Realtime = (props: RealtimeProps) => {
     // Connect to MQTT broker
     const mqttClient = mqtt.connect(`wss://${props.endpoint}/mqtt?x-amz-customauthorizer-name=${props.authorizer}`, {
       protocolVersion: 5,
+      keepalive: 60,
       manualConnect: true,
       username: "", // !! KEEP EMPTY !!
       password: "PLACEHOLDER_TOKEN", // Passed as the token to the authorizer
-      clientId: `client_${window.crypto.randomUUID()}`,
+      clientId: client_id,
     });
 
     mqttClient.on("connect", () => {

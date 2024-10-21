@@ -3,7 +3,7 @@ import { Events } from "@/components/Events";
 import { Hotspots } from "@/components/Hotspots";
 import { RealtimeRidesList } from "@/components/RealtimeRidesList";
 import { language } from "@/components/stores/Language";
-import { Weather } from "@/components/Weather";
+// import { Weather } from "@/components/Weather";
 import { getHotspots } from "@/lib/api/hotspots";
 import { getRides } from "@/lib/api/rides";
 import { getStatistics } from "@/lib/api/statistics";
@@ -165,7 +165,7 @@ export default function DashboardPage() {
                     <div class="grid grid-flow-col md:grid-cols-4 gap-0 w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-clip">
                       <Suspense
                         fallback={
-                          <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
+                          <div class="flex flex-col w-full col-span-full py-10 gap-4 items-center justify-center">
                             <Loader2 class="size-4 animate-spin" />
                           </div>
                         }
@@ -202,7 +202,11 @@ export default function DashboardPage() {
                       >
                         <Show when={rides() && rides()}>
                           {(rs) => (
-                            <RealtimeRidesList ridesList={rs} currency_code={() => s().user?.currency_code ?? "USD"} session={s} />
+                            <RealtimeRidesList
+                              ridesList={rs}
+                              currency_code={() => s().user?.currency_code ?? "USD"}
+                              session={s}
+                            />
                           )}
                         </Show>
                       </Suspense>

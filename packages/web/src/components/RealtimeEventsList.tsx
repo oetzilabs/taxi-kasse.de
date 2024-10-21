@@ -1,5 +1,5 @@
 import type { Events } from "@taxikassede/core/src/entities/events";
-import { concat } from "@solid-primitives/signal-builders";
+import { concat, filter, remove, removeItems } from "@solid-primitives/signal-builders";
 import { A } from "@solidjs/router";
 import { clientOnly } from "@solidjs/start";
 import dayjs from "dayjs";
@@ -46,7 +46,6 @@ export const RealtimeEventsList = (props: { eventsList: Accessor<Array<Events.In
     }
     const connected = rt.isConnected();
     if (!connected) {
-      console.log("realtime not connected");
       return;
     } else {
       const subs = rt.subscriptions();
@@ -61,6 +60,10 @@ export const RealtimeEventsList = (props: { eventsList: Accessor<Array<Events.In
         const concatted = concat(events, payload);
         setEvents(concatted());
       });
+      if (subs.has("event.updated")) {
+        console.log("realtime already subscribed to event.updated, skipping");
+        return;
+      }
       rt.subscribe("event.updated", (payload) => {
         // replace the event with the updated one
         const oldEvent = events().find((e) => e.id === payload.id);
@@ -70,9 +73,19 @@ export const RealtimeEventsList = (props: { eventsList: Accessor<Array<Events.In
         setEvents(events().map((e, i) => (i === index ? newEvent : e)));
       });
 
+      if (subs.has("event.deleted")) {
+        console.log("realtime already subscribed to event.deleted, skipping");
+        return;
+      }
+      rt.subscribe("event.deleted", (payload) => {
+        const filtered = filter(events, (e) => e.id === payload.id);
+        setEvents(filtered());
+      });
+
       onCleanup(() => {
         rt.unsubscribe("event.created");
         rt.unsubscribe("event.updated");
+        rt.unsubscribe("event.deleted");
       });
     }
   });
@@ -114,7 +127,7 @@ export const RealtimeEventsList = (props: { eventsList: Accessor<Array<Events.In
                       "w-full flex flex-row gap-2 items-center justify-between border-b border-neutral-200 dark:border-neutral-800 p-4",
                       {
                         "border-none": index() === filteredData().length - 1,
-                      },
+                      }
                     )}
                   >
                     <span class="text-sm font-bold select-none">{e.name}</span>

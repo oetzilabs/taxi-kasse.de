@@ -1,4 +1,4 @@
-import type { Events } from "./events";
+import type { Events as EventsModule } from "./events";
 import type { Notifications } from "./notifications";
 import type { Orders } from "./orders";
 import { IoTDataPlaneClient, PublishCommand, PublishCommandOutput } from "@aws-sdk/client-iot-data-plane";
@@ -24,10 +24,13 @@ export module Realtimed {
       payload: Orders.HotspotInfo;
     };
     "event.created": {
-      payload: Events.Info;
+      payload: EventsModule.Info;
     };
     "event.updated": {
-      payload: Events.Info;
+      payload: EventsModule.Info;
+    };
+    "event.deleted": {
+      payload: EventsModule.Info;
     };
   };
 
@@ -42,6 +45,7 @@ export module Realtimed {
           "hotspot.created",
           "event.created",
           "event.updated",
+          "event.deleted",
         ] as ReadonlyArray<keyof Events>
       ).map((s) => `${prefix}${s}` as const),
     Publish: <T extends string>(prefix: T) =>
@@ -54,6 +58,7 @@ export module Realtimed {
           "hotspot.created",
           "event.created",
           "event.updated",
+          "event.deleted",
         ] as ReadonlyArray<keyof Events>
       ).map((s) => `${prefix}${s}` as const),
   };

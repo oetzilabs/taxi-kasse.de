@@ -40,7 +40,7 @@ export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
   },
   permissions: [
     {
-      actions: ["iot:Publish"],
+      actions: ["iot:Connect", "iot:Subscribe", "iot:Publish", "iot:Receive"],
       resources: ["*"],
     },
   ],

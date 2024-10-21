@@ -35,7 +35,6 @@ export const RealtimeHotspotList = (props: { hotspotsList: Accessor<Array<Orders
     }
     const connected = rt.isConnected();
     if (!connected) {
-      console.log("realtime not connected");
       return;
     } else {
       const subs = rt.subscriptions();

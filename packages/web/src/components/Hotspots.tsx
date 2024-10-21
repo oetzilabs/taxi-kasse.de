@@ -36,7 +36,6 @@ const RealtimeHotspotButton = (props: RealtimeHotspotButtonProps) => {
     }
     const connected = rt.isConnected();
     if (!connected) {
-      console.log("realtime not connected");
       return;
     } else {
       const subs = rt.subscriptions();

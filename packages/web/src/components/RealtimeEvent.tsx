@@ -1,5 +1,5 @@
 import type { Events } from "@taxikassede/core/src/entities/events";
-import { A } from "@solidjs/router";
+import { A, useNavigate } from "@solidjs/router";
 import { clientOnly } from "@solidjs/start";
 import Pen from "lucide-solid/icons/pen";
 import Plus from "lucide-solid/icons/plus";
@@ -13,6 +13,7 @@ const ClientEventMap = clientOnly(() => import("@/components/EventMap"));
 export const RealtimeEvent = (props: { event: Accessor<Events.Info> }) => {
   const [event, setEvent] = createSignal(props.event());
   const rt = useRealtime();
+  const navigate = useNavigate();
 
   createEffect(() => {
     const rs = props.event();
@@ -26,7 +27,6 @@ export const RealtimeEvent = (props: { event: Accessor<Events.Info> }) => {
     }
     const connected = rt.isConnected();
     if (!connected) {
-      console.log("realtime not connected");
       return;
     } else {
       const subs = rt.subscriptions();
@@ -35,15 +35,24 @@ export const RealtimeEvent = (props: { event: Accessor<Events.Info> }) => {
         return;
       }
 
-      // console.log("realtime connected");
       rt.subscribe("event.updated", (payload) => {
-        // console.log("received system notification", payload);
-
         setEvent(payload);
+      });
+
+      if (subs.has("event.deleted")) {
+        console.log("realtime already subscribed to event.deleted, skipping");
+        return;
+      }
+
+      rt.subscribe("event.deleted", (payload) => {
+        if(payload.id === event().id){
+          navigate("/dashboard/events");
+        }
       });
 
       onCleanup(() => {
         rt.unsubscribe("event.updated");
+        rt.unsubscribe("event.deleted");
       });
     }
   });

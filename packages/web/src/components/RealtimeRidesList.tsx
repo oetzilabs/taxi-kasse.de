@@ -164,7 +164,6 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
     }
     const connected = rt.isConnected();
     if (!connected) {
-      console.log("realtime not connected");
       return;
     } else {
       const subs = rt.subscriptions();

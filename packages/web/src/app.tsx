@@ -20,6 +20,7 @@ import { ErrorBoundary, Show, Suspense } from "solid-js";
 import { isServer } from "solid-js/web";
 import { Toaster } from "solid-sonner";
 import "./app.css";
+import { ClientIdProvider } from "./components/ClientId";
 import { Realtime } from "./components/Realtime";
 import { ServiceWorker } from "./components/ServiceWorker";
 import { logout } from "./utils/api/actions";
@@ -65,50 +66,52 @@ export default function App() {
         <Router
           root={(props) => (
             <>
-              <MetaProvider>
-                <Title>Caby</Title>
-                <Suspense
-                // fallback={
-                //   <div class="w-full flex flex-col items-center justify-center h-screen bg-background text-muted-foreground gap-2">
-                //     <Loader2 class="size-4 animate-spin" />
-                //     Loading Page
-                //   </div>
-                // }
-                >
-                  <ServiceWorker />
-                  <ColorModeScript storageType={storageManager.type} initialColorMode="system" />
-                  <ColorModeProvider storageManager={storageManager}>
-                    <Toaster
-                      position="bottom-right"
-                      duration={5000}
-                      theme="system"
-                      icons={{
-                        info: <Info class="size-4" />,
-                        success: <CheckCheck class="size-4" />,
-                        error: <AlertCircle class="size-4" />,
-                        loading: <Loader2 class="size-4 animate-spin" />,
-                        warning: <AlertCircle class="size-4" />,
-                      }}
-                      gap={4}
-                    />
-                    <Realtime
-                      endpoint={import.meta.env.VITE_MQTT_CONNECTION_STRING}
-                      authorizer={import.meta.env.VITE_MQTT_AUTHORIZER}
-                      topic={import.meta.env.VITE_REALTIME_TOPIC_PREFIX}
-                    >
-                      <div
-                        class="w-full flex flex-col h-full overflow-clip"
-                        style={{
-                          "scrollbar-gutter": "stable both-edges",
+              <ClientIdProvider>
+                <MetaProvider>
+                  <Title>Caby</Title>
+                  <Suspense
+                  // fallback={
+                  //   <div class="w-full flex flex-col items-center justify-center h-screen bg-background text-muted-foreground gap-2">
+                  //     <Loader2 class="size-4 animate-spin" />
+                  //     Loading Page
+                  //   </div>
+                  // }
+                  >
+                    <ServiceWorker />
+                    <ColorModeScript storageType={storageManager.type} initialColorMode="system" />
+                    <ColorModeProvider storageManager={storageManager}>
+                      <Toaster
+                        position="bottom-right"
+                        duration={5000}
+                        theme="system"
+                        icons={{
+                          info: <Info class="size-4" />,
+                          success: <CheckCheck class="size-4" />,
+                          error: <AlertCircle class="size-4" />,
+                          loading: <Loader2 class="size-4 animate-spin" />,
+                          warning: <AlertCircle class="size-4" />,
                         }}
+                        gap={4}
+                      />
+                      <Realtime
+                        endpoint={import.meta.env.VITE_MQTT_CONNECTION_STRING}
+                        authorizer={import.meta.env.VITE_MQTT_AUTHORIZER}
+                        topic={import.meta.env.VITE_REALTIME_TOPIC_PREFIX}
                       >
-                        <Header />
-                        {props.children}
-                      </div>
-                    </Realtime>
-                  </ColorModeProvider>
-                </Suspense>
-              </MetaProvider>
+                        <div
+                          class="w-full flex flex-col h-full overflow-clip"
+                          style={{
+                            "scrollbar-gutter": "stable both-edges",
+                          }}
+                        >
+                          <Header />
+                          {props.children}
+                        </div>
+                      </Realtime>
+                    </ColorModeProvider>
+                  </Suspense>
+                </MetaProvider>
+              </ClientIdProvider>
             </>
           )}
         >
