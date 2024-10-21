@@ -167,20 +167,27 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
       return;
     } else {
       const subs = rt.subscriptions();
-      if (subs.has("ride.created")) {
-        console.log("realtime already subscribed to ride.created, skipping");
+      if (subs.has("ride.*")) {
+        console.log("realtime already subscribed to ride.*, skipping");
         return;
       }
 
       // console.log("realtime connected");
-      rt.subscribe("ride.created", (payload) => {
-        // console.log("received system notification", payload);
-        const concatted = concat(rides, payload);
-        setRides(concatted());
+      rt.subscribe("ride.*", (payload, action) => {
+        switch (action) {
+          case "created":
+            // console.log("received system notification", payload);
+            const concatted = concat(rides, payload);
+            setRides(concatted());
+            break;
+          default:
+            console.log("unknown action", action);
+            break;
+        }
       });
 
       onCleanup(() => {
-        rt.unsubscribe("ride.created");
+        rt.unsubscribe("ride.*");
       });
     }
   });

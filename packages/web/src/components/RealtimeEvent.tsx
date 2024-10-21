@@ -30,29 +30,29 @@ export const RealtimeEvent = (props: { event: Accessor<Events.Info> }) => {
       return;
     } else {
       const subs = rt.subscriptions();
-      if (subs.has("event.updated")) {
+      if (subs.has("event.*")) {
         console.log("realtime already subscribed to event.updated, skipping");
         return;
       }
 
-      rt.subscribe("event.updated", (payload) => {
-        setEvent(payload);
-      });
-
-      if (subs.has("event.deleted")) {
-        console.log("realtime already subscribed to event.deleted, skipping");
-        return;
-      }
-
-      rt.subscribe("event.deleted", (payload) => {
-        if(payload.id === event().id){
-          navigate("/dashboard/events");
+      rt.subscribe("event.*", (payload, action) => {
+        switch (action) {
+          case "updated":
+            setEvent(payload);
+            break;
+          case "deleted":
+            if (payload.id === event().id) {
+              navigate("/dashboard/events");
+            }
+            break;
+          default:
+            console.log("unknown action", action);
+            break;
         }
       });
 
       onCleanup(() => {
-        rt.unsubscribe("event.updated");
-        rt.unsubscribe("event.deleted");
+        rt.unsubscribe("event.*");
       });
     }
   });
@@ -95,7 +95,7 @@ export const RealtimeEvent = (props: { event: Accessor<Events.Info> }) => {
           </Show>
           <div class="flex flex-col gap-0 w-full">
             <div
-              class="flex flex-col w-full h-full prose dark:prose-invert prose-a:text-blue-500 dark:prose-a:text-blue-400 prose-sm dark:prose-p:text-white prose-p:m-1 prose-p:leading-1 prose-neutral prose-li:marker:text-black dark:prose-li:marker:text-white prose-li:marker:font-medium"
+              class="flex flex-col w-full h-full prose dark:prose-invert prose-a:text-blue-500 dark:prose-a:text-blue-400 prose-sm dark:prose-p:text-white prose-p:m-1 prose-p:leading-1 prose-neutral prose-li:marker:text-black dark:prose-li:marker:text-white prose-li:marker:font-medium pb-10"
               innerHTML={e().contentHTML}
             />
           </div>

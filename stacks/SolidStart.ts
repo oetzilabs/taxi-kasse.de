@@ -7,7 +7,7 @@ import { allSecrets } from "./Secrets";
 // import { bucket } from "./Storage";
 // import { ws } from "./Websocket";
 
-const main_app_url = $dev ? "http://localhost:3000" : `https://www.${domain}`;
+const main_app_url = $dev ? "http://localhost:3000" : $interpolate`https://www.${domain}`;
 
 export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
   link: [
@@ -24,14 +24,14 @@ export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
     VITE_API_URL: api.url,
     VITE_APP_URL: main_app_url,
     VITE_AUTH_URL: auth.authenticator.url,
-    VITE_LOGIN_REDIRECT_URI: `${main_app_url}/api/auth/callback`,
+    VITE_LOGIN_REDIRECT_URI: $interpolate`${main_app_url}/api/auth/callback`,
     VITE_MQTT_CONNECTION_STRING: realtime.endpoint,
     VITE_MQTT_AUTHORIZER: realtime.authorizer,
-    VITE_REALTIME_TOPIC_PREFIX: `${$app.name}/${$app.stage}/`,
+    VITE_REALTIME_TOPIC_PREFIX: $interpolate`${$app.name}/${$app.stage}/`,
     // VITE_WS_LINK: ws.url,
   },
   domain: {
-    name: `www.${domain}`,
+    name: $interpolate`www.${domain}`,
     dns: cf,
   },
   invalidation: {

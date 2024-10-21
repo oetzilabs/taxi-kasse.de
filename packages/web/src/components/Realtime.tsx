@@ -11,9 +11,16 @@ type MqttContextType = {
   prefix: string;
   client: () => mqtt.MqttClient | null;
   isConnected: () => boolean;
-  subscribe: <T extends Topic>(topic: T, callback: (payload: Realtimed.Events[T]["payload"]) => void) => void;
+  subscribe: <T extends Topic>(
+    topic: T,
+    callback: (payload: Realtimed.Events[T]["payload"], action: Realtimed.Events[T]["type"]) => void,
+  ) => void;
   unsubscribe: <T extends Topic>(topic: T) => void;
-  publish: <T extends Topic>(topic: T, message: Realtimed.Events[T]["payload"]) => void;
+  publish: <T extends Topic>(
+    topic: T,
+    action: Realtimed.Events[T]["type"],
+    message: Realtimed.Events[T]["payload"],
+  ) => void;
   subscriptions: () => Set<Topic>;
 };
 
@@ -24,6 +31,7 @@ export type RealtimeProps = {
   endpoint: string;
   authorizer: string;
   topic: string;
+  disabled?: boolean;
 };
 
 export const Realtime = (props: RealtimeProps) => {
@@ -37,20 +45,24 @@ export const Realtime = (props: RealtimeProps) => {
       console.log("RealtimeContext: realtime is not available on the server");
       return;
     }
+    // if (props.disabled) return;
     // Connect to MQTT broker
     const mqttClient = mqtt.connect(`wss://${props.endpoint}/mqtt?x-amz-customauthorizer-name=${props.authorizer}`, {
       protocolVersion: 5,
-      keepalive: 60,
       manualConnect: true,
       username: "", // !! KEEP EMPTY !!
-      password: "PLACEHOLDER_TOKEN", // Passed as the token to the authorizer
+      password: "PLACEHOLDER_TOKEN",
       clientId: client_id,
+      keepalive: 60,
     });
 
     mqttClient.on("connect", () => {
       console.log("Connected to MQTT broker");
       setIsConnected(true);
       setClient(mqttClient);
+    });
+    mqttClient.on("error", (e) => {
+      console.error(e);
     });
 
     mqttClient.connect();
@@ -71,7 +83,10 @@ export const Realtime = (props: RealtimeProps) => {
         isConnected,
         prefix: props.topic,
         subscriptions,
-        subscribe: <T extends Topic>(topic: T, callback: (payload: Realtimed.Events[T]["payload"]) => void) => {
+        subscribe: <T extends Topic>(
+          topic: T,
+          callback: (payload: Realtimed.Events[T]["payload"], action: Realtimed.Events[T]["type"]) => void,
+        ) => {
           const subs = subscriptions();
           if (subs.has(topic)) {
             console.log(`subscription for '${topic}' already has been setup`);
@@ -83,14 +98,18 @@ export const Realtime = (props: RealtimeProps) => {
             c.on("message", (receivedTopic, message) => {
               if (receivedTopic === props.topic.concat(topic)) {
                 let payload: Realtimed.Events[T]["payload"];
+                let action: Realtimed.Events[T]["type"];
                 const td = new TextDecoder();
                 const pl = td.decode(message);
                 try {
-                  payload = JSON.parse(pl);
+                  const p = JSON.parse(pl);
+                  action = p.action as Realtimed.Events[T]["type"];
+                  payload = p.payload as Realtimed.Events[T]["payload"];
                 } catch {
                   payload = pl as Realtimed.Events[T]["payload"];
+                  action = "unknown";
                 }
-                callback(payload);
+                callback(payload, action);
               }
             });
             setSubscriptions((s) => {

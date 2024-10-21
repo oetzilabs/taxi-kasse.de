@@ -1,6 +1,7 @@
 import type { Events } from "@taxikassede/core/src/entities/events";
 import type { InferInput } from "valibot";
 import Calendar from "@/components/Calendar";
+import { useRealtime } from "@/components/Realtime";
 import { generateText, Separator, ToolbarContents } from "@/components/TipTapUtils";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,7 +22,6 @@ import { createStore } from "solid-js/store";
 import { toast } from "solid-sonner";
 import { createTiptapEditor, EditorRef } from "solid-tiptap";
 import { Toolbar } from "terracotta";
-import { useRealtime } from "../../../../../../components/Realtime";
 
 export const route = {
   preload: async (props) => {

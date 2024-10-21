@@ -97,6 +97,7 @@ export default function App() {
                         endpoint={import.meta.env.VITE_MQTT_CONNECTION_STRING}
                         authorizer={import.meta.env.VITE_MQTT_AUTHORIZER}
                         topic={import.meta.env.VITE_REALTIME_TOPIC_PREFIX}
+                        // disabled
                       >
                         <div
                           class="w-full flex flex-col h-full overflow-clip"

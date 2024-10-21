@@ -46,23 +46,30 @@ const NotificationList = (props: {
       return;
     } else {
       const subs = rt.subscriptions();
-      if (subs.has("systemnotification.created")) {
+      if (subs.has("systemnotification.*")) {
         console.log("realtime already subscribed to systemnotification.created, skipping");
         return;
       }
 
       // console.log("realtime connected");
-      rt.subscribe("systemnotification.created", (payload) => {
-        // console.log("received system notification", payload);
-        const concatted = concat(list, payload);
-        setList(concatted());
-        if (payload.id !== currentNotificationId()) {
-          setCurrentNotificationId(payload.id);
+      rt.subscribe("systemnotification.*", (payload, action) => {
+        switch (action) {
+          case "created":
+            // console.log("received system notification", payload);
+            const concatted = concat(list, payload);
+            setList(concatted());
+            if (payload.id !== currentNotificationId()) {
+              setCurrentNotificationId(payload.id);
+            }
+            break;
+          default:
+            console.log("unknown action", action);
+            break;
         }
       });
 
       onCleanup(() => {
-        rt.unsubscribe("systemnotification.created");
+        rt.unsubscribe("systemnotification.*");
       });
     }
   });

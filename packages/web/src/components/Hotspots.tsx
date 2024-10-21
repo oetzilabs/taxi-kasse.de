@@ -39,20 +39,27 @@ const RealtimeHotspotButton = (props: RealtimeHotspotButtonProps) => {
       return;
     } else {
       const subs = rt.subscriptions();
-      if (subs.has("hotspot.created")) {
+      if (subs.has("hotspot.*")) {
         console.log("realtime already subscribed to hotspot.created, skipping");
         return;
       }
 
       // console.log("realtime connected");
-      rt.subscribe("hotspot.created", (payload) => {
-        // console.log("received system notification", payload);
-        const concatted = concat(hs, payload);
-        setHs(concatted());
+      rt.subscribe("hotspot.*", (payload, action) => {
+        switch (action) {
+          case "created":
+            // console.log("received system notification", payload);
+            const concatted = concat(hs, payload);
+            setHs(concatted());
+            break;
+          default:
+            console.log("unknown action", action);
+            break;
+        }
       });
 
       onCleanup(() => {
-        rt.unsubscribe("hotspot.created");
+        rt.unsubscribe("hotspot.*");
       });
     }
   });
