@@ -39,13 +39,13 @@ const RealtimeHotspotButton = (props: RealtimeHotspotButtonProps) => {
       return;
     } else {
       const subs = rt.subscriptions();
-      if (subs.has("hotspot.*")) {
+      if (subs.has("hotspot")) {
         console.log("realtime already subscribed to hotspot.created, skipping");
         return;
       }
 
       // console.log("realtime connected");
-      rt.subscribe("hotspot.*", (payload, action) => {
+      rt.subscribe("hotspot", (payload, action) => {
         switch (action) {
           case "created":
             // console.log("received system notification", payload);
@@ -56,10 +56,6 @@ const RealtimeHotspotButton = (props: RealtimeHotspotButtonProps) => {
             console.log("unknown action", action);
             break;
         }
-      });
-
-      onCleanup(() => {
-        rt.unsubscribe("hotspot.*");
       });
     }
   });

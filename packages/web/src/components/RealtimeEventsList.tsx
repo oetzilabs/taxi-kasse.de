@@ -49,13 +49,13 @@ export const RealtimeEventsList = (props: { eventsList: Accessor<Array<Events.In
       return;
     } else {
       const subs = rt.subscriptions();
-      if (subs.has("event.*")) {
+      if (subs.has("event")) {
         console.log("realtime already subscribed to event.created, skipping");
         return;
       }
 
       // console.log("realtime connected");
-      rt.subscribe("event.*", (payload, action) => {
+      rt.subscribe("event", (payload, action) => {
         switch (action) {
           case "created":
             // console.log("received system notification", payload);
@@ -71,17 +71,13 @@ export const RealtimeEventsList = (props: { eventsList: Accessor<Array<Events.In
             setEvents(events().map((e, i) => (i === index ? newEvent : e)));
             break;
           case "deleted":
-            const filtered = filter(events, (e) => e.id === payload.id);
+            const filtered = filter(events, (e) => e.id !== payload.id);
             setEvents(filtered());
             break;
           default:
             console.log("unknown action", action);
             break;
         }
-      });
-
-      onCleanup(() => {
-        rt.unsubscribe("event.*");
       });
     }
   });

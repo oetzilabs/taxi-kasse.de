@@ -167,13 +167,13 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
       return;
     } else {
       const subs = rt.subscriptions();
-      if (subs.has("ride.*")) {
-        console.log("realtime already subscribed to ride.*, skipping");
+      if (subs.has("ride")) {
+        console.log("realtime already subscribed to ride, skipping");
         return;
       }
 
       // console.log("realtime connected");
-      rt.subscribe("ride.*", (payload, action) => {
+      rt.subscribe("ride", (payload, action) => {
         switch (action) {
           case "created":
             // console.log("received system notification", payload);
@@ -184,10 +184,6 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
             console.log("unknown action", action);
             break;
         }
-      });
-
-      onCleanup(() => {
-        rt.unsubscribe("ride.*");
       });
     }
   });

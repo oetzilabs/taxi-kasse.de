@@ -1,27 +1,33 @@
 import type { Realtimed } from "@taxikassede/core/src/entities/realtime";
-import type { Accessor, JSX, Setter } from "solid-js";
+import type { JSX } from "solid-js";
+import { createGlobalEmitter } from "@solid-primitives/event-bus";
 import mqtt from "mqtt";
 import { createContext, createSignal, onCleanup, onMount, useContext } from "solid-js";
 import { isServer } from "solid-js/web";
-import { useClientId } from "./ClientId";
-
-type Topic = keyof Realtimed.Events;
 
 type MqttContextType = {
   prefix: string;
   client: () => mqtt.MqttClient | null;
   isConnected: () => boolean;
-  subscribe: <T extends Topic>(
+  subscribe: <
+    T extends Realtimed.Events["realtime"]["type"],
+    P extends Extract<Realtimed.Events["realtime"], { type: T }>["payload"],
+    A extends Extract<Realtimed.Events["realtime"], { type: T }>["action"],
+  >(
     topic: T,
-    callback: (payload: Realtimed.Events[T]["payload"], action: Realtimed.Events[T]["type"]) => void,
+    callback: (payload: P, action: A) => void,
   ) => void;
-  unsubscribe: <T extends Topic>(topic: T) => void;
-  publish: <T extends Topic>(
+  unsubscribe: <T extends Realtimed.Events["realtime"]["type"]>(topic: T) => void;
+  publish: <
+    T extends Realtimed.Events["realtime"]["type"],
+    P extends Extract<Realtimed.Events["realtime"], { type: T }>["payload"],
+    A extends Extract<Realtimed.Events["realtime"], { type: T }>["action"],
+  >(
     topic: T,
-    action: Realtimed.Events[T]["type"],
-    message: Realtimed.Events[T]["payload"],
+    payload: P,
+    action: A,
   ) => void;
-  subscriptions: () => Set<Topic>;
+  subscriptions: () => Set<Realtimed.Events["realtime"]["type"]>;
 };
 
 export const RealtimeContext = createContext<MqttContextType>();
@@ -31,13 +37,13 @@ export type RealtimeProps = {
   endpoint: string;
   authorizer: string;
   topic: string;
-  disabled?: boolean;
 };
+
+const globalEmitter = createGlobalEmitter<Realtimed.Events>(); // Create a global event emitter
 
 export const Realtime = (props: RealtimeProps) => {
   const [client, setClient] = createSignal<mqtt.MqttClient | null>(null);
-  const client_id = useClientId();
-  const [subscriptions, setSubscriptions] = createSignal<Set<Topic>>(new Set());
+  const [subscriptions, setSubscriptions] = createSignal<Set<Realtimed.Events["realtime"]["type"]>>(new Set());
   const [isConnected, setIsConnected] = createSignal(false);
 
   onMount(() => {
@@ -45,14 +51,14 @@ export const Realtime = (props: RealtimeProps) => {
       console.log("RealtimeContext: realtime is not available on the server");
       return;
     }
-    // if (props.disabled) return;
+
     // Connect to MQTT broker
     const mqttClient = mqtt.connect(`wss://${props.endpoint}/mqtt?x-amz-customauthorizer-name=${props.authorizer}`, {
       protocolVersion: 5,
       manualConnect: true,
       username: "", // !! KEEP EMPTY !!
       password: "PLACEHOLDER_TOKEN",
-      clientId: client_id,
+      clientId: `client_${window.crypto.randomUUID()}`,
       keepalive: 60,
     });
 
@@ -60,7 +66,31 @@ export const Realtime = (props: RealtimeProps) => {
       console.log("Connected to MQTT broker");
       setIsConnected(true);
       setClient(mqttClient);
+      mqttClient.subscribe(props.topic.concat("realtime"), { qos: 1 });
     });
+
+    mqttClient.on("message", (receivedTopic, message) => {
+      if (receivedTopic !== props.topic.concat("realtime")) return;
+      const td = new TextDecoder();
+      const pl = td.decode(message);
+      let payload: any;
+      let action: any;
+      let t: any;
+      try {
+        const p = JSON.parse(pl);
+        payload = p.payload;
+        action = p.action;
+        t = p.type;
+      } catch {
+        payload = {};
+        action = "unknown";
+        t = "unknown";
+      }
+
+      // Emit the message through the global emitter
+      globalEmitter.emit("realtime", { payload, action, type: t });
+    });
+
     mqttClient.on("error", (e) => {
       console.error(e);
     });
@@ -83,60 +113,52 @@ export const Realtime = (props: RealtimeProps) => {
         isConnected,
         prefix: props.topic,
         subscriptions,
-        subscribe: <T extends Topic>(
-          topic: T,
-          callback: (payload: Realtimed.Events[T]["payload"], action: Realtimed.Events[T]["type"]) => void,
+        // @ts-ignore
+        subscribe: <
+          T extends Realtimed.Events["realtime"]["type"],
+          P extends Extract<Realtimed.Events["realtime"], { type: T }>["payload"],
+          A extends Extract<Realtimed.Events["realtime"], { type: T }>["action"],
+        >(
+          type: T,
+          callback: (payload: P, action: A) => void,
         ) => {
           const subs = subscriptions();
-          if (subs.has(topic)) {
-            console.log(`subscription for '${topic}' already has been setup`);
+          if (subs.has(type)) {
+            console.log(`Subscription for '${type}' already exists`);
             return;
           }
-          const c = client();
-          if (c) {
-            c.subscribe(props.topic.concat(topic), { qos: 1 });
-            c.on("message", (receivedTopic, message) => {
-              if (receivedTopic === props.topic.concat(topic)) {
-                let payload: Realtimed.Events[T]["payload"];
-                let action: Realtimed.Events[T]["type"];
-                const td = new TextDecoder();
-                const pl = td.decode(message);
-                try {
-                  const p = JSON.parse(pl);
-                  action = p.action as Realtimed.Events[T]["type"];
-                  payload = p.payload as Realtimed.Events[T]["payload"];
-                } catch {
-                  payload = pl as Realtimed.Events[T]["payload"];
-                  action = "unknown";
-                }
-                callback(payload, action);
-              }
-            });
+          const unsubber = globalEmitter.on("realtime", (data) => {
+            if (data.type === type) {
+              callback(data.payload, data.action as A);
+            }
+          });
+          setSubscriptions((s) => {
+            s.add(type);
+            return s;
+          });
+          onCleanup(() => {
+            unsubber();
             setSubscriptions((s) => {
-              s.add(topic);
+              s.delete(type);
               return s;
             });
-          }
+          });
         },
-        unsubscribe: <T extends Topic>(topic: T) => {
-          const subs = subscriptions();
-          if (!subs.has(topic)) {
-            return;
-          }
+
+        // @ts-ignore
+        publish: <
+          T extends Realtimed.Events["realtime"]["type"],
+          P extends Extract<Realtimed.Events["realtime"], { type: T }>["payload"],
+          A extends Extract<Realtimed.Events["realtime"], { type: T }>["action"],
+        >(
+          topic: T,
+          payload: P,
+          action: A,
+        ) => {
           const c = client();
           if (c) {
-            c.unsubscribe(props.topic.concat(topic));
-            setSubscriptions((s) => {
-              s.delete(topic);
-              return s;
-            });
-          }
-        },
-        publish: <T extends Topic>(topic: T, message: Realtimed.Events[T]["payload"]) => {
-          const c = client();
-          if (c) {
-            const payload = typeof message === "object" ? JSON.stringify(message) : message.toString();
-            c.publish(props.topic.concat(topic), payload, { qos: 1 });
+            const message = JSON.stringify({ payload, action, type: topic });
+            c.publish(props.topic.concat(topic), message, { qos: 1 });
           }
         },
       }}

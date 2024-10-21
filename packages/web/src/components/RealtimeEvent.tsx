@@ -30,12 +30,12 @@ export const RealtimeEvent = (props: { event: Accessor<Events.Info> }) => {
       return;
     } else {
       const subs = rt.subscriptions();
-      if (subs.has("event.*")) {
+      if (subs.has("event")) {
         console.log("realtime already subscribed to event.updated, skipping");
         return;
       }
 
-      rt.subscribe("event.*", (payload, action) => {
+      rt.subscribe("event", (payload, action) => {
         switch (action) {
           case "updated":
             setEvent(payload);
@@ -49,10 +49,6 @@ export const RealtimeEvent = (props: { event: Accessor<Events.Info> }) => {
             console.log("unknown action", action);
             break;
         }
-      });
-
-      onCleanup(() => {
-        rt.unsubscribe("event.*");
       });
     }
   });
