@@ -4,20 +4,10 @@ import { cf, domain } from "./Domain";
 import { realtime } from "./Realtime";
 import { allSecrets } from "./Secrets";
 
-// import { bucket } from "./Storage";
-// import { ws } from "./Websocket";
-
 const main_app_url = $dev ? "http://localhost:3000" : $interpolate`https://www.${domain}`;
 
 export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
-  link: [
-    // bucket,
-    // ws
-    api,
-    auth,
-    ...allSecrets,
-    realtime,
-  ],
+  link: [...allSecrets, api, auth, realtime],
   path: "packages/web",
   buildCommand: "pnpm build",
   environment: {
