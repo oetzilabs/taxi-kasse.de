@@ -54,15 +54,18 @@ export module Realtimed {
     T extends Realtimed.Events["realtime"]["type"],
     P extends Extract<Realtimed.Events["realtime"], { type: T }>["payload"],
     A extends Extract<Realtimed.Events["realtime"], { type: T }>["action"],
+    TA extends `${T}.${A}`
   >(
-    type: T,
+    target: TA,
     payload: P,
-    action: A,
   ) => {
     let response_: PublishCommandOutput | null = null;
     // const endpoint = `https://${Resource.RealtimeServer.endpoint}?x-amz-customauthorizer-name=${Resource.RealtimeServer.authorizer}`;
-    const client = new IoTDataPlaneClient();
 
+    const [type, action] = target.split(".");
+    if (!type || !action) return response_;
+
+    const client = new IoTDataPlaneClient();
     try {
       const command = new PublishCommand({
         topic: `${Resource.App.name}/${Resource.App.stage}/realtime`, // Topic to publish to

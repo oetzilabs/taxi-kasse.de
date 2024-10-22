@@ -34,28 +34,17 @@ const RealtimeHotspotButton = (props: RealtimeHotspotButtonProps) => {
       console.log("realtime not available on server");
       return;
     }
+
     const connected = rt.isConnected();
     if (!connected) {
       return;
     } else {
-      const subs = rt.subscriptions();
-      if (subs.has("hotspot")) {
-        console.log("realtime already subscribed to hotspot.created, skipping");
-        return;
-      }
-
-      // console.log("realtime connected");
-      rt.subscribe("hotspot", (payload, action) => {
-        switch (action) {
-          case "created":
-            // console.log("received system notification", payload);
-            const concatted = concat(hs, payload);
-            setHs(concatted());
-            break;
-          default:
-            console.log("unknown action", action);
-            break;
-        }
+      const unsubHotspotCreated = rt.subscribe("hotspot.created", (payload) => {
+        const concatted = concat(hs, payload);
+        setHs(concatted());
+      });
+      onCleanup(() => {
+        unsubHotspotCreated();
       });
     }
   });

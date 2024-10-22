@@ -25,30 +25,23 @@ export const RealtimeEvent = (props: { event: Accessor<Events.Info> }) => {
       console.log("realtime not available on server");
       return;
     }
+
     const connected = rt.isConnected();
     if (!connected) {
       return;
     } else {
-      const subs = rt.subscriptions();
-      if (subs.has("event")) {
-        console.log("realtime already subscribed to event.updated, skipping");
-        return;
-      }
-
-      rt.subscribe("event", (payload, action) => {
-        switch (action) {
-          case "updated":
-            setEvent(payload);
-            break;
-          case "deleted":
-            if (payload.id === event().id) {
-              navigate("/dashboard/events");
-            }
-            break;
-          default:
-            console.log("unknown action", action);
-            break;
+      const unsubEventUpdated = rt.subscribe("event.updated", (payload) => {
+        setEvent(payload);
+      });
+      const unsubEventDeleted = rt.subscribe("event.updated", (payload) => {
+        if (payload.id === event().id) {
+          navigate("/dashboard/events");
         }
+      });
+
+      onCleanup(() => {
+        unsubEventUpdated();
+        unsubEventDeleted();
       });
     }
   });

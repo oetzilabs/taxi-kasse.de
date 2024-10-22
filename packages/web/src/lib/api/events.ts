@@ -47,7 +47,7 @@ export const createEvent = action(async (data: InferInput<typeof Events.Create>)
 
   const event_ = await Events.create(mergeWithUser);
 
-  const mqttSent = await Realtimed.sendToMqtt("event", event_, "created");
+  const mqttSent = await Realtimed.sendToMqtt("event.created", event_);
   if (!mqttSent) {
     console.error("MQTT send failed");
   }
@@ -68,7 +68,7 @@ export const updateEvent = action(async (data: InferInput<typeof Events.UpdateSc
 
   const event_ = await Events.update(mergeWithUser);
 
-  const mqttSent = await Realtimed.sendToMqtt("event", event_, "updated");
+  const mqttSent = await Realtimed.sendToMqtt("event.updated", event_);
   if (!mqttSent) {
     console.error("MQTT send failed");
   }
@@ -90,7 +90,7 @@ export const removeEvent = action(async (id: string) => {
 
   const updated = await Events.remove(event_.id);
 
-  const mqttSent = await Realtimed.sendToMqtt("event", event_, "deleted");
+  const mqttSent = await Realtimed.sendToMqtt("event.deleted", event_);
   if (!mqttSent) {
     console.error("MQTT send failed");
   }

@@ -41,31 +41,22 @@ const NotificationList = (props: {
       console.log("realtime not available on server");
       return;
     }
+
     const connected = rt.isConnected();
     if (!connected) {
       return;
     } else {
-      const subs = rt.subscriptions();
-      if (subs.has("systemnotification")) {
-        console.log("realtime already subscribed to systemnotification.created, skipping");
-        return;
-      }
-
-      // console.log("realtime connected");
-      rt.subscribe("systemnotification", (payload, action) => {
-        switch (action) {
-          case "created":
-            // console.log("received system notification", payload);
-            const concatted = concat(list, payload);
-            setList(concatted());
-            if (payload.id !== currentNotificationId()) {
-              setCurrentNotificationId(payload.id);
-            }
-            break;
-          default:
-            console.log("unknown action", action);
-            break;
+      const unsubSysNotificationCreated = rt.subscribe("systemnotification.created", (payload) => {
+        // console.log("received system notification", payload);
+        const concatted = concat(list, payload);
+        setList(concatted());
+        if (payload.id !== currentNotificationId()) {
+          setCurrentNotificationId(payload.id);
         }
+      });
+
+      onCleanup(() => {
+        unsubSysNotificationCreated();
       });
     }
   });

@@ -13,11 +13,11 @@ type MqttContextType = {
     T extends Realtimed.Events["realtime"]["type"],
     P extends Extract<Realtimed.Events["realtime"], { type: T }>["payload"],
     A extends Extract<Realtimed.Events["realtime"], { type: T }>["action"],
+    TA extends `${T}.${A}`,
   >(
-    topic: T,
-    callback: (payload: P, action: A) => void,
-  ) => void;
-  unsubscribe: <T extends Realtimed.Events["realtime"]["type"]>(topic: T) => void;
+    target: TA,
+    callback: (payload: P) => void
+  ) => VoidFunction;
   publish: <
     T extends Realtimed.Events["realtime"]["type"],
     P extends Extract<Realtimed.Events["realtime"], { type: T }>["payload"],
@@ -25,9 +25,8 @@ type MqttContextType = {
   >(
     topic: T,
     payload: P,
-    action: A,
+    action: A
   ) => void;
-  subscriptions: () => Set<Realtimed.Events["realtime"]["type"]>;
 };
 
 export const RealtimeContext = createContext<MqttContextType>();
@@ -43,7 +42,6 @@ const globalEmitter = createGlobalEmitter<Realtimed.Events>(); // Create a globa
 
 export const Realtime = (props: RealtimeProps) => {
   const [client, setClient] = createSignal<mqtt.MqttClient | null>(null);
-  const [subscriptions, setSubscriptions] = createSignal<Set<Realtimed.Events["realtime"]["type"]>>(new Set());
   const [isConnected, setIsConnected] = createSignal(false);
 
   onMount(() => {
@@ -112,37 +110,25 @@ export const Realtime = (props: RealtimeProps) => {
         client,
         isConnected,
         prefix: props.topic,
-        subscriptions,
         // @ts-ignore
         subscribe: <
           T extends Realtimed.Events["realtime"]["type"],
           P extends Extract<Realtimed.Events["realtime"], { type: T }>["payload"],
           A extends Extract<Realtimed.Events["realtime"], { type: T }>["action"],
+          TA extends `${T}.${A}`,
         >(
-          type: T,
-          callback: (payload: P, action: A) => void,
+          target: TA,
+          callback: (payload: P) => void
         ) => {
-          const subs = subscriptions();
-          if (subs.has(type)) {
-            console.log(`Subscription for '${type}' already exists`);
-            return;
-          }
+          const [type, action] = target.split(".") as [T, A];
+          if (!type || !action) return;
+
           const unsubber = globalEmitter.on("realtime", (data) => {
-            if (data.type === type) {
-              callback(data.payload, data.action as A);
+            if (data.type === type && data.action === action) {
+              callback(data.payload);
             }
           });
-          setSubscriptions((s) => {
-            s.add(type);
-            return s;
-          });
-          onCleanup(() => {
-            unsubber();
-            setSubscriptions((s) => {
-              s.delete(type);
-              return s;
-            });
-          });
+          return unsubber;
         },
 
         // @ts-ignore
@@ -150,13 +136,16 @@ export const Realtime = (props: RealtimeProps) => {
           T extends Realtimed.Events["realtime"]["type"],
           P extends Extract<Realtimed.Events["realtime"], { type: T }>["payload"],
           A extends Extract<Realtimed.Events["realtime"], { type: T }>["action"],
+          TA extends `${T}.${A}`,
         >(
-          topic: T,
-          payload: P,
-          action: A,
+          target: TA,
+          payload: P
         ) => {
           const c = client();
           if (c) {
+            const [topic, action] = target.split(".") as [T, A];
+            if (!topic || !action) return;
+
             const message = JSON.stringify({ payload, action, type: topic });
             c.publish(props.topic.concat(topic), message, { qos: 1 });
           }

@@ -44,40 +44,35 @@ export const RealtimeEventsList = (props: { eventsList: Accessor<Array<Events.In
       console.log("realtime not available on server");
       return;
     }
+
     const connected = rt.isConnected();
     if (!connected) {
       return;
     } else {
-      const subs = rt.subscriptions();
-      if (subs.has("event")) {
-        console.log("realtime already subscribed to event.created, skipping");
-        return;
-      }
+      const unsubEventCreated = rt.subscribe("event.created", (payload) => {
+        // console.log("received system notification", payload);
+        const concatted = concat(events, payload);
+        setEvents(concatted());
+      });
 
-      // console.log("realtime connected");
-      rt.subscribe("event", (payload, action) => {
-        switch (action) {
-          case "created":
-            // console.log("received system notification", payload);
-            const concatted = concat(events, payload);
-            setEvents(concatted());
-            break;
-          case "updated":
-            // replace the event with the updated one
-            const oldEvent = events().find((e) => e.id === payload.id);
-            if (!oldEvent) return;
-            const newEvent = payload;
-            const index = events().findIndex((e) => e.id === payload.id);
-            setEvents(events().map((e, i) => (i === index ? newEvent : e)));
-            break;
-          case "deleted":
-            const filtered = filter(events, (e) => e.id !== payload.id);
-            setEvents(filtered());
-            break;
-          default:
-            console.log("unknown action", action);
-            break;
-        }
+      const unsubEventUpdated = rt.subscribe("event.updated", (payload) => {
+        // replace the event with the updated one
+        const oldEvent = events().find((e) => e.id === payload.id);
+        if (!oldEvent) return;
+        const newEvent = payload;
+        const index = events().findIndex((e) => e.id === payload.id);
+        setEvents(events().map((e, i) => (i === index ? newEvent : e)));
+      });
+
+      const unsubEventDeleted = rt.subscribe("event.deleted", (payload) => {
+        const filtered = filter(events, (e) => e.id !== payload.id);
+        setEvents(filtered());
+      });
+
+      onCleanup(() => {
+        unsubEventCreated();
+        unsubEventUpdated();
+        unsubEventDeleted();
       });
     }
   });
@@ -119,7 +114,7 @@ export const RealtimeEventsList = (props: { eventsList: Accessor<Array<Events.In
                       "w-full flex flex-row gap-2 items-center justify-between border-b border-neutral-200 dark:border-neutral-800 p-4",
                       {
                         "border-none": index() === filteredData().length - 1,
-                      },
+                      }
                     )}
                   >
                     <span class="text-sm font-bold select-none">{e.name}</span>
