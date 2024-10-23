@@ -1,62 +1,73 @@
 import { cf, domain, zone } from "./Domain";
 import { allSecrets } from "./Secrets";
 
+// Copy files to the deployment package
+const copyFiles = [
+  {
+    from: "packages/core/src/drizzle",
+    to: "drizzle",
+  },
+];
+
+// SNS Topic for bounce notifications
+export const bounceTopic = new sst.aws.SnsTopic("MainEmailBouncerTopic", {
+  fifo: false,
+});
+
+// Dead Letter Queue for bounces
+export const bounceDeadLetterQueue = new sst.aws.Queue("MainEmailBouncerDLQ");
+
+// Queue for bounce processing
+export const bounceQueue = new sst.aws.Queue("MainEmailBouncerQueue", {
+  dlq: bounceDeadLetterQueue.arn,
+  fifo: false,
+});
+
+// Subscribe to bounce notifications
+bounceTopic.subscribe({
+  handler: "packages/functions/src/email/on-bounce.handler",
+  link: [...allSecrets, bounceTopic],
+  url: true,
+  copyFiles,
+});
+
+// SNS Topic for complaint notifications
+export const complaintTopic = new sst.aws.SnsTopic("MainEmailComplaintTopic", {
+  fifo: false,
+});
+
+// Dead Letter Queue for complaints
+export const complaintDeadLetterQueue = new sst.aws.Queue("MainEmailComplaintDLQ");
+
+// Queue for complaint processing
+export const complaintQueue = new sst.aws.Queue("MainEmailComplaintQueue", {
+  dlq: complaintDeadLetterQueue.arn,
+  fifo: false,
+});
+
+// Subscribe to complaint notifications
+complaintTopic.subscribe({
+  handler: "packages/functions/src/email/on-complaint.handler",
+  link: [...allSecrets, complaintTopic],
+  url: true,
+  copyFiles,
+});
+
+// Email configuration
 export const mainEmail = new sst.aws.Email("MainEmail", {
   sender: domain,
   dns: cf,
+  dmarc: "v=DMARC1; p=none;",
+  events: [
+    {
+      name: "OnBounce",
+      types: ["bounce"],
+      topic: bounceTopic.arn,
+    },
+    {
+      name: "OnComplaint",
+      types: ["complaint"],
+      topic: complaintTopic.arn,
+    },
+  ],
 });
-
-// export const emailRoutingSettings = new cloudflare.EmailRoutingSettings("MainEmailRoutingSettings", {
-//   zoneId: zone.zoneId,
-//   enabled: true,
-//   skipWizard: false,
-// });
-
-// export const infoMailRoutingAddress = new cloudflare.EmailRoutingAddress("InfoMailAddress", {
-//   email: $interpolate`info@${mainEmail.sender}`,
-//   accountId: process.env.CLOUDFLARE_ACCOUNT_ID!,
-// });
-
-// export const mainEmailWorker = new sst.cloudflare.Worker("MainEmailWorker", {
-//   handler: "packages/functions/src/email/sender.ts",
-//   url: true,
-//   domain: `email.${domain}`,
-//   link: [...allSecrets, mainEmail],
-//   transform: {
-//     worker: {
-//       compatibilityFlags: ["nodejs_compat", "nodejs_compat_v2", "nodejs_als"],
-//       compatibilityDate: "2024-09-06",
-//     },
-//   },
-// });
-
-// export const infoMailRoutingRule = new cloudflare.EmailRoutingRule("InfoMailRoutingRule", {
-//   name: "InfoMailRoutingRule",
-//   zoneId: zone.zoneId,
-//   matchers: [{ type: "literal", value: $interpolate`info@${mainEmail.sender}` }],
-//   actions: [
-//     {
-//       type: "worker",
-//       values: [mainEmailWorker.nodes.worker.id],
-//     },
-//     {
-//       type: "forward",
-//       values: ["oezguerisbert@gmail.com"],
-//     },
-//   ],
-//   enabled: true,
-// });
-
-// // Set up a catch-all rule to forward unmatched emails to a default address
-// export const catchAll = new cloudflare.EmailRoutingCatchAll("MainMailCatchAll", {
-//   name: "MainMailCatchAll",
-//   zoneId: zone.zoneId,
-//   actions: [
-//     {
-//       type: "forward",
-//       values: ["oezguerisbert@gmail.com"], // Unmatched emails will be forwarded to this address
-//     },
-//   ],
-//   matchers: [{ type: "all" }],
-//   enabled: true,
-// });

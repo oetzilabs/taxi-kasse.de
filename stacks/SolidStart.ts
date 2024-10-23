@@ -1,13 +1,14 @@
 import { api } from "./Api";
 import { auth } from "./Auth";
 import { cf, domain } from "./Domain";
+import { mainEmail } from "./Email";
 import { realtime } from "./Realtime";
 import { allSecrets } from "./Secrets";
 
 const main_app_url = $dev ? "http://localhost:3000" : $interpolate`https://www.${domain}`;
 
 export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
-  link: [...allSecrets, api, auth, realtime],
+  link: [...allSecrets, api, auth, realtime, mainEmail],
   path: "packages/web",
   buildCommand: "pnpm build",
   environment: {
@@ -31,6 +32,10 @@ export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
   permissions: [
     {
       actions: ["iot:Connect", "iot:Subscribe", "iot:Publish", "iot:Receive"],
+      resources: ["*"],
+    },
+    {
+      actions: ["ses:SendEmail"],
       resources: ["*"],
     },
   ],

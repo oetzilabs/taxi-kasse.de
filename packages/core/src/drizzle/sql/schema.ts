@@ -1,5 +1,8 @@
 export * from "./schemas/utils";
 
+export * from "./schemas/mailbouncer";
+export * from "./schemas/mailcomplaint";
+
 export * from "./schemas/discounts";
 
 export * from "./schemas/events";

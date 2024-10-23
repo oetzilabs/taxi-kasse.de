@@ -28,6 +28,12 @@ export default $config({
     const {
       // mainEmailWorker,
       mainEmail,
+      bounceDeadLetterQueue,
+      bounceQueue,
+      bounceTopic,
+      complaintDeadLetterQueue,
+      complaintQueue,
+      complaintTopic,
     } = await import("./stacks/Email");
 
     return {
@@ -43,6 +49,12 @@ export default $config({
 
       mainEmailUrn: mainEmail.urn,
       mainEmailSender: mainEmail.sender,
+      bounceQueue: bounceQueue.arn,
+      bounceDeadLetterQueue: bounceDeadLetterQueue.arn,
+      bounceTopic: bounceTopic.arn,
+      complaintQueue: complaintQueue.arn,
+      complaintDeadLetterQueue: complaintDeadLetterQueue.arn,
+      complaintTopic: complaintTopic.arn,
 
       migrateUrn: migrate.urn,
       generateUrn: generate.urn,

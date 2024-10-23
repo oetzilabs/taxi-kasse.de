@@ -1,6 +1,7 @@
-import { allSecrets } from "./Secrets";
 import { auth } from "./Auth";
 import { cf, domain } from "./Domain";
+import { allSecrets } from "./Secrets";
+
 // import { storage } from "./Storage";
 
 export const api = new sst.aws.ApiGatewayV2("Api", {
@@ -27,6 +28,7 @@ const copyFiles = [
     to: "drizzle",
   },
 ];
+
 api.route("GET /healthcheck", {
   handler: "packages/functions/src/healthcheck.main",
   link,
