@@ -10,12 +10,18 @@ export module Email {
     from = from + "@" + Resource.MainEmail.sender;
     const bounceFound = await MailBouncer.findByEmail(to);
     const complaintFound = await MailComplaint.findByEmail(to);
-    const hasBounce = bounceFound === undefined;
-    const hasComplaint = complaintFound === undefined;
-    if (!hasBounce || !hasComplaint) {
-      console.log(hasBounce, hasComplaint);
-      throw new Error(`The email '${to}' is not allowed to be sent to`);
+
+    if (bounceFound && bounceFound.enabled) {
+      throw new Error(
+        `The email '${to}' is not allowed to be sent to.Reason: bounce: ${bounceFound.type}(${bounceFound.t}).${bounceFound.st}`,
+      );
     }
+    if (complaintFound && complaintFound.enabled) {
+      throw new Error(
+        `The email '${to}' is not allowed to be sent to. Reason: complaint:${complaintFound.type}(${complaintFound.t})`,
+      );
+    }
+
     console.log("sending email", subject, from, to);
 
     await ses.send(

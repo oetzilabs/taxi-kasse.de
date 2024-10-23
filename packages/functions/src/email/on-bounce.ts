@@ -2,10 +2,7 @@ import { MailBouncer } from "@taxikassede/core/src/entities/mailbouncer";
 import { SNSHandler } from "aws-lambda";
 
 export const handler: SNSHandler = async (event) => {
-  console.log("Received a Email Bounce Notification");
-  console.dir(event, {
-    depth: Infinity,
-  });
+  // console.log("Received a Email Bounce Notification");
   for (const record of event.Records) {
     // const snsMessage = JSON.parse(record.Sns.Message);
     // console.log("Received bounce message:", snsMessage);
@@ -50,7 +47,7 @@ export const handler: SNSHandler = async (event) => {
           return;
         }
         if (exists.enabled) {
-          console.log("Email is enabled");
+          console.log("Email Bounce is enabled");
           return;
         }
       }
