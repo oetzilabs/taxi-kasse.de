@@ -34,6 +34,10 @@ export default $config({
       complaintDeadLetterQueue,
       complaintQueue,
       complaintTopic,
+      deliveryDeadLetterQueue,
+      deliveryQueue,
+      deliveryTopic,
+      emailBucket,
     } = await import("./stacks/Email");
 
     return {
@@ -55,6 +59,11 @@ export default $config({
       complaintQueue: complaintQueue.arn,
       complaintDeadLetterQueue: complaintDeadLetterQueue.arn,
       complaintTopic: complaintTopic.arn,
+      deliveryDeadLetterQueue: deliveryDeadLetterQueue.arn,
+      deliveryQueue: deliveryQueue.arn,
+      deliveryTopic: deliveryTopic.arn,
+      emailBucketArn: emailBucket.arn,
+      emailBucketUrn: emailBucket.urn,
 
       migrateUrn: migrate.urn,
       generateUrn: generate.urn,

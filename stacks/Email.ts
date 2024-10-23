@@ -53,11 +53,38 @@ complaintTopic.subscribe({
   copyFiles,
 });
 
+// S3 Bucket for storing inbound emails
+export const emailBucket = new sst.aws.Bucket("MainEmailBucket", {
+  versioning: true,
+});
+
+// SNS Topic for delivery notifications
+export const deliveryTopic = new sst.aws.SnsTopic("MainEmailDeliveryTopic", {
+  fifo: false,
+});
+
+// Dead Letter Queue for deliveries
+export const deliveryDeadLetterQueue = new sst.aws.Queue("MainEmailDeliveryDLQ");
+
+// Queue for delivery processing
+export const deliveryQueue = new sst.aws.Queue("MainEmailDeliveryQueue", {
+  dlq: deliveryDeadLetterQueue.arn,
+  fifo: false,
+});
+
+// Subscribe to delivery notifications
+deliveryTopic.subscribe({
+  handler: "packages/functions/src/email/on-delivery.handler",
+  link: [...allSecrets, deliveryTopic, emailBucket],
+  url: true,
+  copyFiles,
+});
+
 // Email configuration
 export const mainEmail = new sst.aws.Email("MainEmail", {
   sender: domain,
   dns: cf,
-  dmarc: "v=DMARC1; p=none;",
+  dmarc: '"v=DMARC1; p=none"',
   events: [
     {
       name: "OnBounce",
@@ -68,6 +95,11 @@ export const mainEmail = new sst.aws.Email("MainEmail", {
       name: "OnComplaint",
       types: ["complaint"],
       topic: complaintTopic.arn,
+    },
+    {
+      name: "OnDelivery",
+      types: ["delivery"],
+      topic: deliveryTopic.arn,
     },
   ],
 });

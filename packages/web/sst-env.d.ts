@@ -52,6 +52,10 @@ declare module "sst" {
       "arn": string
       "type": "sst.aws.SnsTopic"
     }
+    "MainEmailBucket": {
+      "name": string
+      "type": "sst.aws.Bucket"
+    }
     "MainEmailComplaintDLQ": {
       "type": "sst.aws.Queue"
       "url": string
@@ -61,6 +65,18 @@ declare module "sst" {
       "url": string
     }
     "MainEmailComplaintTopic": {
+      "arn": string
+      "type": "sst.aws.SnsTopic"
+    }
+    "MainEmailDeliveryDLQ": {
+      "type": "sst.aws.Queue"
+      "url": string
+    }
+    "MainEmailDeliveryQueue": {
+      "type": "sst.aws.Queue"
+      "url": string
+    }
+    "MainEmailDeliveryTopic": {
       "arn": string
       "type": "sst.aws.SnsTopic"
     }
