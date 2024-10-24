@@ -1,11 +1,18 @@
 import { MailComplaint } from "@taxikassede/core/src/entities/mailcomplaint"; // Adjust the import path as necessary
-import { SNSHandler } from "aws-lambda";
+import { SQSHandler } from "aws-lambda";
 import dayjs from "dayjs";
 
-export const handler: SNSHandler = async (event) => {
+export const handler: SQSHandler = async (event) => {
   // console.log("Received a Email Complaint Notification");
   for (const record of event.Records) {
-    const snsMessage = JSON.parse(record.Sns.Message);
+    if (!record.body) {
+      continue;
+    }
+    const sqsMessage = JSON.parse(record.body);
+    if (!sqsMessage.Message) {
+      continue;
+    }
+    const snsMessage = JSON.parse(sqsMessage.Message);
     if (snsMessage.complaint) {
       const recipients = snsMessage.complaint.complainedRecipients;
       for (const r of recipients) {
@@ -24,7 +31,7 @@ export const handler: SNSHandler = async (event) => {
             t: complaintType,
             complaintTimestamp: dayjs(snsMessage.complaint.timestamp).toDate(),
           });
-          return;
+          continue;
         }
 
         const exists = await MailComplaint.findByEmail(complainedEmail);
@@ -37,13 +44,13 @@ export const handler: SNSHandler = async (event) => {
             t: complaintType,
             complaintTimestamp: dayjs(snsMessage.complaint.timestamp).toDate(),
           });
-          return;
+          continue;
         } else {
           console.log("Email already exists in the complaints table");
         }
         if (exists.enabled) {
           console.log("Email Complaint is enabled");
-          return;
+          continue;
         }
       }
     }

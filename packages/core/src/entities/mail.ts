@@ -24,7 +24,7 @@ export module Email {
 
     console.log("sending email", subject, from, to);
 
-    await ses.send(
+    const result = await ses.send(
       new SendEmailCommand({
         Destination: {
           ToAddresses: [to],
@@ -44,5 +44,9 @@ export module Email {
         FromEmailAddress: `Caby <${from}>`,
       }),
     );
+    if (result.MessageId) {
+      console.log("Email sent successfully with MessageId:", result.MessageId);
+    }
+    return result;
   }
 }

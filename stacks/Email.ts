@@ -23,13 +23,15 @@ export const bounceQueue = new sst.aws.Queue("MainEmailBouncerQueue", {
   fifo: false,
 });
 
-// Subscribe to bounce notifications
-bounceTopic.subscribe({
+bounceQueue.subscribe({
   handler: "packages/functions/src/email/on-bounce.handler",
   link: [...allSecrets, bounceTopic],
   url: true,
   copyFiles,
 });
+
+// Subscribe to bounce notifications
+bounceTopic.subscribeQueue(bounceQueue.arn);
 
 // SNS Topic for complaint notifications
 export const complaintTopic = new sst.aws.SnsTopic("MainEmailComplaintTopic", {
@@ -45,15 +47,17 @@ export const complaintQueue = new sst.aws.Queue("MainEmailComplaintQueue", {
   fifo: false,
 });
 
-// Subscribe to complaint notifications
-complaintTopic.subscribe({
+complaintQueue.subscribe({
   handler: "packages/functions/src/email/on-complaint.handler",
   link: [...allSecrets, complaintTopic],
   url: true,
   copyFiles,
 });
 
-// S3 Bucket for storing inbound emails
+// Subscribe to complaint notifications
+complaintTopic.subscribeQueue(complaintQueue.arn);
+
+// S3 Bucket for storing outbound emails
 export const emailBucket = new sst.aws.Bucket("MainEmailBucket", {
   versioning: true,
 });
@@ -72,19 +76,45 @@ export const deliveryQueue = new sst.aws.Queue("MainEmailDeliveryQueue", {
   fifo: false,
 });
 
-// Subscribe to delivery notifications
-deliveryTopic.subscribe({
+deliveryQueue.subscribe({
   handler: "packages/functions/src/email/on-delivery.handler",
   link: [...allSecrets, deliveryTopic, emailBucket],
   url: true,
   copyFiles,
 });
 
+// Subscribe to delivery notifications
+deliveryTopic.subscribeQueue(deliveryQueue.arn);
+
+// SNS Topic for delivery notifications
+export const sendTopic = new sst.aws.SnsTopic("MainEmailSendTopic", {
+  fifo: false,
+});
+
+// Dead Letter Queue for deliveries
+export const sendDeadLetterQueue = new sst.aws.Queue("MainEmailSendDLQ");
+
+// Queue for send processing
+export const sendQueue = new sst.aws.Queue("MainEmailSendQueue", {
+  dlq: sendDeadLetterQueue.arn,
+  fifo: false,
+});
+
+sendQueue.subscribe({
+  handler: "packages/functions/src/email/on-send.handler",
+  link: [...allSecrets, sendTopic, emailBucket],
+  url: true,
+  copyFiles,
+});
+
+// Subscribe to send notifications
+sendTopic.subscribeQueue(sendQueue.arn);
+
 // Email configuration
 export const mainEmail = new sst.aws.Email("MainEmail", {
   sender: domain,
   dns: cf,
-  dmarc: '"v=DMARC1; p=none"',
+  dmarc: '"v=DMARC1; p=none;"',
   events: [
     {
       name: "OnBounce",
@@ -100,6 +130,46 @@ export const mainEmail = new sst.aws.Email("MainEmail", {
       name: "OnDelivery",
       types: ["delivery"],
       topic: deliveryTopic.arn,
+    },
+    {
+      name: "OnSend",
+      types: ["send"],
+      topic: sendTopic.arn,
+    },
+  ],
+});
+
+export const receivedEmailDeadLetterQueue = new sst.aws.Queue("MainEmailReceivedDLQ");
+
+export const receivedEmailQueue = new sst.aws.Queue("MainEmailReceivedQueue2", {
+  dlq: receivedEmailDeadLetterQueue.arn,
+  fifo: false,
+});
+
+export const receivedEmailTopic = new sst.aws.SnsTopic("MainEmailReceivedTopic2", {
+  fifo: false,
+});
+
+receivedEmailQueue.subscribe({
+  handler: "packages/functions/src/email/on-received.handler",
+  link: [...allSecrets, receivedEmailTopic, emailBucket],
+  url: true,
+});
+
+receivedEmailTopic.subscribeQueue(receivedEmailQueue.arn);
+
+export const mainEmailRuleSet = new aws.ses.ReceiptRuleSet("MainEmailReceiptRuleSet", {
+  ruleSetName: "MainEmailRuleSet",
+});
+
+export const mainEmailReceiptRule = new aws.ses.ReceiptRule("storeInS3Rule", {
+  ruleSetName: mainEmailRuleSet.ruleSetName,
+  recipients: [$interpolate`info@${domain}`], // Change to your domain
+  enabled: true,
+  snsActions: [
+    {
+      position: 1,
+      topicArn: receivedEmailTopic.arn,
     },
   ],
 });

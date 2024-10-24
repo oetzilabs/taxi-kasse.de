@@ -1,13 +1,17 @@
 import { MailBouncer } from "@taxikassede/core/src/entities/mailbouncer";
-import { SNSHandler } from "aws-lambda";
+import { SNSHandler, SQSHandler } from "aws-lambda";
 
-export const handler: SNSHandler = async (event) => {
+export const handler: SQSHandler = async (event) => {
   // console.log("Received a Email Bounce Notification");
   for (const record of event.Records) {
-    // const snsMessage = JSON.parse(record.Sns.Message);
-    // console.log("Received bounce message:", snsMessage);
-
-    const snsMessage = JSON.parse(record.Sns.Message);
+    if (!record.body) {
+      continue;
+    }
+    const sqsMessage = JSON.parse(record.body);
+    if (!sqsMessage.Message) {
+      continue;
+    }
+    const snsMessage = JSON.parse(sqsMessage.Message);
     if (snsMessage.bounce) {
       const recipients = snsMessage.bounce.bouncedRecipients;
       for (const r of recipients) {
@@ -25,7 +29,7 @@ export const handler: SNSHandler = async (event) => {
             t: bounceType,
             st: bounceSubType,
           });
-          return;
+          continue;
         }
         const validBounceSubType = MailBouncer.isValidBounceSubType(validBounceType.output, bounceSubType);
         if (!validBounceSubType.success) {
@@ -36,7 +40,7 @@ export const handler: SNSHandler = async (event) => {
             t: bounceType,
             st: bounceSubType,
           });
-          return;
+          continue;
         }
         const bType = `${validBounceType.output}.${validBounceSubType.output}` as MailBouncer.CombinedType<
           typeof validBounceType.output
@@ -44,14 +48,13 @@ export const handler: SNSHandler = async (event) => {
         exists = await MailBouncer.findByEmail(bouncedEmail);
         if (!exists) {
           exists = await MailBouncer.create({ email: bouncedEmail, type: bType, t: bounceType, st: bounceSubType });
-          return;
+          continue;
         }
         if (exists.enabled) {
           console.log("Email Bounce is enabled");
-          return;
+          continue;
         }
       }
     }
-    return;
   }
 };

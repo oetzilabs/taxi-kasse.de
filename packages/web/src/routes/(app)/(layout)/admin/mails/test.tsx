@@ -36,7 +36,6 @@ export default function MailsPage() {
           });
         }}
       >
-        {" "}
         Send Test Mail to {mail()}
       </Button>
     </div>

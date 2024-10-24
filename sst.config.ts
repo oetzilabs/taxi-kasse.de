@@ -38,6 +38,14 @@ export default $config({
       deliveryQueue,
       deliveryTopic,
       emailBucket,
+      mainEmailReceiptRule,
+      mainEmailRuleSet,
+      receivedEmailTopic,
+      receivedEmailDeadLetterQueue,
+      receivedEmailQueue,
+      sendDeadLetterQueue,
+      sendQueue,
+      sendTopic,
     } = await import("./stacks/Email");
 
     return {
@@ -64,6 +72,17 @@ export default $config({
       deliveryTopic: deliveryTopic.arn,
       emailBucketArn: emailBucket.arn,
       emailBucketUrn: emailBucket.urn,
+      mainEmailReceiptRuleArn: mainEmailReceiptRule.arn,
+      mainEmailReceiptRuleName: mainEmailReceiptRule.name,
+      mainEmailRuleSetArn: mainEmailRuleSet.arn,
+      mainEmailRuleSetName: mainEmailRuleSet.ruleSetName,
+      receivedEmailTopicArn: receivedEmailTopic.arn,
+      receivedEmailTopicName: receivedEmailTopic.name,
+      receivedEmailDeadLetterQueueArn: receivedEmailDeadLetterQueue.arn,
+      receivedEmailQueueArn: receivedEmailQueue.arn,
+      sendDeadLetterQueueArn: sendDeadLetterQueue.arn,
+      sendQueueArn: sendQueue.arn,
+      sendTopicArn: sendTopic.arn,
 
       migrateUrn: migrate.urn,
       generateUrn: generate.urn,

@@ -80,6 +80,30 @@ declare module "sst" {
       "arn": string
       "type": "sst.aws.SnsTopic"
     }
+    "MainEmailReceivedDLQ": {
+      "type": "sst.aws.Queue"
+      "url": string
+    }
+    "MainEmailReceivedQueue2": {
+      "type": "sst.aws.Queue"
+      "url": string
+    }
+    "MainEmailReceivedTopic2": {
+      "arn": string
+      "type": "sst.aws.SnsTopic"
+    }
+    "MainEmailSendDLQ": {
+      "type": "sst.aws.Queue"
+      "url": string
+    }
+    "MainEmailSendQueue": {
+      "type": "sst.aws.Queue"
+      "url": string
+    }
+    "MainEmailSendTopic": {
+      "arn": string
+      "type": "sst.aws.SnsTopic"
+    }
     "RealtimeServer": {
       "authorizer": string
       "endpoint": string
