@@ -37,7 +37,7 @@ const MinuteNumberSchema = pipe(
   transform((v) => Number(v)),
   number("Please provide a number"),
   minValue(0, "The time must be greater than 0"),
-  maxValue(59, "The time must be less than 59"),
+  maxValue(59, "The time must be less than 59")
 );
 
 const HourNumberSchema = pipe(
@@ -45,7 +45,7 @@ const HourNumberSchema = pipe(
   transform((v) => Number(v)),
   number("Please provide a number"),
   minValue(0, "The time must be greater than 0"),
-  maxValue(23, "The time must be less than 23"),
+  maxValue(23, "The time must be less than 23")
 );
 
 const ClientRouteMap = clientOnly(() => import("../ClientRouteMap"));
@@ -190,7 +190,7 @@ const AddRideModal = (props: {
                                     {
                                       "bg-black text-white dark:bg-white dark:text-black hover:bg-neutral-900 dark:hover:bg-neutral-100":
                                         vehicle.id === newRide.vehicle_id,
-                                    },
+                                    }
                                   )}
                                   onClick={() => {
                                     if (vehicle.id === newRide.vehicle_id) {
@@ -243,7 +243,7 @@ const AddRideModal = (props: {
                                 {
                                   "bg-black text-white dark:bg-white dark:text-black hover:bg-neutral-900 dark:hover:bg-neutral-100":
                                     vehicle.id === newRide.vehicle_id,
-                                },
+                                }
                               )}
                               onClick={() => {
                                 if (vehicle.id === newRide.vehicle_id) {
@@ -292,7 +292,7 @@ const AddRideModal = (props: {
                         "w-full flex flex-col gap-2 p-4 border border-neutral-300 dark:border-neutral-800 rounded-md bg-neutral-100 dark:bg-neutral-900 opacity-50",
                         {
                           "opacity-100": newRide.vehicle_id !== "",
-                        },
+                        }
                       )}
                     >
                       <div class="w-full flex flex-col gap-2 items-end">
@@ -352,10 +352,9 @@ const AddRideModal = (props: {
                             const arr = newRide.arrival;
                             const v = newRide.vehicle_id;
                             if (dep.length === 0 || arr.length === 0) return;
-                            const calced = await calculateDistanceAndChargeAction(v, dep, arr);
+                            const calced = await calculateDistanceAndChargeAction(v, dep, arr, duration());
                             setNewRide("income", String(calced.result));
                             setNewRide("distance", String(calced.distance));
-                            setDuration(calced.duration);
                             if (calced.coords.from && calced.coords.to) {
                               setFromCoords(calced.coords.from);
                               setToCoords(calced.coords.to);

@@ -79,19 +79,19 @@ export const addRide = action(async (data: CreateRide, lastSavedVehicleId: strin
             preferred: data.vehicle_id === lastSavedVehicleId,
           },
           // @ts-ignore
-          tsx,
+          tsx
         );
         const allVehicles = await Vehicles.findByUserId(
           ctx.user.id,
           // @ts-ignore
-          tsx,
+          tsx
         );
         const unPreferredVehicles = allVehicles.filter((v) => v.id !== data.vehicle_id);
         const updatedOtherVehicles = await Vehicles.updateBulk(
           unPreferredVehicles.map((v) => v.id),
           { preferred: false },
           // @ts-ignore
-          tsx,
+          tsx
         );
         const c = updatedOtherVehicles.concat(updatedVehicle);
         collection = c;
@@ -387,78 +387,80 @@ export const removeRidesBulk = action(async (rids: Array<string>) => {
   });
 });
 
-export const calculateDistanceAndCharge = action(async (vehicle: string, departure: string, arrival: string) => {
-  "use server";
-  const [ctx, _event] = await getContext();
-  if (!ctx)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.session)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.user)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
+export const calculateDistanceAndCharge = action(
+  async (vehicle: string, departure: string, arrival: string, duration: number) => {
+    "use server";
+    const [ctx, _event] = await getContext();
+    if (!ctx)
+      throw redirect("/auth/login", {
+        statusText: "Please login",
+        status: 401,
+      });
+    if (!ctx.session)
+      throw redirect("/auth/login", {
+        statusText: "Please login",
+        status: 401,
+      });
+    if (!ctx.user)
+      throw redirect("/auth/login", {
+        statusText: "Please login",
+        status: 401,
+      });
 
-  const v = await Vehicles.findById(vehicle);
-  if (!v) throw new Error("Vehicle not found");
-  let distance_charge = 0;
-  let duration_charge = 0;
-  let base_charge = 0;
-  let result = 0;
-  if (ctx.session.organization_id) {
-    const org = await Organizations.findById(ctx.session.organization_id);
-    if (org) {
-      const dc = Number(org.distance_charge);
-      if (!isNaN(dc)) {
-        distance_charge = dc;
-      }
-      const tc = Number(org.time_charge);
-      if (!isNaN(tc)) {
-        duration_charge = tc;
-      }
-      const bc = Number(org.base_charge);
-      if (!isNaN(bc)) {
-        base_charge = bc;
+    const v = await Vehicles.findById(vehicle);
+    if (!v) throw new Error("Vehicle not found");
+    let distance_charge = 0;
+    let duration_charge = 0;
+    let base_charge = 0;
+    let result = 0;
+    if (ctx.session.organization_id) {
+      const org = await Organizations.findById(ctx.session.organization_id);
+      if (org) {
+        const dc = Number(org.distance_charge);
+        if (!isNaN(dc)) {
+          distance_charge = dc;
+        }
+        const tc = Number(org.time_charge);
+        if (!isNaN(tc)) {
+          duration_charge = tc;
+        }
+        const bc = Number(org.base_charge);
+        if (!isNaN(bc)) {
+          base_charge = bc;
+        }
       }
     }
-  }
-  if (ctx.session.company_id) {
-    const comp = await Companies.findById(ctx.session.company_id);
-    if (comp) {
-      const dc = Number(comp.distance_charge);
-      if (!isNaN(dc)) {
-        distance_charge = dc;
-      }
-      const tc = Number(comp.time_charge);
-      if (!isNaN(tc)) {
-        duration_charge = tc;
-      }
-      const bc = Number(comp.base_charge);
-      if (!isNaN(bc)) {
-        base_charge = bc;
+    if (ctx.session.company_id) {
+      const comp = await Companies.findById(ctx.session.company_id);
+      if (comp) {
+        const dc = Number(comp.distance_charge);
+        if (!isNaN(dc)) {
+          distance_charge = dc;
+        }
+        const tc = Number(comp.time_charge);
+        if (!isNaN(tc)) {
+          duration_charge = tc;
+        }
+        const bc = Number(comp.base_charge);
+        if (!isNaN(bc)) {
+          base_charge = bc;
+        }
       }
     }
-  }
 
-  if (!departure || !arrival) throw new Error("Please enter a departure and arrival address");
-  const routeResult = await Routing.getDistanceAndDuration(departure, arrival);
-  const rd = Math.floor(routeResult.distance * 100) / 100;
-  const rdu = Math.floor(routeResult.duration);
-  const dcc = rd * distance_charge;
-  const dcc2 = rdu * duration_charge;
-  result = dcc + dcc2 + base_charge;
-  return {
-    distance: rd,
-    duration: rdu,
-    result,
-    coords: routeResult.coords,
-    routes: routeResult.routes,
-  };
-});
+    if (!departure || !arrival) throw new Error("Please enter a departure and arrival address");
+    const routeResult = await Routing.getDistanceAndDuration(departure, arrival);
+    const newDistance = Math.floor(routeResult.distance * 100) / 100;
+    const newDuration = Math.max(0, duration - Math.floor(routeResult.duration));
+    const charginForDistance = newDistance * distance_charge;
+    const charginForDuration = newDuration * duration_charge;
+    result = charginForDistance + charginForDuration + base_charge;
+    return {
+      distance: newDistance,
+      duration: newDuration,
+      result,
+      coords: routeResult.coords,
+      routes: routeResult.routes,
+    };
+  }
+);
