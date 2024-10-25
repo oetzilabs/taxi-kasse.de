@@ -1,8 +1,10 @@
-import { action, cache, redirect } from "@solidjs/router";
+import { action, cache, json, redirect } from "@solidjs/router";
+import { Realtimed } from "@taxikassede/core/src/entities/realtime";
 import { Rides } from "@taxikassede/core/src/entities/rides";
 import { Users } from "@taxikassede/core/src/entities/users";
 import { InferInput } from "valibot";
 import { getContext } from "../auth/context";
+import { getStatistics } from "./statistics";
 
 export const getRides = cache(async () => {
   "use server";
@@ -57,8 +59,13 @@ export const addRide = action(async (data: CreateRide, _lastSavedVehicleId: stri
     });
   const newR = { ...data, user_id: ctx.user.id, org_id: ctx.session.organization_id };
   const ride = await Rides.create([newR]);
+
+  await Realtimed.sendToMqtt("ride.created", ride);
+
   // TODO: set lastSavedVehicleId somewhere...
-  return ride;
+  return json(ride, {
+    revalidate: [getRides.key, getStatistics.key],
+  });
 });
 
 export const getRide = cache(async (rid: string) => {
@@ -117,7 +124,12 @@ export const removeRide = action(async (rid: string) => {
   if (ctx.user.id !== owner_id) throw new Error("You are not the owner of this ride");
 
   const removed = await Rides.markDeleted(rid);
-  return removed;
+
+  await Realtimed.sendToMqtt("ride.deleted", ride);
+
+  return json(removed, {
+    revalidate: [getRides.key, getStatistics.key],
+  });
 });
 
 export const removeRideBulk = action(async (rids: Array<string>) => {
@@ -293,3 +305,39 @@ export const getSystemRides = cache(async () => {
   const rides = await Rides.allNonDeleted();
   return rides;
 }, "system-rides");
+
+export const removeRidesBulk = action(async (rids: Array<string>) => {
+  "use server";
+  const [ctx, _event] = await getContext();
+  if (!ctx)
+    throw redirect("/auth/login", {
+      statusText: "Please login",
+      status: 401,
+    });
+  if (!ctx.session)
+    throw redirect("/auth/login", {
+      statusText: "Please login",
+      status: 401,
+    });
+  if (!ctx.user)
+    throw redirect("/auth/login", {
+      statusText: "Please login",
+      status: 401,
+    });
+  if (!rids.length) throw new Error("No rides selected");
+
+  const ridesExist = await Rides.checkIfRidesAreOwnedByUser(rids);
+  if (ridesExist.length !== rids.length) throw new Error("Some rides are not owned by you");
+
+  // TODO: check if rides are owned by user
+  const removed = await Rides.markDeletedBulk(ridesExist.map((r) => r.id));
+
+  // send mqtt message
+  for (const ride of removed) {
+    await Realtimed.sendToMqtt("ride.deleted", ride);
+  }
+
+  return json(removed, {
+    revalidate: [getRides.key, getStatistics.key],
+  });
+});

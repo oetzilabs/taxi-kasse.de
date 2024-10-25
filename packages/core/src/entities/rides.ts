@@ -433,4 +433,64 @@ export module Rides {
     if (Number.isNaN(__sum)) return 0;
     return __sum;
   };
+
+  export const checkIfRidesAreOwnedByUser = async (rids: Array<InferInput<typeof Validator.Cuid2Schema>>) => {
+    const isValid = safeParse(array(Validator.Cuid2Schema), rids);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+    const ridesFound = await db.query.rides.findMany({
+      where: (fields, ops) => ops.and(ops.inArray(fields.id, isValid.output)),
+      with: {
+        user: {
+          with: {
+            orgs: {
+              with: {
+                user: true,
+                organization: {
+                  with: {
+                    owner: true,
+                    employees: true,
+                    regions: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        company: {
+          with: {
+            owner: true,
+            employees: {
+              with: {
+                user: true,
+              },
+            },
+          },
+        },
+        vehicle: {
+          with: {
+            owner: true,
+            model: true,
+          },
+        },
+        routes: {
+          orderBy: (fields, ops) => ops.desc(fields.createdAt),
+          with: {
+            segments: {
+              with: {
+                points: true,
+              },
+              orderBy: (fields, ops) => ops.desc(fields.createdAt),
+            },
+            waypoints: {
+              orderBy: (fields, ops) => ops.desc(fields.createdAt),
+            },
+          },
+        },
+      },
+      orderBy: (fields, ops) => ops.desc(fields.createdAt),
+    });
+    return ridesFound;
+  };
 }

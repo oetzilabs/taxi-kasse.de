@@ -1,12 +1,23 @@
 import type { Rides } from "@taxikassede/core/src/entities/rides";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { removeRidesBulk } from "@/lib/api/rides";
+import { useAction, useSubmission } from "@solidjs/router";
 import { createMutation } from "@tanstack/solid-query";
 import dayjs from "dayjs";
 import FileSpreadsheet from "lucide-solid/icons/file-spreadsheet";
 import FileStack from "lucide-solid/icons/file-stack";
 import FileText from "lucide-solid/icons/file-text";
+import Loader2 from "lucide-solid/icons/loader-2";
 import Menu from "lucide-solid/icons/menu";
 import Trash from "lucide-solid/icons/trash";
-import { Accessor, Show } from "solid-js";
+import { Accessor, createSignal, Show } from "solid-js";
 import { toast } from "solid-sonner";
 import { DotNotation, stringify, traverse } from "../utils";
 import { Button } from "./ui/button";
@@ -31,6 +42,10 @@ type RideSelectionMenuProps = {
 
 export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
   const amount = () => props.selected().length;
+
+  const removeBulkRidesAction = useAction(removeRidesBulk);
+  const removeBulkRidesSubmission = useSubmission(removeRidesBulk);
+  const [openDeleteModal, setOpenDeleteModal] = createSignal(false);
 
   const createReport = createMutation(() => ({
     mutationKey: ["ride-selection-menu", "create-report"],
@@ -102,11 +117,13 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
               error: "Failed to Create Report",
             });
           }}
+          disabled={amount() === 0}
         >
           <FileText class="size-4" />
           <span>Create Report</span>
         </DropdownMenuItem>
         <DropdownMenuItem
+          disabled={amount() === 0}
           onSelect={async () => {
             toast.promise(createCSV.mutateAsync, {
               loading: "Preparing CSV",
@@ -131,10 +148,51 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
           <span>Export to CSV</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => {}}>
-          <Trash class="size-4" />
-          <span>Delete</span>
-        </DropdownMenuItem>
+        <Dialog open={openDeleteModal()} onOpenChange={setOpenDeleteModal}>
+          <DialogTrigger
+            as={DropdownMenuItem}
+            class="flex flex-row items-center gap-2 text-red-500 hover:!bg-red-200 dark:hover:!bg-red-800 hover:!text-red-600 dark:hover:!text-red-500"
+            closeOnSelect={false}
+          >
+            <Trash class="size-4" />
+            <span>Delete {amount() === 1 ? "Ride" : "Rides"}</span>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>Delete Ride{amount() === 1 ? "" : "s"}?</DialogHeader>
+            <DialogDescription>
+              Are you sure you want to delete this selection of rides? This action cannot be undone. All data associated
+              with these rides will be deleted.
+            </DialogDescription>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setOpenDeleteModal(false);
+                }}
+              >
+                No, Cancel!
+              </Button>
+              <Button
+                variant="destructive"
+                disabled={amount() === 0 || removeBulkRidesSubmission.pending}
+                onClick={async () => {
+                  const rides = props.selected();
+                  toast.promise(removeBulkRidesAction(rides), {
+                    loading: "Deleting Rides...",
+                    success: "Rides Deleted",
+                    error: "Failed to Delete Rides",
+                  });
+                  setOpenDeleteModal(false);
+                }}
+              >
+                <Show when={removeBulkRidesSubmission.pending} fallback="Yes, Delete">
+                  <span class="text-sm">Deleting Rides...</span>
+                  <Loader2 class="size-4 animate-spin" />
+                </Show>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </DropdownMenuContent>
     </DropdownMenu>
   );

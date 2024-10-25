@@ -3,7 +3,7 @@ import type { DotNotation } from "../utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox, CheckboxControl } from "@/components/ui/checkbox";
 import { TextField, TextFieldRoot } from "@/components/ui/textfield";
-import { concat, remove, removeItems } from "@solid-primitives/signal-builders";
+import { concat, filter, remove, removeItems } from "@solid-primitives/signal-builders";
 import { A, revalidate, useSearchParams } from "@solidjs/router";
 import { UserSession } from "~/lib/auth/util";
 import dayjs from "dayjs";
@@ -172,8 +172,15 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
         setRides(concatted());
       });
 
+      const unsubRideDeleted = rt.subscribe("ride.deleted", (payload) => {
+        // console.log("received system notification", payload);
+        const filtered = filter(rides, (r) => r.id !== payload.id);
+        setRides(filtered());
+      });
+
       onCleanup(() => {
         unsubRideCreated();
+        unsubRideDeleted();
       });
     }
   });
@@ -502,7 +509,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                                       rideIndex() < rides.length - 1 &&
                                       !highlightedRows().includes(ride.id) &&
                                       currentHighlightedRow() !== ride.id,
-                                  }
+                                  },
                                 )}
                               >
                                 <div class="flex flex-row w-full p-6 items-center justify-between">
