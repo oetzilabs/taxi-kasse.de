@@ -1,7 +1,10 @@
 import { action, cache, json, redirect } from "@solidjs/router";
 import { db } from "@taxikassede/core/src/drizzle/sql";
+import { Companies } from "@taxikassede/core/src/entities/companies";
+import { Organizations } from "@taxikassede/core/src/entities/organizations";
 import { Realtimed } from "@taxikassede/core/src/entities/realtime";
 import { Rides } from "@taxikassede/core/src/entities/rides";
+import { Routing } from "@taxikassede/core/src/entities/routing";
 import { Users } from "@taxikassede/core/src/entities/users";
 import { Vehicles } from "@taxikassede/core/src/entities/vehicles";
 import { InferInput } from "valibot";
@@ -379,4 +382,80 @@ export const removeRidesBulk = action(async (rids: Array<string>) => {
   return json(removed, {
     revalidate: [getRides.key, getStatistics.key],
   });
+});
+
+export const calculateDistanceAndCharge = action(async (vehicle: string, departure: string, arrival: string) => {
+  "use server";
+  const [ctx, _event] = await getContext();
+  if (!ctx)
+    throw redirect("/auth/login", {
+      statusText: "Please login",
+      status: 401,
+    });
+  if (!ctx.session)
+    throw redirect("/auth/login", {
+      statusText: "Please login",
+      status: 401,
+    });
+  if (!ctx.user)
+    throw redirect("/auth/login", {
+      statusText: "Please login",
+      status: 401,
+    });
+
+  const v = await Vehicles.findById(vehicle);
+  if (!v) throw new Error("Vehicle not found");
+  let distance_charge = 0;
+  let duration_charge = 0;
+  let base_charge = 0;
+  let result = 0;
+  if (ctx.session.organization_id) {
+    const org = await Organizations.findById(ctx.session.organization_id);
+    if (org) {
+      const dc = Number(org.distance_charge);
+      if (!isNaN(dc)) {
+        distance_charge = dc;
+      }
+      const tc = Number(org.time_charge);
+      if (!isNaN(tc)) {
+        duration_charge = tc;
+      }
+      const bc = Number(org.base_charge);
+      if (!isNaN(bc)) {
+        base_charge = bc;
+      }
+    }
+  }
+  if (ctx.session.company_id) {
+    const comp = await Companies.findById(ctx.session.company_id);
+    if (comp) {
+      const dc = Number(comp.distance_charge);
+      if (!isNaN(dc)) {
+        distance_charge = dc;
+      }
+      const tc = Number(comp.time_charge);
+      if (!isNaN(tc)) {
+        duration_charge = tc;
+      }
+      const bc = Number(comp.base_charge);
+      if (!isNaN(bc)) {
+        base_charge = bc;
+      }
+    }
+  }
+
+  if (!departure || !arrival) throw new Error("Please enter a departure and arrival address");
+  const routeResult = await Routing.getDistanceAndDuration(departure, arrival);
+  const rd = Math.floor(routeResult.distance * 100) / 100;
+  const rdu = Math.floor(routeResult.duration);
+  const dcc = rd * distance_charge;
+  const dcc2 = rdu * duration_charge;
+  result = dcc + dcc2 + base_charge;
+  return {
+    distance: rd,
+    duration: rdu,
+    result,
+    coords: routeResult.coords,
+    routes: routeResult.routes,
+  };
 });

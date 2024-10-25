@@ -240,19 +240,19 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
         setHighlightedRows([]);
       }
 
-      if (event.key === "s" || event.key === " ") {
-        if (searchRef && !searchRef.contains(event.target as Node)) event.preventDefault();
-        const hr = highlightedRows();
-        if (rowId) {
-          if (hr.includes(rowId)) {
-            const removed = remove(highlightedRows, rowId);
-            setHighlightedRows(removed());
-          } else {
-            const concatted = concat(highlightedRows, rowId);
-            setHighlightedRows(concatted());
-          }
-        }
-      }
+      // if (event.key === "s" || event.key === " ") {
+      //   if (searchRef && !searchRef.contains(event.target as Node)) event.preventDefault();
+      //   const hr = highlightedRows();
+      //   if (rowId) {
+      //     if (hr.includes(rowId)) {
+      //       const removed = remove(highlightedRows, rowId);
+      //       setHighlightedRows(removed());
+      //     } else {
+      //       const concatted = concat(highlightedRows, rowId);
+      //       setHighlightedRows(concatted());
+      //     }
+      //   }
+      // }
       setCurrentHighlightedRow(rowId);
     };
 

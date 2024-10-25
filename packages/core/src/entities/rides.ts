@@ -30,6 +30,8 @@ export module Rides {
       status: picklist(ride_status.enumValues),
       startedAt: date(),
       endedAt: date(),
+      departure: string(),
+      arrival: string(),
     }),
   );
   export const UpdateSchema = intersect([partial(CreateSchema.item), object({ id: Validator.Cuid2Schema })]);
@@ -100,7 +102,13 @@ export module Rides {
     if (!isValid.success) {
       throw isValid.issues;
     }
-    const [created] = await tsx.insert(rides).values(isValid.output).returning();
+    const toBeCreated = [];
+    for (const ride of isValid.output) {
+      const { departure, arrival, ...rest } = ride;
+      // do stuff with the departure, arrival
+      toBeCreated.push(rest);
+    }
+    const [created] = await tsx.insert(rides).values(toBeCreated).returning();
     const ride = await Rides.findById(created.id);
     return ride!;
   };
