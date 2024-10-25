@@ -25,6 +25,10 @@ export const database = () => {
 
 export const db = database();
 
+export async function createTransaction<T extends typeof db>(cb: (trx: T) => void) {
+  await db.transaction(cb as any);
+}
+
 export const migrate = async () => {
   const config = {
     migrationsFolder: join(process.cwd(), "drizzle/migrations"),

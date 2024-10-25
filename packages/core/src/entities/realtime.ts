@@ -4,6 +4,7 @@ import type { Orders } from "./orders";
 import type { Rides } from "./rides";
 import { IoTDataPlaneClient, PublishCommand, PublishCommandOutput } from "@aws-sdk/client-iot-data-plane";
 import { Resource } from "sst";
+import { Vehicles } from "./vehicles";
 
 export module Realtimed {
   export type Unknown = {
@@ -23,6 +24,11 @@ export module Realtimed {
     action: "created" | "updated" | "deleted" | "unknown";
     payload: Rides.Info;
   };
+  export type Vehicle = {
+    type: "vehicle";
+    action: "created" | "updated" | "deleted" | "unknown";
+    payload: Vehicles.Info;
+  };
   export type SystemNotification = {
     type: "systemnotification";
     action: "created" | "updated" | "deleted" | "unknown";
@@ -40,7 +46,7 @@ export module Realtimed {
   };
 
   export type Events = {
-    realtime: Payment | Ride | SystemNotification | Hotspot | Event | Unknown;
+    realtime: Payment | Ride | Vehicle | SystemNotification | Hotspot | Event | Unknown;
   };
 
   export const Events = {
@@ -54,7 +60,7 @@ export module Realtimed {
     T extends Realtimed.Events["realtime"]["type"],
     P extends Extract<Realtimed.Events["realtime"], { type: T }>["payload"],
     A extends Extract<Realtimed.Events["realtime"], { type: T }>["action"],
-    TA extends `${T}.${A}`
+    TA extends `${T}.${A}`,
   >(
     target: TA,
     payload: P,

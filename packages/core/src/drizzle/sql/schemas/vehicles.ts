@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { decimal, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, decimal, text, timestamp } from "drizzle-orm/pg-core";
 import { commonTable } from "./entity";
 import { rides } from "./rides";
 import { users } from "./users";
@@ -11,9 +11,13 @@ export const vehicles = commonTable(
     owner_id: text("owner_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+
     name: text("name").notNull(),
     license_plate: text("license_plate").notNull(),
     model_id: text("model_id").references(() => vehicle_models.id, { onDelete: "set null" }),
+
+    preferred: boolean("preferred").default(false),
+
     inspection_date: timestamp("inspection_date", {
       withTimezone: true,
       mode: "date",

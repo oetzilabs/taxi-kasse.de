@@ -7,6 +7,7 @@ import { user_role } from "./roles";
 import { user_companies } from "./user_companies";
 import { user_organizations } from "./user_organizations";
 import { schema } from "./utils";
+import { vehicles } from "./vehicles";
 
 export const currency_code = schema.enum("currency_code", ["USD", "EUR", "GBP", "CHF", "JPY", "AUD", "CAD", "NZD"]);
 

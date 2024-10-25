@@ -64,6 +64,13 @@
       "when": 1729675244793,
       "tag": "0008_slow_darkstar",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1729857088953,
+      "tag": "0009_wooden_prowler",
+      "breakpoints": true
     }
   ]
 }

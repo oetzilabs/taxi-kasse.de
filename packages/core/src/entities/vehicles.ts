@@ -1,6 +1,7 @@
-import { eq, isNull } from "drizzle-orm";
+import { eq, inArray, isNull } from "drizzle-orm";
 import {
   array,
+  boolean,
   date,
   InferInput,
   intersect,
@@ -29,6 +30,7 @@ export module Vehicles {
       model_id: nullable(string()),
       inspection_date: nullable(date()),
       mileage: string(),
+      preferred: optional(boolean()),
       overwrite_base_charge: optional(
         nullable(
           pipe(
@@ -114,7 +116,13 @@ export module Vehicles {
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return tsx.update(vehicles).set(isValid.output).where(eq(vehicles.id, isValid.output.id)).returning();
+    const [updated] = await tsx
+      .update(vehicles)
+      .set(isValid.output)
+      .where(eq(vehicles.id, isValid.output.id))
+      .returning();
+    const vehicle = await Vehicles.findById(updated.id, tsx)!;
+    return vehicle!;
   };
 
   export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
@@ -187,5 +195,42 @@ export module Vehicles {
       .set({ deletedAt: new Date(), updatedAt: new Date() })
       .where(eq(vehicles.id, isValid.output))
       .returning();
+  };
+
+  export const findManyById = async (ids: Array<InferInput<typeof Validator.Cuid2Schema>>, tsx = db) => {
+    const isValid = safeParse(array(Validator.Cuid2Schema), ids);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+    const vehiclesFound = await tsx.query.vehicles.findMany({
+      where: (fields, ops) => ops.and(ops.inArray(fields.id, isValid.output)),
+      with: _with,
+    });
+
+    return vehiclesFound;
+  };
+
+  export const UpdateBulkSchema = partial(CreateSchema.item);
+
+  export const updateBulk = async (
+    ids: Array<InferInput<typeof Validator.Cuid2Schema>>,
+    data: InferInput<typeof Vehicles.UpdateBulkSchema>,
+    tsx = db,
+  ) => {
+    const isValid = safeParse(array(Validator.Cuid2Schema), ids);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+    const isValidData = safeParse(Vehicles.UpdateBulkSchema, data);
+    if (!isValidData.success) {
+      throw isValidData.issues;
+    }
+    const updated = await tsx
+      .update(vehicles)
+      .set(isValidData.output)
+      .where(inArray(vehicles.id, isValid.output))
+      .returning();
+    const vs = await Vehicles.findManyById(updated.map((v) => v.id));
+    return vs;
   };
 }

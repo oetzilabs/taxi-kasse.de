@@ -1,0 +1,1 @@
+ALTER TABLE "taxikassede"."vehicles" ADD COLUMN "preferred" boolean DEFAULT false;

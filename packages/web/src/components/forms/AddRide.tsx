@@ -27,6 +27,7 @@ import { createStore } from "solid-js/store";
 import { toast } from "solid-sonner";
 import { maxValue, minValue, number, pipe, string, transform } from "valibot";
 import { language } from "../stores/Language";
+import { Badge } from "../ui/badge";
 import { Checkbox, CheckboxControl, CheckboxDescription, CheckboxLabel } from "../ui/checkbox";
 
 const MinuteNumberSchema = pipe(
@@ -150,80 +151,108 @@ const AddRideModal = (props: {
                       keyed
                       fallback={
                         <For each={vs()}>
-                          {(vehicle) => (
-                            <div
-                              class={cn(
-                                "flex items-center gap-2 flex-col w-full border border-neutral-300 dark:border-neutral-800 p-4 hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer h-full rounded-lg select-none",
-                                {
-                                  "bg-black text-white dark:bg-white dark:text-black hover:bg-neutral-900 dark:hover:bg-neutral-100":
-                                    vehicle.id === newRide.vehicle_id,
-                                },
-                              )}
-                              onClick={() => {
-                                if (vehicle.id === newRide.vehicle_id) {
-                                  setNewRide("vehicle_id", "");
-                                  setCheckSavedVehicleId("");
-                                  return;
-                                } else {
-                                  setNewRide("vehicle_id", vehicle.id);
-                                }
-                              }}
-                            >
-                              <div class="flex flex-row items-baseline gap-2 text-sm font-bold w-full">
-                                <span class="w-max">{vehicle.name}</span>
-                                <Show when={vehicle.model} keyed>
-                                  {(model) => (
-                                    <span class="text-xs text-neutral-500 w-max font-medium">
-                                      ({model.name} - {model.brand})
-                                    </span>
-                                  )}
+                          {(vehicle) => {
+                            if (vehicle.preferred !== null && vehicle.preferred) {
+                              setCheckSavedVehicleId(vehicle.id);
+                              setNewRide("vehicle_id", vehicle.id);
+                            }
+                            return (
+                              <div
+                                class={cn(
+                                  "flex items-start gap-2 flex-col w-full border border-neutral-300 dark:border-neutral-800 p-4 hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer h-full rounded-lg select-none",
+                                  {
+                                    "bg-black text-white dark:bg-white dark:text-black hover:bg-neutral-900 dark:hover:bg-neutral-100":
+                                      vehicle.id === newRide.vehicle_id,
+                                  },
+                                )}
+                                onClick={() => {
+                                  if (vehicle.id === newRide.vehicle_id) {
+                                    setNewRide("vehicle_id", "");
+                                    return;
+                                  } else {
+                                    setNewRide("vehicle_id", vehicle.id);
+                                    if (checkSavedVehicleId() !== vehicle.id) {
+                                      setCheckSavedVehicleId("");
+                                    }
+                                    if (vehicle.preferred !== null && vehicle.preferred) {
+                                      setCheckSavedVehicleId(vehicle.id);
+                                    }
+                                  }
+                                }}
+                              >
+                                <Show
+                                  when={vehicle.preferred !== null && vehicle.preferred}
+                                  fallback={<div class={cn("text-xs rounded-sm px-1 py-0.5")}>&nbsp;</div>}
+                                >
+                                  <div class="text-[10px] text-muted-foreground border border-blue-500 rounded-sm px-1 py-0.5 bg-blue-500 text-white">
+                                    Preferred
+                                  </div>
                                 </Show>
+                                <div class="flex flex-row items-baseline gap-2 text-sm font-bold w-full">
+                                  <span class="w-max">{vehicle.name}</span>
+                                  <Show when={vehicle.model} keyed>
+                                    {(model) => (
+                                      <span class="text-xs text-neutral-500 w-max font-medium">
+                                        ({model.name} - {model.brand})
+                                      </span>
+                                    )}
+                                  </Show>
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            );
+                          }}
                         </For>
                       }
                     >
-                      {(vehicle) => (
-                        <div
-                          class={cn(
-                            "col-span-full flex items-center gap-2 flex-col w-full border border-neutral-300 dark:border-neutral-800 p-6 hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer rounded-lg",
-                            {
-                              "bg-black text-white dark:bg-white dark:text-black hover:bg-neutral-900 dark:hover:bg-neutral-100":
-                                vehicle.id === newRide.vehicle_id,
-                            },
-                          )}
-                          onClick={() => {
-                            if (vehicle.id === newRide.vehicle_id) {
-                              setNewRide("vehicle_id", "");
-                              setCheckSavedVehicleId("");
-                              return;
-                            } else {
-                              setNewRide("vehicle_id", vehicle.id);
-                            }
-                          }}
-                        >
-                          <div class="flex flex-row items-center gap-2 text-sm font-bold w-full">
-                            <span>{vehicle.name}</span>
-                            <Show when={vehicle.model} keyed>
-                              {(model) => (
-                                <span>
-                                  ({model.name} - {model.brand})
-                                </span>
-                              )}
-                            </Show>
-                          </div>
+                      {(vehicle) => {
+                        if (vehicle.preferred !== null && vehicle.preferred) {
+                          setCheckSavedVehicleId(vehicle.id);
+                          setNewRide("vehicle_id", vehicle.id);
+                        }
+                        return (
                           <div
-                            class={cn("text-xs text-neutral-500 w-full font-medium", {
-                              "text-blue-500": vehicle.id === newRide.vehicle_id,
-                            })}
+                            class={cn(
+                              "col-span-full flex items-center gap-2 flex-col w-full border border-neutral-300 dark:border-neutral-800 p-6 hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer rounded-lg",
+                              {
+                                "bg-black text-white dark:bg-white dark:text-black hover:bg-neutral-900 dark:hover:bg-neutral-100":
+                                  vehicle.id === newRide.vehicle_id,
+                              },
+                            )}
+                            onClick={() => {
+                              if (vehicle.id === newRide.vehicle_id) {
+                                setNewRide("vehicle_id", "");
+                                setCheckSavedVehicleId("");
+                                return;
+                              } else {
+                                setNewRide("vehicle_id", vehicle.id);
+                              }
+                            }}
                           >
-                            <Show when={vehicle.id === newRide.vehicle_id} fallback={"Click to Select"}>
-                              Selected
+                            <div class="flex flex-row items-center gap-2 text-sm font-bold w-full">
+                              <span>{vehicle.name}</span>
+                              <Show when={vehicle.model} keyed>
+                                {(model) => (
+                                  <span>
+                                    ({model.name} - {model.brand})
+                                  </span>
+                                )}
+                              </Show>
+                            </div>
+                            <Show when={vehicle.preferred !== null && vehicle.preferred}>
+                              <Badge variant="secondary">Preferred</Badge>
                             </Show>
+                            <div
+                              class={cn("text-xs text-neutral-500 w-full font-medium", {
+                                "text-blue-500": vehicle.id === newRide.vehicle_id,
+                              })}
+                            >
+                              <Show when={vehicle.id === newRide.vehicle_id} fallback={"Click to Select"}>
+                                Selected
+                              </Show>
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        );
+                      }}
                     </Show>
                   </div>
                   <div
@@ -346,107 +375,6 @@ const AddRideModal = (props: {
                       </Show>
                     </div>
                   </div>
-                  {/* <div class="w-full flex flex-col gap-1">
-                    <span class="text-sm font-bold">Start Time</span>
-                    <Calendar
-                      value={newRide.startedAt}
-                      onChange={(v) => {
-                        setNewRide("startedAt", v);
-                        const MinDateSchema = pipe(
-                          date("Please provide a date"),
-                          minValue(newRide.startedAt!, "The end date must be after the start date"),
-                        );
-                        const isValid = safeParse(MinDateSchema, newRide.endedAt);
-                        if (!isValid.success) {
-                          setError(isValid.issues[0].message);
-                          console.log(isValid.issues[0].message);
-                          return;
-                        } else {
-                          setError(undefined);
-                        }
-                      }}
-                    />
-                    <div class="w-full flex flex-row items-center justify-between gap-2">
-                      <TextFieldRoot
-                        value={dayjs(newRide.startedAt).format("HH")}
-                        onChange={(v) => {
-                          const isValid = safeParse(HourNumberSchema, v);
-                          if (!isValid.success) {
-                            setErrors("startedAtHour", isValid.issues[0].message);
-                            return;
-                          }
-                          setNewRide("startedAt", dayjs(newRide.startedAt).set("hour", Number(v)).toDate());
-                        }}
-                        class="w-full"
-                      >
-                        <TextFieldLabel>
-                          <span class="text-sm  font-bold">Time (hour)</span>
-                          <TextField class="w-full" />
-                        </TextFieldLabel>
-                        <Show when={errors.startedAtHour.length > 0}>
-                          <TextFieldErrorMessage>{errors.startedAtHour}</TextFieldErrorMessage>
-                        </Show>
-                      </TextFieldRoot>
-                      <TextFieldRoot
-                        value={dayjs(newRide.startedAt).format("mm")}
-                        onChange={(v) => {
-                          setNewRide("startedAt", dayjs(newRide.startedAt).set("minute", Number(v)).toDate());
-                        }}
-                        class="w-full"
-                      >
-                        <TextFieldLabel>
-                          <span class="text-sm  font-bold">Time (minute)</span>
-                          <TextField class="w-full" />
-                        </TextFieldLabel>
-                        <Show when={errors.startedAtMinute.length > 0}>
-                          <TextFieldErrorMessage>{errors.startedAtMinute}</TextFieldErrorMessage>
-                        </Show>
-                      </TextFieldRoot>
-                    </div>
-                  </div>
-                  <div class="w-full flex flex-col gap-1">
-                    <span class="text-sm font-bold">Duration</span>
-                    <div class="w-full flex flex-row items-center justify-between gap-2">
-                      <NumberField
-                        changeOnWheel={false}
-                        minValue={0}
-                        maxValue={23}
-                        value={Number(dayjs(newRide.endedAt).format("HH"))}
-                        onChange={(v) => {
-                          if (v === null) return;
-                          if (Number(v) < 0) v = "0";
-                          setNewRide("endedAt", dayjs(newRide.startedAt).add(Number(v), "hours").toDate());
-                        }}
-                      >
-                        <NumberFieldLabel class="text-sm font-bold">Hour</NumberFieldLabel>
-                        <NumberFieldHiddenInput />
-                        <NumberFieldGroup>
-                          <NumberFieldDecrementTrigger aria-label="Decrement" />
-                          <NumberFieldInput />
-                          <NumberFieldIncrementTrigger aria-label="Increment" />
-                        </NumberFieldGroup>
-                      </NumberField>
-                      <NumberField
-                        changeOnWheel={false}
-                        minValue={0}
-                        maxValue={59}
-                        value={Number(dayjs(newRide.endedAt).format("mm"))}
-                        onChange={(v) => {
-                          if (v === null) return;
-                          if (Number(v) < 0) v = "0";
-                          setNewRide("endedAt", dayjs(newRide.startedAt).add(Number(v), "minutes").toDate());
-                        }}
-                      >
-                        <NumberFieldLabel class="text-sm font-bold text-right">Minutes</NumberFieldLabel>
-                        <NumberFieldHiddenInput />
-                        <NumberFieldGroup>
-                          <NumberFieldDecrementTrigger aria-label="Decrement" />
-                          <NumberFieldInput />
-                          <NumberFieldIncrementTrigger aria-label="Increment" />
-                        </NumberFieldGroup>
-                      </NumberField>
-                    </div>
-                  </div> */}
                   <Show when={error()}>{(e) => <div class="text-sm text-red-500">{e()}</div>}</Show>
                   <div class=""></div>
                 </Show>

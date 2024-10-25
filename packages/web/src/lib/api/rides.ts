@@ -1,7 +1,9 @@
 import { action, cache, json, redirect } from "@solidjs/router";
+import { db } from "@taxikassede/core/src/drizzle/sql";
 import { Realtimed } from "@taxikassede/core/src/entities/realtime";
 import { Rides } from "@taxikassede/core/src/entities/rides";
 import { Users } from "@taxikassede/core/src/entities/users";
+import { Vehicles } from "@taxikassede/core/src/entities/vehicles";
 import { InferInput } from "valibot";
 import { getContext } from "../auth/context";
 import { getStatistics } from "./statistics";
@@ -34,7 +36,7 @@ export const getRidesByUserId = cache(async (id: string) => {
 
 export type CreateRide = Omit<InferInput<typeof Rides.CreateSchema.item>, "user_id" | "org_id">;
 
-export const addRide = action(async (data: CreateRide, _lastSavedVehicleId: string | null) => {
+export const addRide = action(async (data: CreateRide, lastSavedVehicleId: string | null) => {
   "use server";
   const [ctx, _event] = await getContext();
   if (!ctx)
@@ -60,9 +62,46 @@ export const addRide = action(async (data: CreateRide, _lastSavedVehicleId: stri
   const newR = { ...data, user_id: ctx.user.id, org_id: ctx.session.organization_id };
   const ride = await Rides.create([newR]);
 
+  // TODO: set lastSavedVehicleId somewhere...
+  if (lastSavedVehicleId) {
+    const c = await db.transaction(async (tsx) => {
+      let collection: Array<Vehicles.Info> = [];
+      try {
+        const updatedVehicle = await Vehicles.update(
+          {
+            id: data.vehicle_id,
+            preferred: data.vehicle_id === lastSavedVehicleId,
+          },
+          // @ts-ignore
+          tsx,
+        );
+        const allVehicles = await Vehicles.findByUserId(
+          ctx.user.id,
+          // @ts-ignore
+          tsx,
+        );
+        const unPreferredVehicles = allVehicles.filter((v) => v.id !== data.vehicle_id);
+        const updatedOtherVehicles = await Vehicles.updateBulk(
+          unPreferredVehicles.map((v) => v.id),
+          { preferred: false },
+          // @ts-ignore
+          tsx,
+        );
+        const c = updatedOtherVehicles.concat(updatedVehicle);
+        collection = c;
+      } catch (e) {
+        console.dir(e, { depth: Infinity });
+        tsx.rollback();
+      }
+      return collection;
+    });
+    for (const vehicle of c) {
+      await Realtimed.sendToMqtt("vehicle.updated", vehicle);
+    }
+  }
+
   await Realtimed.sendToMqtt("ride.created", ride);
 
-  // TODO: set lastSavedVehicleId somewhere...
   return json(ride, {
     revalidate: [getRides.key, getStatistics.key],
   });
