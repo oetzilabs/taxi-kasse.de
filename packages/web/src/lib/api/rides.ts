@@ -65,8 +65,11 @@ export const addRide = action(async (data: CreateRide, lastSavedVehicleId: strin
   const newR = { ...data, user_id: ctx.user.id, org_id: ctx.session.organization_id };
   const ride = await Rides.create([newR]);
 
+  const v = await Vehicles.findById(data.vehicle_id);
+  if (!v) throw new Error("Vehicle not found");
+
   // TODO: set lastSavedVehicleId somewhere...
-  if (lastSavedVehicleId) {
+  if (lastSavedVehicleId && lastSavedVehicleId !== data.vehicle_id && v.preferred !== null && !v.preferred) {
     const c = await db.transaction(async (tsx) => {
       let collection: Array<Vehicles.Info> = [];
       try {

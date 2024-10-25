@@ -1,5 +1,6 @@
 import * as L from "leaflet";
-import "polyline-encoded";
+// @ts-ignore
+import polyline from "polyline-encoded";
 import { Accessor, createEffect, createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import "leaflet/dist/leaflet.css";
 import { useColorMode } from "@kobalte/core";
@@ -72,20 +73,22 @@ const ClientRouteMap = (props: ClientRouteMapProps) => {
 
   const drawRoute = (map: L.Map, geometry: string) => {
     try {
-      // Decode the polyline and draw it on the map
-      // @ts-ignore
-      const polyline = L.polyline(L.Polyline.fromEncoded(geometry), {
+      // Decode the polyline using the imported polyline package
+      const latLngs = polyline.decode(geometry); // Decode the geometry
+      const points = latLngs.map(([lat, lng]: [number, number]) => L.latLng(lat, lng)); // Convert to L.LatLng
+
+      const polylineLayer = L.polyline(points, {
         color: "blue",
         weight: 4,
       }).addTo(map);
-      routeLayer = polyline;
 
-      // Adjust the map view to the route bounds
-      // map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
+      routeLayer = polylineLayer;
 
-      // Optionally, extract step instructions if you have them available
-      // This part assumes you have a method to get steps from geometry
-      const steps = getStepsFromGeometry(geometry); // Implement this based on your route logic
+      // Adjust the map view to fit the polyline bounds
+      // map.fitBounds(polylineLayer.getBounds(), { padding: [20, 20] });
+
+      // Example step extraction (replace with actual logic)
+      const steps = getStepsFromGeometry(geometry);
       setRouteSteps(steps);
     } catch (error) {
       console.error("Error drawing route:", error);
@@ -120,7 +123,20 @@ const ClientRouteMap = (props: ClientRouteMapProps) => {
     }
   });
 
-  // Clean up map and markers when component is unmounted
+  createEffect(() => {
+    const m = map();
+    if (!m) return;
+    // rerender the route steps when the geometry changes
+    // first remove the old route layer
+    if (routeLayer) {
+      routeLayer.removeFrom(m);
+    }
+    const geometry = props.geometry();
+    if (geometry) {
+      drawRoute(m, geometry);
+    }
+  });
+
   // Clean up map and markers when component is unmounted
   onCleanup(() => {
     const m = map();
