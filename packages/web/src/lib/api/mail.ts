@@ -9,7 +9,7 @@ export const sendMail = action(async (to: string) => {
   if (!ctx.session) throw redirect("/auth/login");
   if (!ctx.user) throw redirect("/auth/login");
 
-  const testmail = await Email.send("info", to, "test mail from dev stage", "this is a test").catch((e) => {
+  const testmail = await Email.sendLegacy(to, "test mail from dev stage", "this is a test").catch((e) => {
     console.error(e);
     return null;
   });

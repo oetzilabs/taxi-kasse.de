@@ -36,6 +36,14 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "MailPassword": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "MailUsername": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "MainEmail": {
       "configSet": string
       "sender": string

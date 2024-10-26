@@ -13,12 +13,13 @@
     "studio": "sst shell 'bun run drizzle-kit studio'"
   },
   "devDependencies": {
-    "@types/pg-pool": "2.0.6",
     "@tsconfig/node22": "22.0.0",
     "@types/node": "22.4.2",
+    "@types/nodemailer": "^6.4.16",
+    "@types/pg-pool": "2.0.6",
     "drizzle-kit": "0.24.2",
-    "vitest": "2.1.1",
-    "tsx": "4.19.1"
+    "tsx": "4.19.1",
+    "vitest": "2.1.1"
   },
   "dependencies": {
     "@aws-sdk/client-iot-data-plane": "3.677.0",
@@ -27,16 +28,17 @@
     "@neondatabase/serverless": "0.9.5",
     "@paralleldrive/cuid2": "^2.2.2",
     "dayjs": "1.11.13",
-    "valibot": "0.42.0",
-    "pg": "8.13.0",
-    "pg-pool": "3.7.0",
-    "postgres": "3.4.4",
-    "drizzle-valibot": "0.2.0",
     "drizzle-orm": "0.33.0",
+    "drizzle-valibot": "0.2.0",
     "drizzle-zod": "0.5.1",
     "lucia": "^3.2.0",
     "node-fetch": "3.3.2",
+    "nodemailer": "^6.9.15",
     "oslo": "^1.2.1",
+    "pg": "8.13.0",
+    "pg-pool": "3.7.0",
+    "postgres": "3.4.4",
+    "valibot": "0.42.0",
     "zod": "^3.23.8"
   }
 }
