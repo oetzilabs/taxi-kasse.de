@@ -185,7 +185,13 @@ export default function DashboardLayout(props: RouteSectionProps) {
           <Sidebar />
           <div class="flex flex-col w-full h-full overflow-y-scroll">
             <div class="flex flex-col gap-0 w-full grow container mx-auto">
-              <Suspense fallback={<Loader2 class="size-4 animate-spin" />}>
+              <Suspense
+                fallback={
+                  <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
+                    <Loader2 class="size-4 animate-spin" />
+                  </div>
+                }
+              >
                 <Show when={allNotifications() && allNotifications()}>
                   {(ns) => (
                     <NotificationList
