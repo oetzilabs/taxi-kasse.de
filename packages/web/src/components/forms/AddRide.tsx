@@ -37,7 +37,7 @@ const MinuteNumberSchema = pipe(
   transform((v) => Number(v)),
   number("Please provide a number"),
   minValue(0, "The time must be greater than 0"),
-  maxValue(59, "The time must be less than 59")
+  maxValue(59, "The time must be less than 59"),
 );
 
 const HourNumberSchema = pipe(
@@ -45,7 +45,7 @@ const HourNumberSchema = pipe(
   transform((v) => Number(v)),
   number("Please provide a number"),
   minValue(0, "The time must be greater than 0"),
-  maxValue(23, "The time must be less than 23")
+  maxValue(23, "The time must be less than 23"),
 );
 
 const ClientRouteMap = clientOnly(() => import("../ClientRouteMap"));
@@ -105,36 +105,42 @@ const AddRideModal = (props: {
   const calculateDistanceAndChargeAction = useAction(calculateDistanceAndCharge);
   const calculateDistanceAndChargeSubmission = useSubmission(calculateDistanceAndCharge);
 
-  const [fromCoords, setFromCoords] = createSignal<
-    | {
-        lat: number;
-        lng: number;
-      }
-    | undefined
-  >(undefined);
-  const [toCoords, setToCoords] = createSignal<
-    | {
-        lat: number;
-        lng: number;
-      }
-    | undefined
-  >(undefined);
+  const [fromCoords, setFromCoords] = createSignal<[number, number] | undefined>(undefined);
+  const [toCoords, setToCoords] = createSignal<[number, number] | undefined>(undefined);
   const [routeGeometry, setRouteGeometry] = createSignal<string | undefined>(undefined);
+
+  const resetForm = () => {
+    setNewRide("vehicle_id", "");
+    setNewRide("distance", "0.000");
+    setNewRide("income", "0.00");
+    setNewRide("rating", "5.00");
+    setNewRide("status", "accepted");
+    setNewRide("startedAt", dayjs().toDate());
+    setNewRide("endedAt", dayjs().toDate());
+    setNewRide("arrival", "");
+    setNewRide("departure", "");
+    setFromCoords(undefined);
+    setToCoords(undefined);
+    setRouteGeometry(undefined);
+    setCheckSavedVehicleId("");
+    addRideStatus.clear();
+    calculateDistanceAndChargeSubmission.clear();
+    setOpen(false);
+    setError("");
+    setErrors({
+      startedAtHour: "",
+      startedAtMinute: "",
+      endedAtHour: "",
+      endedAtMinute: "",
+    });
+  };
 
   return (
     <Dialog
       open={open()}
       onOpenChange={(state) => {
         if (!state) {
-          setNewRide("vehicle_id", "");
-          setNewRide("distance", "0.000");
-          setNewRide("income", "0.00");
-          setNewRide("rating", "5.00");
-          setNewRide("status", "accepted");
-          setNewRide("startedAt", dayjs().toDate());
-          setNewRide("endedAt", dayjs().toDate());
-          setCheckSavedVehicleId("");
-          addRideStatus.clear();
+          resetForm();
         }
         setOpen(state);
       }}
@@ -190,7 +196,7 @@ const AddRideModal = (props: {
                                     {
                                       "bg-black text-white dark:bg-white dark:text-black hover:bg-neutral-900 dark:hover:bg-neutral-100":
                                         vehicle.id === newRide.vehicle_id,
-                                    }
+                                    },
                                   )}
                                   onClick={() => {
                                     if (vehicle.id === newRide.vehicle_id) {
@@ -243,7 +249,7 @@ const AddRideModal = (props: {
                                 {
                                   "bg-black text-white dark:bg-white dark:text-black hover:bg-neutral-900 dark:hover:bg-neutral-100":
                                     vehicle.id === newRide.vehicle_id,
-                                }
+                                },
                               )}
                               onClick={() => {
                                 if (vehicle.id === newRide.vehicle_id) {
@@ -292,7 +298,7 @@ const AddRideModal = (props: {
                         "w-full flex flex-col gap-2 p-4 border border-neutral-300 dark:border-neutral-800 rounded-md bg-neutral-100 dark:bg-neutral-900 opacity-50",
                         {
                           "opacity-100": newRide.vehicle_id !== "",
-                        }
+                        },
                       )}
                     >
                       <div class="w-full flex flex-col gap-2 items-end">
@@ -355,12 +361,12 @@ const AddRideModal = (props: {
                             const calced = await calculateDistanceAndChargeAction(v, dep, arr, duration());
                             setNewRide("income", String(calced.result));
                             setNewRide("distance", String(calced.distance));
+                            setNewRide("vehicle_id", v);
                             if (calced.coords.from && calced.coords.to) {
                               setFromCoords(calced.coords.from);
                               setToCoords(calced.coords.to);
                             }
                             if (!calced.routes) return;
-                            console.dir(calced.routes, { depth: Infinity });
                             setRouteGeometry(calced.routes.geometry);
                           }}
                         >
@@ -495,7 +501,7 @@ const AddRideModal = (props: {
                       from={fromCoords}
                       to={toCoords}
                       fallback={
-                        <div class="">
+                        <div class="flex flex-col items-center justify-center w-full h-full">
                           <Loader2 class="size-4 animate-spin" />
                         </div>
                       }
@@ -511,16 +517,7 @@ const AddRideModal = (props: {
           <Button
             variant="secondary"
             onClick={() => {
-              setNewRide("vehicle_id", "");
-              setNewRide("distance", "0.000");
-              setNewRide("income", "0.00");
-              setNewRide("rating", "5.00");
-              setNewRide("status", "accepted");
-              setNewRide("startedAt", dayjs().toDate());
-              setNewRide("endedAt", dayjs().toDate());
-              setCheckSavedVehicleId("");
-              addRideStatus.clear();
-              setOpen(false);
+              resetForm();
             }}
             class="flex flex-row items-center gap-2"
           >

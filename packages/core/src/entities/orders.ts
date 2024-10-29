@@ -119,33 +119,40 @@ export module Orders {
 
   const MinOneRegionSchema = pipe(array(Validator.Cuid2Schema), minLength(1));
 
-  export const getHotspotsByRegions = async (region_ids: InferInput<typeof MinOneRegionSchema>, tsx = db) => {
+  export const getHotspotsByRegions = async (
+    region_ids: InferInput<typeof MinOneRegionSchema>,
+    THRESHOLD = 5,
+    tsx = db,
+  ) => {
     const isValid = safeParse(MinOneRegionSchema, region_ids);
     if (!isValid.success) {
       throw isValid.issues;
     }
+
     const orders_by_region: Map<string, Orders.Info[]> = new Map();
     const _orders = (await Promise.all(region_ids.map((id) => findByRegionId(id, tsx)))).flat();
+
     for (const order of _orders) {
-      if (!order) continue;
-      if (!order.region_id) continue;
-      if (!orders_by_region.has(order.region_id)) orders_by_region.set(order.region_id, []);
-      const orders_by_region_id = orders_by_region.get(order.region_id)!;
-      orders_by_region_id.push(order);
-      orders_by_region.set(order.region_id, orders_by_region_id);
+      if (!order || !order.region_id) continue;
+      if (!orders_by_region.has(order.region_id)) {
+        orders_by_region.set(order.region_id, []);
+      }
+      orders_by_region.get(order.region_id)!.push(order);
     }
 
     if (orders_by_region.size === 0) return [];
 
-    let region_with_the_most_orders: string | undefined = undefined;
-    // rework that using a standart for loop:
-    for (const [region_id, _orders] of orders_by_region) {
-      if (!region_with_the_most_orders) {
-        region_with_the_most_orders = region_id;
-        continue;
-      }
-      if (_orders.length < 5) continue; // we are skipping any region with less than 5 orders
-      if (orders_by_region.get(region_with_the_most_orders)!.length > orders_by_region.get(region_id)!.length) {
+    let region_with_the_most_orders: string | undefined;
+
+    // Reworking with a standard for loop to find the region with the most orders
+    const region_ids_list = Array.from(orders_by_region.keys());
+    for (let i = 0; i < region_ids_list.length; i++) {
+      const region_id = region_ids_list[i];
+      const orders_count = orders_by_region.get(region_id)!.length;
+
+      if (orders_count < THRESHOLD) continue; // Skip regions with fewer than 5 orders
+
+      if (!region_with_the_most_orders || orders_by_region.get(region_with_the_most_orders)!.length < orders_count) {
         region_with_the_most_orders = region_id;
       }
     }
@@ -153,25 +160,25 @@ export module Orders {
     if (!region_with_the_most_orders) return [];
 
     const _orders2 = orders_by_region.get(region_with_the_most_orders);
-
     if (!_orders2) return [];
 
     const origins: AddressSelect[] = [];
-
     for (const order of _orders2) {
       if (!order.origin_id) continue;
       origins.push(order.origin);
     }
+
     const lat = Number(origins[0].latitude);
     const lng = Number(origins[0].longitude);
     if (Number.isNaN(lat) || Number.isNaN(lng)) return [];
-    const radius = 2; // km
 
-    const hs: Map<string, { lat: number; lng: number; address: string }> = new Map();
+    const radius = 2; // km
+    const hs: Map<string, { id: string; lat: number; lng: number; address: string }> = new Map();
 
     for (const origin of origins.slice(0, 5)) {
       hs.set(origin.id, {
-        address: origin.streetname + " " + origin.zipcode + " " + origin.country,
+        id: origin.id,
+        address: `${origin.streetname} ${origin.zipcode} ${origin.country}`,
         lat: Number(origin.latitude),
         lng: Number(origin.longitude),
       });
@@ -181,8 +188,14 @@ export module Orders {
     const { lat: clat, lng: clng } = Helper.calculateCentroid(list_of_points);
     const valid_subsets = Helper.findValidSubsets(list_of_points, clat, clng, radius);
 
+    // Adding a summary to each valid subset showing the count of orders
+    const valid_subsets_with_summary = valid_subsets.map((subset) => ({
+      ...subset,
+      summary: `${subset.points.length} Orders`, // Number of orders in this hotspot subset
+    }));
+
     // !TODO: We need to gather the address of the centerpoint of the hotspot
-    return valid_subsets;
+    return valid_subsets_with_summary;
   };
 
   export const all = async (tsx = db) => {

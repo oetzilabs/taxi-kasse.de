@@ -17,7 +17,7 @@ export module Helper {
     points: { lat: number; lng: number; address: string }[],
     centerLat: number,
     centerLng: number,
-    radius: number
+    radius: number,
   ) => {
     const pointsWithinRadius = []; // Array to store points within the radius
 
@@ -40,7 +40,7 @@ export module Helper {
 
   // Function to calculate the centroid of a list of points
   export const calculateCentroid = (
-    points: { lat: number; lng: number; address: string }[]
+    points: { lat: number; lng: number; address: string }[],
   ): { lat: number; lng: number } => {
     let sumLat = 0;
     let sumLng = 0;
@@ -58,12 +58,13 @@ export module Helper {
 
   // Function to find subsets of points whose centroid is within a 5 km radius of a reference point
   export const findValidSubsets = (
-    points: { lat: number; lng: number; address: string }[],
+    points: { lat: number; lng: number; address: string; id: string }[],
     refLat: number,
     refLng: number,
-    radius: number = 5
-  )  => {
+    radius: number = 5,
+  ) => {
     const validSubsets: {
+      id: string;
       points: { lat: number; lng: number; address: string }[];
       centroid: { lat: number; lng: number };
     }[] = [];
@@ -77,12 +78,12 @@ export module Helper {
           const distanceFromRef = calculateDistance(refLat, refLng, centroid.lat, centroid.lng);
 
           if (distanceFromRef <= radius) {
-            validSubsets.push({ points: subset, centroid });
+            validSubsets.push({ points: subset, centroid, id: subset[0].id });
           }
         }
       }
     }
 
     return validSubsets;
-  }
+  };
 }

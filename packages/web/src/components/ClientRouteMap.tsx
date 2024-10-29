@@ -7,8 +7,8 @@ import { useColorMode } from "@kobalte/core";
 import { createStore } from "solid-js/store";
 
 type ClientRouteMapProps = {
-  from: Accessor<{ lat: number; lng: number } | undefined>;
-  to: Accessor<{ lat: number; lng: number } | undefined>;
+  from: Accessor<[number, number] | undefined>;
+  to: Accessor<[number, number] | undefined>;
   geometry: Accessor<string | undefined>;
 };
 
@@ -30,7 +30,6 @@ const ClientRouteMap = (props: ClientRouteMapProps) => {
   const { colorMode: theme } = useColorMode();
   let mapContainer: HTMLDivElement | undefined;
   const [map, setMap] = createSignal<L.Map | null>(null);
-  const [routeSteps, setRouteSteps] = createSignal<string[]>([]);
   let markers: L.Marker[] = [];
   let routeLayer: L.Polyline | null = null;
 
@@ -38,7 +37,7 @@ const ClientRouteMap = (props: ClientRouteMapProps) => {
     if (mapContainer) {
       const from = props.from();
       if (!from) return;
-      const m = L.map(mapContainer).setView([from.lat, from.lng], 11);
+      const m = L.map(mapContainer).setView([from[0], from[1]], 11);
       setMap(m);
       tiles.light.addTo(m);
     }
@@ -59,8 +58,8 @@ const ClientRouteMap = (props: ClientRouteMapProps) => {
     // Create markers for the from and to points
     if (!from || !to) return;
     markers = [
-      L.marker([from.lat, from.lng], { title: "Start Point" }).addTo(m),
-      L.marker([to.lat, to.lng], { title: "End Point" }).addTo(m),
+      L.marker([from[0], from[1]], { title: "Start Point" }).addTo(m),
+      L.marker([to[0], to[1]], { title: "End Point" }).addTo(m),
     ];
 
     // Adjust view to show both markers
@@ -77,8 +76,13 @@ const ClientRouteMap = (props: ClientRouteMapProps) => {
       const latLngs = polyline.decode(geometry); // Decode the geometry
       const points = latLngs.map(([lat, lng]: [number, number]) => L.latLng(lat, lng)); // Convert to L.LatLng
 
+      if (routeLayer) {
+        routeLayer.removeFrom(map); // Clear existing route layer before adding a new one
+      }
+
       const polylineLayer = L.polyline(points, {
-        color: "blue",
+        // color: "blue",
+        className: "stroke-blue-500 dark:stroke-blue-400",
         weight: 4,
       }).addTo(map);
 
@@ -86,20 +90,9 @@ const ClientRouteMap = (props: ClientRouteMapProps) => {
 
       // Adjust the map view to fit the polyline bounds
       // map.fitBounds(polylineLayer.getBounds(), { padding: [20, 20] });
-
-      // Example step extraction (replace with actual logic)
-      const steps = getStepsFromGeometry(geometry);
-      setRouteSteps(steps);
     } catch (error) {
       console.error("Error drawing route:", error);
     }
-  };
-
-  // Example function to get steps from geometry
-  const getStepsFromGeometry = (geometry: string): string[] => {
-    // This is a placeholder implementation
-    // If you have a way to extract steps from your routing API, do that here
-    return ["Step 1: Start", "Step 2: Turn left", "Step 3: Arrive at destination"]; // Example steps
   };
 
   // Function to adjust the view after the markers have been set
@@ -124,17 +117,11 @@ const ClientRouteMap = (props: ClientRouteMapProps) => {
   });
 
   createEffect(() => {
-    const m = map();
-    if (!m) return;
-    // rerender the route steps when the geometry changes
-    // first remove the old route layer
-    if (routeLayer) {
-      routeLayer.removeFrom(m);
-    }
     const geometry = props.geometry();
-    if (geometry) {
-      drawRoute(m, geometry);
-    }
+    const m = map();
+    if (!m || !geometry) return;
+
+    drawRoute(m, geometry);
   });
 
   // Clean up map and markers when component is unmounted
