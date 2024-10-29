@@ -5,10 +5,8 @@ import { Events } from "@/components/Events";
 import AddRideModal from "@/components/forms/AddRide";
 import { Hotspots } from "@/components/Hotspots";
 import { language } from "@/components/stores/Language";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TextField, TextFieldRoot } from "@/components/ui/textfield";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Weather } from "@/components/Weather";
 import { getLanguage } from "@/lib/api/application";
 import { getHotspots } from "@/lib/api/hotspots";
@@ -19,20 +17,18 @@ import { getAuthenticatedSession } from "@/lib/auth/util";
 import { cn } from "@/lib/utils";
 import { concat } from "@solid-primitives/signal-builders";
 import { A, createAsync, revalidate, RouteDefinition, useSearchParams } from "@solidjs/router";
+import { dFormat } from "~/utils";
+import { DotNotation } from "~/utils/dotnotation";
 import dayjs from "dayjs";
 import Box from "lucide-solid/icons/box";
 import Car from "lucide-solid/icons/car";
-import Check from "lucide-solid/icons/check";
 import ChevronRight from "lucide-solid/icons/chevron-right";
 import DollarSign from "lucide-solid/icons/dollar-sign";
 import Loader2 from "lucide-solid/icons/loader-2";
 import RotateClockwise from "lucide-solid/icons/rotate-cw";
 import ShoppingBag from "lucide-solid/icons/shopping-bag";
-import SquareArrowOutUpRight from "lucide-solid/icons/square-arrow-out-up-right";
 import TrendingUp from "lucide-solid/icons/trending-up";
-import X from "lucide-solid/icons/x";
-import { createSignal, For, JSX, Match, Show, Suspense, Switch } from "solid-js";
-import { Transition } from "solid-transition-group";
+import { createSignal, For, JSX, Show, Suspense } from "solid-js";
 
 export const route = {
   preload: async () => {
@@ -66,7 +62,7 @@ const Statistic = (props: {
 }) => (
   <div
     class={cn(
-      "flex flex-col w-full gap-0 select-none border-l first:border-l-0 border-neutral-200 dark:border-neutral-800 relative overflow-clip group",
+      "flex flex-col w-full gap-0 select-none border-l first:border-l-0 border-neutral-200 dark:border-neutral-800 relative overflow-clip group"
     )}
   >
     <div class="flex flex-row items-center justify-between gap-2 md:px-6 md:pb-4 md:pt-6 px-3 py-2">
@@ -125,41 +121,13 @@ const Statistic = (props: {
         "transition-all w-full border-b border-neutral-200 dark:border-neutral-800 py-6 px-6 leading-none text-muted-foreground absolute -top-full group-hover:top-0 left-0 right-0 backdrop-blur hidden md:flex",
         {
           "bg-neutral-950/10 dark:bg-neutral-100/10 text-black dark:text-white": props.priority === 1,
-        },
+        }
       )}
     >
       <span class="text-xs">{props.description}</span>
     </div>
   </div>
 );
-
-type DotNotation<T, Prefix extends string = ""> = {
-  [K in keyof T]: T[K] extends object
-    ? DotNotation<T[K], `${Prefix}${Prefix extends "" ? "" : "."}${Extract<K, string>}`>
-    : `${Prefix}${Prefix extends "" ? "" : "."}${Extract<K, string>}`;
-}[keyof T];
-
-const stringify = <T extends any>(obj: T) => {
-  const t = typeof obj;
-  if (t === "string") return obj as string;
-  if (t === "number") return (obj as number).toString();
-  if (t === "boolean") return (obj as boolean).toString();
-  if (t === "object") {
-    if (obj === null) return "null";
-    if (Array.isArray(obj)) {
-      const arr: Array<string> = [];
-      for (let i = 0; i < obj.length; i++) {
-        arr.push(stringify(obj[i]));
-      }
-      return `[${arr.join(",")}]`;
-    }
-    const o = obj as Record<string, unknown>;
-    const objKeys = Object.keys(o);
-    const objValues: any[] = objKeys.map((k) => stringify(o[k]));
-    return `{${objKeys.map((k, i) => `${k}:${objValues[i]}`).join(",")}}`;
-  }
-  return "null";
-};
 
 type DotN = Omit<Rides.Info, "vehicle" | "user" | "routes"> & { vehicle: NonNullable<Rides.Info["vehicle"]> };
 
@@ -177,8 +145,6 @@ const traverse = <T extends DotN>(obj: any, path: DotNotation<T>) => {
   return current;
 };
 
-const dFormat = (d: Date) => dayjs(d).format("MMMM-YYYY");
-
 export default function AdminDashboardPage() {
   const stats = createAsync(() => getSystemStatistics());
   const rides = createAsync(() => getSystemRides());
@@ -186,72 +152,6 @@ export default function AdminDashboardPage() {
   const [search, setSearchParams] = useSearchParams();
 
   const [hiddenMonths, setHiddenMonths] = createSignal<Array<string>>([]);
-
-  const beginningOfRide = (routes: Rides.Info["routes"]) => {
-    // get the starting segment of the route and return the streetname
-    let found = "No Department";
-    type SegmentPoint = NonNullable<NonNullable<(typeof routes)[number]["segments"][number]>["points"][number]>;
-    let foundSegmentPoint: SegmentPoint | null = null;
-    for (let i = 0; i < routes.length; i++) {
-      const route = routes[i];
-      const segments = routes[i].segments;
-      for (let j = 0; j < segments.length; j++) {
-        const segment = segments[j];
-        if (foundSegmentPoint) {
-          const points = segment.points;
-
-          for (let k = 0; k < points.length; k++) {
-            const point = points[k];
-            if (dayjs(point.createdAt).isBefore(foundSegmentPoint.createdAt)) {
-              foundSegmentPoint = point;
-              break;
-            }
-          }
-        }
-        if (foundSegmentPoint === null) {
-          foundSegmentPoint = segment.points[0];
-          // continue;
-        }
-      }
-    }
-    if (foundSegmentPoint) {
-      // get streetname based on lat, lng
-      found = [foundSegmentPoint.latitude, foundSegmentPoint.longitude].join(",");
-    }
-
-    return found;
-  };
-
-  const endOfRide = (routes: Rides.Info["routes"]) => {
-    // get the ending segment of the route and return the streetname
-    let found = "No Arrival";
-    type SegmentPoint = NonNullable<NonNullable<(typeof routes)[number]["segments"][number]>["points"][number]>;
-    let foundSegmentPoint: SegmentPoint | null = null;
-    for (let i = 0; i < routes.length; i++) {
-      const route = routes[i];
-      const segments = routes[i].segments;
-      for (let j = 0; j < segments.length; j++) {
-        const segment = segments[j];
-        if (foundSegmentPoint) {
-          const points = segment.points;
-
-          for (let k = 0; k < points.length; k++) {
-            const point = points[k];
-            if (dayjs(point.createdAt).isAfter(foundSegmentPoint.createdAt)) {
-              foundSegmentPoint = point;
-              break;
-            }
-          }
-        } else {
-          foundSegmentPoint = segment.points[segment.points.length - 1];
-        }
-      }
-    }
-    if (foundSegmentPoint) {
-      found = [foundSegmentPoint.latitude, foundSegmentPoint.longitude].join(",");
-    }
-    return found;
-  };
 
   const filteredRides = (rides: Array<Rides.Info>) => {
     if (!search.query) return rides;
@@ -265,7 +165,9 @@ export default function AdminDashboardPage() {
       "status",
       "vehicle.name",
     ];
+
     const found: Array<Rides.Info> = [];
+
     for (let i = 0; i < rides.length; i++) {
       const ride = rides[i];
       // if (ride.vehicle === null) {
@@ -273,7 +175,6 @@ export default function AdminDashboardPage() {
       // }
       for (let j = 0; j < fields.length; j++) {
         const k = fields[j];
-        // @ts-ignore
         const value = traverse(ride, k);
         if (value !== undefined) {
           if (value.toLowerCase().includes(search.query.toLowerCase())) {
@@ -438,7 +339,7 @@ export default function AdminDashboardPage() {
                                                 {
                                                   "px-0": i() === 0 || hiddenMonths().includes(dFormat(d)),
                                                   "pb-0": hiddenMonths().includes(dFormat(d)),
-                                                },
+                                                }
                                               )}
                                             >
                                               <div class="flex flex-row items-center w-full">
@@ -478,106 +379,99 @@ export default function AdminDashboardPage() {
                                                 <div class="h-px flex-1 flex bg-neutral-200 dark:bg-neutral-800"></div>
                                               </div>
                                             </div>
-                                            <Transition name="slide-fade-up">
-                                              <Show when={!hiddenMonths().includes(dFormat(d))}>
-                                                <div class="w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl flex flex-col overflow-clip">
-                                                  <For
-                                                    each={rides}
-                                                    fallback={
-                                                      <div class="h-40 w-full flex flex-col items-center justify-center select-none bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl">
-                                                        <span class="text-muted-foreground">
-                                                          There are currently no rides
-                                                        </span>
-                                                      </div>
-                                                    }
-                                                  >
-                                                    {(ride) => (
-                                                      <div class="h-max w-full flex flex-col border-b border-neutral-200 dark:border-neutral-800 last:border-b-0">
-                                                        <div class="flex flex-row w-full p-6 items-center justify-between">
-                                                          <div class="flex items-center justify-center select-none gap-2">
-                                                            <div class="flex flex-row items-center">
-                                                              <Show
-                                                                when={ride.vehicle}
-                                                                fallback={
-                                                                  <span class="text-sm font-bold font-['Geist_Mono',_ui-monospace]">
-                                                                    Unknown
-                                                                  </span>
-                                                                }
-                                                              >
-                                                                {(v) => (
-                                                                  <span class="text-sm font-bold">{v().name}</span>
-                                                                )}
-                                                              </Show>
-                                                            </div>
-                                                            <div class="flex flex-row w-max gap-2 select-none items-center">
-                                                              <div class="flex flex-row items-center w-max">
-                                                                <span class="text-sm text-muted-foreground w-max">
-                                                                  {new Intl.NumberFormat(language(), {
-                                                                    style: "unit",
-                                                                    unit: "kilometer",
-                                                                    unitDisplay: "short",
-                                                                  }).format(Number(ride.distance) / 1000)}
+                                            <Show when={!hiddenMonths().includes(dFormat(d))}>
+                                              <div class="w-full border border-neutral-200 dark:border-neutral-800 rounded-2xl flex flex-col overflow-clip">
+                                                <For
+                                                  each={rides}
+                                                  fallback={
+                                                    <div class="h-40 w-full flex flex-col items-center justify-center select-none bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl">
+                                                      <span class="text-muted-foreground">
+                                                        There are currently no rides
+                                                      </span>
+                                                    </div>
+                                                  }
+                                                >
+                                                  {(ride) => (
+                                                    <div class="h-max w-full flex flex-col border-b border-neutral-200 dark:border-neutral-800 last:border-b-0">
+                                                      <div class="flex flex-row w-full p-6 items-center justify-between">
+                                                        <div class="flex items-center justify-center select-none gap-2">
+                                                          <div class="flex flex-row items-center">
+                                                            <Show
+                                                              when={ride.vehicle}
+                                                              fallback={
+                                                                <span class="text-sm font-bold font-['Geist_Mono',_ui-monospace]">
+                                                                  Unknown
                                                                 </span>
-                                                              </div>
-                                                              <div class="flex flex-row items-center w-max">
-                                                                <span class="text-sm text-muted-foreground w-max">
-                                                                  {new Intl.NumberFormat(language(), {
-                                                                    style: "unit",
-                                                                    unit: "minute",
-                                                                    unitDisplay: "short",
-                                                                  }).format(
-                                                                    Number(
-                                                                      dayjs(ride.startedAt).diff(
-                                                                        ride.endedAt,
-                                                                        "minute",
-                                                                      ),
-                                                                    ),
-                                                                  )}
-                                                                </span>
-                                                              </div>
-                                                            </div>
-                                                          </div>
-                                                          <div class="w-max flex flex-row items-center gap-2">
-                                                            <Button
-                                                              size="sm"
-                                                              variant="secondary"
-                                                              class="flex flex-row items-center gap-2 leading-none"
-                                                              as={A}
-                                                              href={`/dashboard/rides/${ride.id}`}
+                                                              }
                                                             >
-                                                              <span class="font-bold">
+                                                              {(v) => <span class="text-sm font-bold">{v().name}</span>}
+                                                            </Show>
+                                                          </div>
+                                                          <div class="flex flex-row w-max gap-2 select-none items-center">
+                                                            <div class="flex flex-row items-center w-max">
+                                                              <span class="text-sm text-muted-foreground w-max">
                                                                 {new Intl.NumberFormat(language(), {
-                                                                  style: "currency",
-                                                                  currency: s().user!.currency_code,
-                                                                }).format(Number(ride.income))}
+                                                                  style: "unit",
+                                                                  unit: "kilometer",
+                                                                  unitDisplay: "short",
+                                                                }).format(Number(ride.distance) / 1000)}
                                                               </span>
-                                                              <Show
-                                                                when={
-                                                                  ride.payment !== undefined &&
-                                                                  Number(ride.payment!.tip) !== 0 &&
-                                                                  Number(ride.payment!.tip)
-                                                                }
-                                                              >
-                                                                {(tip) => (
-                                                                  <span>
-                                                                    {new Intl.NumberFormat(language(), {
-                                                                      style: "currency",
-                                                                      currency: s().user!.currency_code,
-                                                                      unitDisplay: "short",
-                                                                    }).format(Number(tip() ?? 0))}
-                                                                  </span>
+                                                            </div>
+                                                            <div class="flex flex-row items-center w-max">
+                                                              <span class="text-sm text-muted-foreground w-max">
+                                                                {new Intl.NumberFormat(language(), {
+                                                                  style: "unit",
+                                                                  unit: "minute",
+                                                                  unitDisplay: "short",
+                                                                }).format(
+                                                                  Number(
+                                                                    dayjs(ride.startedAt).diff(ride.endedAt, "minute")
+                                                                  )
                                                                 )}
-                                                              </Show>
-                                                              <ChevronRight class="size-4" />
-                                                            </Button>
+                                                              </span>
+                                                            </div>
                                                           </div>
                                                         </div>
+                                                        <div class="w-max flex flex-row items-center gap-2">
+                                                          <Button
+                                                            size="sm"
+                                                            variant="secondary"
+                                                            class="flex flex-row items-center gap-2 leading-none"
+                                                            as={A}
+                                                            href={`/dashboard/rides/${ride.id}`}
+                                                          >
+                                                            <span class="font-bold">
+                                                              {new Intl.NumberFormat(language(), {
+                                                                style: "currency",
+                                                                currency: s().user!.currency_code,
+                                                              }).format(Number(ride.income))}
+                                                            </span>
+                                                            <Show
+                                                              when={
+                                                                ride.payment !== undefined &&
+                                                                Number(ride.payment!.tip) !== 0 &&
+                                                                Number(ride.payment!.tip)
+                                                              }
+                                                            >
+                                                              {(tip) => (
+                                                                <span>
+                                                                  {new Intl.NumberFormat(language(), {
+                                                                    style: "currency",
+                                                                    currency: s().user!.currency_code,
+                                                                    unitDisplay: "short",
+                                                                  }).format(Number(tip() ?? 0))}
+                                                                </span>
+                                                              )}
+                                                            </Show>
+                                                            <ChevronRight class="size-4" />
+                                                          </Button>
+                                                        </div>
                                                       </div>
-                                                    )}
-                                                  </For>
-                                                </div>
-                                              </Show>
-                                            </Transition>
+                                                    </div>
+                                                  )}
+                                                </For>
+                                              </div>
+                                            </Show>
                                           </div>
                                         )}
                                       </For>
