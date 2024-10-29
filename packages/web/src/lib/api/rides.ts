@@ -8,25 +8,19 @@ import { Routing } from "@taxikassede/core/src/entities/routing";
 import { Users } from "@taxikassede/core/src/entities/users";
 import { Vehicles } from "@taxikassede/core/src/entities/vehicles";
 import { InferInput } from "valibot";
-import { getContext } from "../auth/context";
+import { ensureAuthenticated } from "../auth/context";
 import { getStatistics } from "./statistics";
 
 export const getRides = cache(async () => {
   "use server";
-  const [ctx, _event] = await getContext();
-  if (!ctx) return [];
-  if (!ctx.session) return [];
-  if (!ctx.user) return [];
+  const [ctx, event] = await ensureAuthenticated();
   const rides = await Rides.findByUserId(ctx.user.id);
   return rides;
 }, "rides");
 
 export const getRidesByUserId = cache(async (id: string) => {
   "use server";
-  const [ctx, _event] = await getContext();
-  if (!ctx) return [];
-  if (!ctx.session) return [];
-  if (!ctx.user) return [];
+  const [ctx, event] = await ensureAuthenticated();
   const user = await Users.findById(id);
   if (!user)
     throw redirect("/404", {
@@ -41,22 +35,7 @@ export type CreateRide = Omit<InferInput<typeof Rides.CreateSchema.item>, "user_
 
 export const addRide = action(async (data: CreateRide, lastSavedVehicleId: string | null) => {
   "use server";
-  const [ctx, _event] = await getContext();
-  if (!ctx)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.session)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.user)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
+  const [ctx, _event] = await ensureAuthenticated();
   if (!ctx.session.organization_id)
     throw redirect("/dashboard/organizations/add", {
       statusText: "Please add an organization",
@@ -79,19 +58,19 @@ export const addRide = action(async (data: CreateRide, lastSavedVehicleId: strin
             preferred: data.vehicle_id === lastSavedVehicleId,
           },
           // @ts-ignore
-          tsx
+          tsx,
         );
         const allVehicles = await Vehicles.findByUserId(
           ctx.user.id,
           // @ts-ignore
-          tsx
+          tsx,
         );
         const unPreferredVehicles = allVehicles.filter((v) => v.id !== data.vehicle_id);
         const updatedOtherVehicles = await Vehicles.updateBulk(
           unPreferredVehicles.map((v) => v.id),
           { preferred: false },
           // @ts-ignore
-          tsx
+          tsx,
         );
         const c = updatedOtherVehicles.concat(updatedVehicle);
         collection = c;
@@ -115,23 +94,7 @@ export const addRide = action(async (data: CreateRide, lastSavedVehicleId: strin
 
 export const getRide = cache(async (rid: string) => {
   "use server";
-  if (!rid) return undefined;
-  const [ctx, _event] = await getContext();
-  if (!ctx)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.session)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.user)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
+  const [ctx, event] = await ensureAuthenticated();
   const ride = await Rides.findById(rid);
   if (!ride)
     throw redirect("/404", {
@@ -143,22 +106,7 @@ export const getRide = cache(async (rid: string) => {
 
 export const removeRide = action(async (rid: string) => {
   "use server";
-  const [ctx, _event] = await getContext();
-  if (!ctx)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.session)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.user)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
+  const [ctx, event] = await ensureAuthenticated();
   const ride = await Rides.findById(rid);
   if (!ride)
     throw redirect("/404", {
@@ -179,22 +127,7 @@ export const removeRide = action(async (rid: string) => {
 
 export const removeRideBulk = action(async (rids: Array<string>) => {
   "use server";
-  const [ctx, _event] = await getContext();
-  if (!ctx)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.session)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.user)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
+  const [ctx, event] = await ensureAuthenticated();
   const rides = await Rides.findManyById(rids);
   if (!rides)
     throw redirect("/404", {
@@ -209,22 +142,7 @@ export const removeRideBulk = action(async (rids: Array<string>) => {
 
 export const setRoutes = action(async (rid: string, routeWaypoints: Array<[number, number]>) => {
   "use server";
-  const [ctx, _event] = await getContext();
-  if (!ctx)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.session)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.user)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
+  const [ctx, event] = await ensureAuthenticated();
 
   const ride = await Rides.findById(rid);
   if (!ride)
@@ -243,22 +161,7 @@ export const setRoutes = action(async (rid: string, routeWaypoints: Array<[numbe
 
 export const setCharge = action(async (rid: string, charge: number) => {
   "use server";
-  const [ctx, _event] = await getContext();
-  if (!ctx)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.session)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.user)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
+  const [ctx, event] = await ensureAuthenticated();
 
   const ride = await Rides.findById(rid);
   if (!ride)
@@ -277,22 +180,7 @@ export const setCharge = action(async (rid: string, charge: number) => {
 
 export const setRating = action(async (rid: string, rating: number) => {
   "use server";
-  const [ctx, _event] = await getContext();
-  if (!ctx)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.session)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.user)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
+  const [ctx, event] = await ensureAuthenticated();
   const ride = await Rides.findById(rid);
   if (!ride)
     throw redirect("/404", {
@@ -309,22 +197,7 @@ export const setRating = action(async (rid: string, rating: number) => {
 
 export const setStatus = action(async (rid: string, status: InferInput<typeof Rides.StatusSchema>) => {
   "use server";
-  const [ctx, _event] = await getContext();
-  if (!ctx)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.session)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.user)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
+  const [ctx, event] = await ensureAuthenticated();
 
   const ride = await Rides.findById(rid);
   if (!ride)
@@ -343,32 +216,14 @@ export const setStatus = action(async (rid: string, status: InferInput<typeof Ri
 
 export const getSystemRides = cache(async () => {
   "use server";
-  const [ctx, _event] = await getContext();
-  if (!ctx) return [];
-  if (!ctx.session) return [];
-  if (!ctx.user) return [];
+  const [ctx, event] = await ensureAuthenticated();
   const rides = await Rides.allNonDeleted();
   return rides;
 }, "system-rides");
 
 export const removeRidesBulk = action(async (rids: Array<string>) => {
   "use server";
-  const [ctx, _event] = await getContext();
-  if (!ctx)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.session)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
-  if (!ctx.user)
-    throw redirect("/auth/login", {
-      statusText: "Please login",
-      status: 401,
-    });
+  const [ctx, event] = await ensureAuthenticated();
   if (!rids.length) throw new Error("No rides selected");
 
   const ridesExist = await Rides.checkIfRidesAreOwnedByUser(rids);
@@ -390,22 +245,7 @@ export const removeRidesBulk = action(async (rids: Array<string>) => {
 export const calculateDistanceAndCharge = action(
   async (vehicle: string, departure: string, arrival: string, duration: number) => {
     "use server";
-    const [ctx, _event] = await getContext();
-    if (!ctx)
-      throw redirect("/auth/login", {
-        statusText: "Please login",
-        status: 401,
-      });
-    if (!ctx.session)
-      throw redirect("/auth/login", {
-        statusText: "Please login",
-        status: 401,
-      });
-    if (!ctx.user)
-      throw redirect("/auth/login", {
-        statusText: "Please login",
-        status: 401,
-      });
+    const [ctx, event] = await ensureAuthenticated();
 
     const v = await Vehicles.findById(vehicle);
     if (!v) throw new Error("Vehicle not found");
@@ -462,5 +302,5 @@ export const calculateDistanceAndCharge = action(
       coords: routeResult.coords,
       routes: routeResult.routes,
     };
-  }
+  },
 );

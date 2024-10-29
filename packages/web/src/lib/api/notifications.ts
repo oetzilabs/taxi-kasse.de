@@ -1,14 +1,10 @@
-import { action, redirect } from "@solidjs/router";
+import { action } from "@solidjs/router";
 import { Notifications } from "@taxikassede/core/src/entities/notifications";
-import { getContext } from "../auth/context";
+import { ensureAuthenticated } from "../auth/context";
 
 export const getAllNotifications = async () => {
   "use server";
-
-  const [ctx, event] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   const sys_notifications = await Notifications.allNonHiddenByUser(ctx.user.id, "system");
 
@@ -21,10 +17,7 @@ export const getAllNotifications = async () => {
 
 export const hideNotification = action(async (id: string, type: Notifications.Types) => {
   "use server";
-  const [ctx, event] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   const notification = await Notifications.findById(id, type);
   if (!notification) throw new Error("System Notification not found");

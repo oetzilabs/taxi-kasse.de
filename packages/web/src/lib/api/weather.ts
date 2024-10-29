@@ -1,5 +1,5 @@
-import { cache, redirect } from "@solidjs/router";
-import { getContext } from "../auth/context";
+import { cache } from "@solidjs/router";
+import { ensureAuthenticated } from "../auth/context";
 
 type WeatherType =
   | "rain"
@@ -25,10 +25,7 @@ type Weather = {
 
 export const getWeather = cache(async () => {
   "use server";
-  const [ctx, event] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   return undefined;
 

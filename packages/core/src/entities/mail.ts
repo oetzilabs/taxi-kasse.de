@@ -12,7 +12,7 @@ export module Email {
     html: string;
     text: string;
     subject: string;
-  }
+  };
 
   export async function sendLegacy2(opts: SendLegacy2Props) {
     const bounceFound = await MailBouncer.findByEmail(opts.to);
@@ -39,19 +39,22 @@ export module Email {
       },
     });
 
-    transporter.sendMail({
-      from: Resource.MailUsername.value,
-      to: opts.to,
-      subject: opts.subject,
-      text: opts.text,
-      html: opts.html,
-    }, (error, info) => {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log("Email sent: " + info.response);
-      }
-    });
+    transporter.sendMail(
+      {
+        from: Resource.MailUsername.value,
+        to: opts.to,
+        subject: opts.subject,
+        text: opts.text,
+        html: opts.html,
+      },
+      (error, info) => {
+        if (error) {
+          console.log(error);
+        } else {
+          console.log("Email sent: " + info.response);
+        }
+      },
+    );
   }
 
   export async function sendLegacy(to: string, subject: string, body: string) {

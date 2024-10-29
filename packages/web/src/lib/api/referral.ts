@@ -1,6 +1,6 @@
 import { action, redirect } from "@solidjs/router";
 import { Users } from "@taxikassede/core/src/entities/users";
-import { getContext } from "../auth/context";
+import { ensureAuthenticated } from "../auth/context";
 
 const generateRef = () => {
   // the referral code can only be 6 characters long, and it must be uppercase. it needs to have letters and numbers.
@@ -10,10 +10,7 @@ const generateRef = () => {
 
 export const generateReferralCode = action(async () => {
   "use server";
-  const [ctx, event] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   const user = await Users.findById(ctx.user.id);
   if (!user) throw redirect("/auth/login");

@@ -1,15 +1,12 @@
-import { cache, redirect } from "@solidjs/router";
+import { cache } from "@solidjs/router";
 import { Orders } from "@taxikassede/core/src/entities/orders";
 import { Organizations } from "@taxikassede/core/src/entities/organizations";
 import { Regions } from "@taxikassede/core/src/entities/regions";
-import { getContext } from "../auth/context";
+import { ensureAuthenticated } from "../auth/context";
 
 export const getHotspots = cache(async () => {
   "use server";
-  const [ctx, event] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
   if (!ctx.session.organization_id) return [];
 
   const currentOrganization = await Organizations.findById(ctx.session.organization_id);

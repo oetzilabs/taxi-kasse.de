@@ -2,14 +2,11 @@ import { action, cache, json, redirect } from "@solidjs/router";
 import { Events } from "@taxikassede/core/src/entities/events";
 import { Realtimed } from "@taxikassede/core/src/entities/realtime";
 import { InferInput } from "valibot";
-import { getContext } from "../auth/context";
+import { ensureAuthenticated } from "../auth/context";
 
 export const getEvents = cache(async () => {
   "use server";
-  const [ctx] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   const events = await Events.allNonDeleted();
 
@@ -18,10 +15,7 @@ export const getEvents = cache(async () => {
 
 export const getEvent = cache(async (id: string) => {
   "use server";
-  const [ctx] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   const event_ = await Events.findById(id);
   if (!event_) {
@@ -36,10 +30,7 @@ export const getEvent = cache(async (id: string) => {
 
 export const createEvent = action(async (data: InferInput<typeof Events.Create>) => {
   "use server";
-  const [ctx] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   const mergeWithUser = Object.assign(data, {
     created_by: ctx.user.id,
@@ -57,10 +48,7 @@ export const createEvent = action(async (data: InferInput<typeof Events.Create>)
 
 export const updateEvent = action(async (data: InferInput<typeof Events.UpdateSchema>) => {
   "use server";
-  const [ctx] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   const mergeWithUser = Object.assign(data, {
     updated_by: ctx.user.id,
@@ -78,10 +66,7 @@ export const updateEvent = action(async (data: InferInput<typeof Events.UpdateSc
 
 export const removeEvent = action(async (id: string) => {
   "use server";
-  const [ctx] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   const event_ = await Events.findById(id);
   if (!event_) {

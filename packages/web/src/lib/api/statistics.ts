@@ -1,17 +1,13 @@
-import { cache, redirect } from "@solidjs/router";
+import { cache } from "@solidjs/router";
 import { Orders } from "@taxikassede/core/src/entities/orders";
 import { Rides } from "@taxikassede/core/src/entities/rides";
 import { Users } from "@taxikassede/core/src/entities/users";
 import { getCookie, getHeader } from "vinxi/http";
-import { getContext } from "../auth/context";
-import { getLanguage } from "./application";
+import { ensureAuthenticated } from "../auth/context";
 
 export const getStatistics = cache(async () => {
   "use server";
-  const [ctx, event] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   const rides = await Rides.countByUserId(ctx.user.id);
   const total_earnings = await Rides.sumByUserId(ctx.user.id, "income");
@@ -57,10 +53,7 @@ export const getStatistics = cache(async () => {
 
 export const getSystemStatistics = cache(async () => {
   "use server";
-  const [ctx, event] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   let preffered_currency = await Users.getPreferredCurrencyByUserId(ctx.user.id);
   const rs = await Rides.allNonDeleted();

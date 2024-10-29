@@ -5,15 +5,12 @@ import { Companies } from "@taxikassede/core/src/entities/companies";
 import { Organizations } from "@taxikassede/core/src/entities/organizations";
 import { appendHeader } from "vinxi/http";
 import { lucia } from "../auth";
-import { getContext } from "../auth/context";
+import { ensureAuthenticated } from "../auth/context";
 import { getAuthenticatedSession } from "../auth/util";
 
 export const createCompany = action(async (data: InferInput<typeof Companies.CreateWithoutOwnerAndCharges>) => {
   "use server";
-  const [ctx, event] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   const d = Object.assign(data, { ownerId: ctx.user.id });
 
@@ -46,10 +43,7 @@ export const createCompany = action(async (data: InferInput<typeof Companies.Cre
 
 export const joinCompany = action(async (name: string) => {
   "use server";
-  const [ctx, event] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   const org = await Companies.findByName(name);
 
@@ -64,10 +58,7 @@ export const joinCompany = action(async (name: string) => {
 
 export const removeCompany = action(async (id: InferInput<typeof Validator.Cuid2Schema>) => {
   "use server";
-  const [ctx, event] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   const comp = await Companies.findById(id);
 
@@ -114,10 +105,7 @@ export const removeCompany = action(async (id: InferInput<typeof Validator.Cuid2
 export const getCompanyById = cache(async (id: InferInput<typeof Validator.Cuid2Schema>) => {
   "use server";
   if (!id) return undefined;
-  const [ctx, event] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   const comp = await Companies.findById(id);
 
@@ -129,10 +117,7 @@ export const getCompanyById = cache(async (id: InferInput<typeof Validator.Cuid2
 
 export const updateCompany = action(async (data: InferInput<typeof Companies.UpdateSchema>) => {
   "use server";
-  const [ctx, event] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   const comp = await Companies.findById(data.id);
 
@@ -155,10 +140,7 @@ export const updateCompany = action(async (data: InferInput<typeof Companies.Upd
 
 export const resetCompanyChargesToOrganization = action(async (c_id, org_id) => {
   "use server";
-  const [ctx, event] = await getContext();
-  if (!ctx) throw redirect("/auth/login");
-  if (!ctx.session) throw redirect("/auth/login");
-  if (!ctx.user) throw redirect("/auth/login");
+  const [ctx, event] = await ensureAuthenticated();
 
   const comp = await Companies.findById(c_id);
 
