@@ -1,0 +1,1 @@
+ALTER TABLE "taxikassede"."routes" ADD COLUMN "geometry" text;

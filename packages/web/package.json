@@ -21,7 +21,7 @@
     "vite-plugin-pwa": "^0.20.5"
   },
   "dependencies": {
-    "@ark-ui/solid": "4.3.0",
+    "@ark-ui/solid": "3.10.0",
     "@aws-sdk/client-s3": "3.682.0",
     "@corvu/drawer": "0.2.2",
     "@corvu/otp-field": "0.1.3",

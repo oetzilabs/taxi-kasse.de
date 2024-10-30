@@ -71,6 +71,13 @@
       "when": 1729857088953,
       "tag": "0009_wooden_prowler",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1730289913004,
+      "tag": "0010_smooth_marrow",
+      "breakpoints": true
     }
   ]
 }

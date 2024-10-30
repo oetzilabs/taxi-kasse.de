@@ -17,7 +17,7 @@ import { Image } from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import StarterKit from "@tiptap/starter-kit";
 import dayjs from "dayjs";
-import { Accessor, Show, Suspense } from "solid-js";
+import { Accessor, ErrorBoundary, Show, Suspense } from "solid-js";
 import { createStore } from "solid-js/store";
 import { toast } from "solid-sonner";
 import { createTiptapEditor, EditorRef } from "solid-tiptap";
@@ -80,7 +80,7 @@ const EditForm = (props: EditorFormProps) => {
       setForm("contentText", generateText(props.editor.getJSON(), extensions));
     },
     extensions,
-    autofocus: true,
+    autofocus: false,
     content: props.form().contentHTML ?? "",
     editorProps: {
       attributes: {
@@ -103,6 +103,7 @@ const EditForm = (props: EditorFormProps) => {
           <TextField required />
         </TextFieldRoot>
         <Calendar onChange={(v) => setForm("date", dayjs(v).format("YYYY-MM-DD"))} value={dayjs(form.date).toDate()} />
+
         <div class="border border-neutral-200 dark:border-neutral-800 max-w-full w-full h-full min-h-[300px] max-h-[calc(100vh-400px)] rounded-lg flex flex-col flex-1 overflow-clip overflow-y-auto relative">
           <Toolbar
             ref={menu!}
@@ -141,7 +142,7 @@ const EditForm = (props: EditorFormProps) => {
             ref={ref!}
           />
         </div>
-        <Suspense
+        {/* <Suspense
           fallback={
             <div class="w-full h-9 bg-neutral-50 dark:bg-neutral-900 flex flex-col items-center justify-center border border-neutral-200 dark:border-neutral-900 rounded-xl" />
           }
@@ -163,7 +164,7 @@ const EditForm = (props: EditorFormProps) => {
               </Select>
             )}
           </Show>
-        </Suspense>
+        </Suspense> */}
         <div class="flex flex-row items-center gap-4 justify-end">
           <Button
             disabled={!form.name || !form.description || !form.date || updateEventSubmission.pending}

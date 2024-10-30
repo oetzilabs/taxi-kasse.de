@@ -11,6 +11,7 @@ export const routes = commonTable(
   {
     name: text("name").notNull(), // Optional: Add route name or identifier
     description: text("description"), // Optional: Brief description of the route
+    geometry: text("geometry"), // Geometry of the route for polylines or GeoJSON
     driver_id: text("driver_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
