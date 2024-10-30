@@ -43,7 +43,11 @@ export const createEvent = action(async (data: InferInput<typeof Events.Create>)
     console.error("MQTT send failed");
   }
 
-  return json(event_, { revalidate: [getEvents.key] });
+  return json(event_, {
+    revalidate: [getEvents.key],
+    headers: { Location: `/dashboard/events/${event_.id}` },
+    status: 303,
+  });
 });
 
 export const updateEvent = action(async (data: InferInput<typeof Events.UpdateSchema>) => {

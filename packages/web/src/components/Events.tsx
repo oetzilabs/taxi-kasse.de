@@ -74,9 +74,13 @@ const RealtimeHotspotButton = (props: RealtimeHotspotButtonProps) => {
               as={A}
               href={`/dashboard/events/${e.id}`}
               variant="ghost"
-              class={cn("flex flex-row w-full gap-2 items-center justify-between rounded-lg", {
-                "rounded-t-none": index() == es().length - 1,
-              })}
+              class={cn(
+                "flex flex-row w-full gap-2 items-center justify-between rounded-lg border-t border-neutral-200 dark:border-neutral-800",
+                {
+                  "rounded-t-none": index() <= es().length - 1,
+                  "rounded-b-none": index() < es().length - 1 && es().length > 0,
+                },
+              )}
             >
               <span class="font-bold">{e.name}</span>
               <span class="">{e.description}</span>

@@ -7,6 +7,7 @@ import { concat, filter, remove, removeItems } from "@solid-primitives/signal-bu
 import { A, revalidate, useSearchParams } from "@solidjs/router";
 import { UserSession } from "~/lib/auth/util";
 import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
 import ChevronRight from "lucide-solid/icons/chevron-right";
 import RotateClockwise from "lucide-solid/icons/rotate-cw";
 import { Accessor, createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
@@ -21,6 +22,8 @@ import { useRealtime } from "./Realtime";
 import { RideSelectionMenu } from "./RideSelectionMenu";
 import { FilterValue, RideFilters } from "./RidesFilter";
 import { language } from "./stores/Language";
+
+dayjs.extend(isBetween);
 
 type RealtimeRidesListProps = {
   ridesList: Accessor<Rides.Info[]>;
@@ -45,87 +48,84 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
   });
 
   const filteredRides = createMemo(() => {
-    if (!search.query) return rides();
-    const fieldValues = filterValue();
+    let query = Array.isArray(search.query) ? search.query[0] || "" : search.query || "";
+    const lowerQuery = query.toLowerCase();
+    const ridesList = rides();
+
+    if (!query) return ridesList;
+
     const fields: Array<DotNotation<DotN>> = ["id", "added_by", "income", "vehicle.name", "distance"];
+    const filterCriteria = filterValue();
 
-    const found: Array<Rides.Info> = [];
-    const rs = rides();
-    for (let i = 0; i < rs.length; i++) {
-      const ride = rs[i];
-      if (ride.deletedAt) {
-        continue;
-      }
-      // if (ride.vehicle === null) {
-      //   continue;
-      // }
+    // Filter rides based on query
+    const filteredByQuery: Array<Rides.Info> = [];
+    for (let i = 0; i < ridesList.length; i++) {
+      const ride = ridesList[i];
+      if (ride.deletedAt) continue;
+
       for (let j = 0; j < fields.length; j++) {
-        const k = fields[j];
-        // @ts-ignore
-        const value = traverse(ride, k);
-        if (value !== undefined) {
-          if (value.toLowerCase().includes(search.query.toLowerCase())) {
-            found.push(ride);
-          }
+        const field = fields[j];
+        const value = traverse(ride, field)?.toString().toLowerCase();
+        if (value && value.includes(lowerQuery)) {
+          filteredByQuery.push(ride);
+          break; // Stop further field checks once a match is found
         }
       }
     }
 
-    // use the filterValues to find the rides.
-    const found2: Array<Rides.Info> = [];
-    const ff = Object.values(fieldValues).filter((v) => v !== undefined);
-    if (ff.length === 0) return found;
-    const fields2 = Object.entries(fieldValues);
-    for (let i = 0; i < found.length; i++) {
-      const ride = rs[i];
+    // Apply filter criteria if present
+    if (!Object.values(filterCriteria).some((value) => value !== undefined)) {
+      return filteredByQuery;
+    }
 
-      keyVLoop: for (const [key, value] of fields2) {
-        if (!value) continue keyVLoop;
+    const finalFiltered: Array<Rides.Info> = [];
+    for (let i = 0; i < filteredByQuery.length; i++) {
+      const ride = filteredByQuery[i];
+      let matchesCriteria = true;
+
+      for (const [key, value] of Object.entries(filterCriteria)) {
+        if (!value) continue;
+
         switch (key) {
-          case "dateRange":
-            const vStartEnd = value as { start?: string; end?: string };
-            if (vStartEnd.start && vStartEnd.end) {
-              if (dayjs(ride.startedAt).isAfter(vStartEnd.start) && dayjs(ride.startedAt).isBefore(vStartEnd.end)) {
-                found2.push(ride);
-              }
+          case "dateRange": {
+            const { start, end } = value as { start?: string; end?: string };
+            if (start && end && !dayjs(ride.startedAt).isBetween(start, end)) {
+              matchesCriteria = false;
             }
             break;
-          case "duration":
-            const vDuration = value as [number, number];
+          }
+          case "duration": {
+            const [min, max] = value as [number, number];
             const duration = Math.abs(dayjs(ride.endedAt).diff(ride.startedAt, "minute"));
-            if (duration >= vDuration[0] && duration <= vDuration[1]) {
-              found2.push(ride);
-            }
+            if (duration < min || duration > max) matchesCriteria = false;
             break;
-          case "distance":
-            const vDistance = value as [number, number];
-            if (Number(ride.distance) >= vDistance[0] && Number(ride.distance) <= vDistance[1]) {
-              found2.push(ride);
-            }
+          }
+          case "distance": {
+            const [min, max] = value as [number, number];
+            if (Number(ride.distance) < min || Number(ride.distance) > max) matchesCriteria = false;
             break;
-          case "income":
-            const vIncome = value as [number, number];
-            if (Number(ride.income) >= vIncome[0] && Number(ride.income) <= vIncome[1]) {
-              found2.push(ride);
-            }
+          }
+          case "income": {
+            const [min, max] = value as [number, number];
+            if (Number(ride.income) < min || Number(ride.income) > max) matchesCriteria = false;
             break;
-          case "status":
-            const vStatus = value as string[];
-            if (ride.status && vStatus.includes(ride.status)) {
-              found2.push(ride);
-            }
+          }
+          case "status": {
+            const statuses = value as string[];
+            if (!statuses.includes(ride.status)) matchesCriteria = false;
             break;
-          case "rideType":
-            break;
-          case "vehicleTypes":
-            break;
+          }
           default:
-            console.info("nothing found");
             break;
         }
+
+        if (!matchesCriteria) break; // Stop further checks if any criteria fails
       }
+
+      if (matchesCriteria) finalFiltered.push(ride);
     }
-    return found2;
+
+    return finalFiltered;
   });
 
   const sortByStartedAt = (rides: Array<Rides.Info>) => {
@@ -167,6 +167,11 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
     } else {
       const unsubRideCreated = rt.subscribe("ride.created", (payload) => {
         // console.log("received system notification", payload);
+        // does the ride already exist?
+        const filtered = filter(rides, (r) => r.id === payload.id);
+        if (filtered().length > 0) {
+          return;
+        }
         const concatted = concat(rides, payload);
         setRides(concatted());
       });
@@ -333,7 +338,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
           <div class="flex flex-row items-center gap-4 w-min"></div>
           <div class="flex flex-row items-center gap-4 w-full">
             <TextFieldRoot
-              value={search.query}
+              value={Array.isArray(search.query) ? search.query.join(", ") : search.query || ""}
               onChange={(v) =>
                 setSearchParams({
                   query: v,
@@ -507,7 +512,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                                     rideIndex() < rides.length - 1 &&
                                     !highlightedRows().includes(ride.id) &&
                                     currentHighlightedRow() !== ride.id,
-                                }
+                                },
                               )}
                             >
                               <div class="flex flex-row w-full p-6 items-center justify-between">

@@ -20,8 +20,8 @@ import { A, createAsync, useAction, useSubmission } from "@solidjs/router";
 import { clientOnly } from "@solidjs/start";
 import { cn, parseLocaleNumber } from "~/lib/utils";
 import dayjs from "dayjs";
-import Calculator from "lucide-solid/icons/calculator";
 import Loader2 from "lucide-solid/icons/loader-2";
+import Map from "lucide-solid/icons/map";
 import Plus from "lucide-solid/icons/plus";
 import X from "lucide-solid/icons/x";
 import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
@@ -353,6 +353,13 @@ const AddRideModal = (props: {
                           variant="secondary"
                           size="sm"
                           class="flex flex-row items-center gap-2 text-sm"
+                          disabled={
+                            addRideStatus.pending ||
+                            calculateDistanceAndChargeSubmission.pending ||
+                            newRide.vehicle_id === "" ||
+                            newRide.departure.length === 0 ||
+                            newRide.arrival.length === 0
+                          }
                           onClick={async () => {
                             const dep = newRide.departure;
                             const arr = newRide.arrival;
@@ -374,9 +381,9 @@ const AddRideModal = (props: {
                             when={!calculateDistanceAndChargeSubmission.pending}
                             fallback={<Loader2 class="size-4 animate-spin" />}
                           >
-                            <Calculator class="size-4" />
+                            <Map class="size-4" />
                           </Show>
-                          <span>Calculate Distance & Charge</span>
+                          <span>Find Route</span>
                         </Button>
                       </div>
                     </div>
@@ -488,9 +495,14 @@ const AddRideModal = (props: {
           <div class="w-full min-w-[600px] flex flex-col gap-4">
             <div class="w-full grow border border-neutral-200 dark:border-neutral-800 rounded-md overflow-clip shadow-sm">
               <Show
-                when={newRide.departure.length > 0 || newRide.arrival.length > 0}
+                when={
+                  newRide.departure.length > 0 &&
+                  newRide.arrival.length > 0 &&
+                  fromCoords() !== undefined &&
+                  toCoords() !== undefined
+                }
                 fallback={
-                  <div class="flex w-full h-full items-center justify-center text-sm text-muted-foreground">
+                  <div class="flex w-full h-full items-center justify-center text-sm text-muted-foreground select-none">
                     Please enter the departure and arrival address.
                   </div>
                 }

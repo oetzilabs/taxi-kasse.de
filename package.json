@@ -19,8 +19,8 @@
     "@ianvs/prettier-plugin-sort-imports": "4.3.1",
     "prettier-plugin-tailwindcss": "0.6.6",
     "@tsconfig/node22": "22.0.0",
-    "sst": "3.2.67",
-    "typescript": "5.6.2",
+    "sst": "3.2.70",
+    "typescript": "5.6.3",
     "prettier": "3.3.3"
   },
   "workspaces": [

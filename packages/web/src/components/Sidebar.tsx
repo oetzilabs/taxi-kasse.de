@@ -26,7 +26,6 @@ export default function Sidebar() {
 
   const resolvedPath = useResolvedPath(() => location.pathname);
   const isNotInList = () => !list.some((item) => item.startsWith(resolvedPath() ?? ""));
-  const lastPathSegment = () => (isNotInList() ? resolvedPath()?.split("/").at(-1) : undefined);
 
   return (
     <div class="flex flex-col w-full ">
@@ -63,16 +62,7 @@ export default function Sidebar() {
                       <Store class="size-5 not-sr-only lg:sr-only" />
                       <span class="sr-only lg:not-sr-only">Companies</span>
                     </NavLink>
-                    <Show when={lastPathSegment()}>
-                      {(lps) => (
-                        <>
-                          <div class="size-1 bg-neutral-300 dark:bg-neutral-600 rounded-full" />
-                          <NavLink href={resolvedPath() ?? ""}>
-                            <span class="sr-only lg:not-sr-only capitalize">{lps()}</span>
-                          </NavLink>
-                        </>
-                      )}
-                    </Show>
+
                     <div class="flex flex-1 w-full  " />
                     <NavLink href="/settings">
                       <span class="sr-only lg:not-sr-only">Settings</span>
