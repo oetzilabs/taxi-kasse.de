@@ -30,15 +30,15 @@ export const DatePickerRootProvider = DatePickerPrimitive.RootProvider;
 export const DatePicker = (props: DatePickerRootProps) => {
   return (
     <DatePickerPrimitive.Root
-      // format={(e) => {
-      //   const parsedDate = new Date(Date.parse(e.toString()));
+      format={(e) => {
+        const parsedDate = new Date(Date.parse(e.toString()));
 
-      //   const normalizedDate = new Date(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth(), parsedDate.getUTCDate());
+        const normalizedDate = new Date(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth(), parsedDate.getUTCDate());
 
-      //   return new Intl.DateTimeFormat("en-US", {
-      //     dateStyle: "long",
-      //   }).format(normalizedDate);
-      // }}
+        return new Intl.DateTimeFormat("en-US", {
+          dateStyle: "long",
+        }).format(normalizedDate);
+      }}
       {...props}
     />
   );
