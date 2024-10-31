@@ -73,9 +73,7 @@ export const SelectBrandModel = (props: SelectBrandModelProps) => {
   const estimateSize = (i: number) => {
     const models = filterModelsAndBrands()[i].models;
     if (models.length === 0) return 0;
-    return (
-      (Math.floor(models.length / 3) + (models.length % 3 > 0 ? 1 : 0)) * 130 + 25
-    );
+    return (Math.floor(models.length / 3) + (models.length % 3 > 0 ? 1 : 0)) * 130 + 25;
   };
 
   const virtualizer = createVirtualizer({
@@ -137,7 +135,7 @@ export const SelectBrandModel = (props: SelectBrandModelProps) => {
                                 class={cn(
                                   "flex flex-col items-center gap-2 border border-neutral-300 dark:border-neutral-800 rounded-md p-2 hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer",
                                   {
-                                    "border-blue-500": model.value === props.value,
+                                    "!border-blue-500 dark:!border-blue-500": model.value === props.value,
                                   },
                                 )}
                                 onClick={() => {

@@ -31,8 +31,7 @@ export module Routing {
     try {
       const fromCoords = await getCoordinates(from);
       const toCoords = await getCoordinates(to);
-
-      // Fetch route data from OSRM
+      let routeJson: RouteResults | undefined;
       const routeResult = await fetch(
         `http://router.project-osrm.org/route/v1/driving/${fromCoords[1]},${fromCoords[0]};${toCoords[1]},${toCoords[0]}?overview=full&geometries=polyline&steps=${steps}`,
         {
@@ -43,7 +42,7 @@ export module Routing {
         },
       );
 
-      const routeJson = (await routeResult.json()) as RouteResults;
+      routeJson = (await routeResult.json().catch(() => undefined)) as RouteResults | undefined;
       if (!routeJson) throw new Error("Route not found");
 
       if (routeJson.routes && routeJson.routes.length > 0) {

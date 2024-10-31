@@ -23,6 +23,7 @@ export module Rides {
       added_by: picklist(ride_added_by.enumValues),
       user_id: Validator.Cuid2Schema,
       org_id: Validator.Cuid2Schema,
+      comp_id: Validator.Cuid2Schema,
       income: string(),
       distance: string(),
       vehicle_id: Validator.Cuid2Schema,

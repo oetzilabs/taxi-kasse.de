@@ -14,12 +14,12 @@ import {
   transform,
 } from "valibot";
 import { db } from "../drizzle/sql";
-import { companies } from "../drizzle/sql/schema";
+import { companies, user_companies } from "../drizzle/sql/schema";
 import { Validator } from "../validator";
 
 export module Companies {
   export const CreateSchema = object({
-    ownerId: nullable(Validator.Cuid2Schema),
+    ownerId: Validator.Cuid2Schema,
     name: string(),
     email: string(),
     phoneNumber: optional(nullable(string())),
@@ -68,6 +68,11 @@ export module Companies {
       .insert(companies)
       .values([{ ...isValid.output, base_charge: bC, distance_charge: dC, time_charge: tC }])
       .returning();
+    const ucs = await tsx
+      .insert(user_companies)
+      .values([{ company_id: created.id, user_id: isValid.output.ownerId, role: "owner" }])
+      .returning();
+
     const company = await Companies.findById(created.id);
     return company!;
   };
@@ -85,7 +90,17 @@ export module Companies {
           },
         },
         employees: {
-          with: { user: true },
+          with: {
+            user: {
+              with: {
+                vehicles: {
+                  with: {
+                    model: true,
+                  },
+                },
+              },
+            },
+          },
         },
         discounts: {
           with: {
@@ -107,7 +122,17 @@ export module Companies {
           },
         },
         employees: {
-          with: { user: true },
+          with: {
+            user: {
+              with: {
+                vehicles: {
+                  with: {
+                    model: true,
+                  },
+                },
+              },
+            },
+          },
         },
         discounts: {
           with: {
@@ -131,7 +156,17 @@ export module Companies {
           },
         },
         employees: {
-          with: { user: true },
+          with: {
+            user: {
+              with: {
+                vehicles: {
+                  with: {
+                    model: true,
+                  },
+                },
+              },
+            },
+          },
         },
         discounts: {
           with: {
@@ -156,7 +191,17 @@ export module Companies {
           },
         },
         employees: {
-          with: { user: true },
+          with: {
+            user: {
+              with: {
+                vehicles: {
+                  with: {
+                    model: true,
+                  },
+                },
+              },
+            },
+          },
         },
         discounts: {
           with: {
@@ -197,5 +242,37 @@ export module Companies {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;
     return db.delete(companies).where(eq(companies.id, isValid.output)).returning();
+  };
+
+  export const allNonDeleted = async (tsx = db) => {
+    return tsx.query.companies.findMany({
+      where: (fields, ops) => ops.isNull(fields.deletedAt),
+      with: {
+        ...Companies._with,
+        regions: {
+          with: {
+            region: true,
+          },
+        },
+        employees: {
+          with: {
+            user: {
+              with: {
+                vehicles: {
+                  with: {
+                    model: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        discounts: {
+          with: {
+            discount: true,
+          },
+        },
+      },
+    });
   };
 }

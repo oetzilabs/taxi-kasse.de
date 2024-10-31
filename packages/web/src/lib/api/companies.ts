@@ -1,8 +1,9 @@
 import type { Validator } from "@taxikassede/core/src/validator";
 import type { InferInput } from "valibot";
-import { action, cache, redirect } from "@solidjs/router";
+import { action, cache, json, redirect } from "@solidjs/router";
 import { Companies } from "@taxikassede/core/src/entities/companies";
 import { Organizations } from "@taxikassede/core/src/entities/organizations";
+import { Users } from "@taxikassede/core/src/entities/users";
 import { appendHeader } from "vinxi/http";
 import { lucia } from "../auth";
 import { ensureAuthenticated } from "../auth/context";
@@ -36,8 +37,8 @@ export const createCompany = action(async (data: InferInput<typeof Companies.Cre
   appendHeader(event, "Set-Cookie", lucia.createSessionCookie(session.id).serialize());
   event.context.session = session;
 
-  throw redirect("/dashboard/companies", {
-    revalidate: [getAuthenticatedSession.key],
+  throw redirect(`/dashboard/companies/${comp.id}`, {
+    revalidate: [getAuthenticatedSession.key, getCompanyById.keyFor(comp.id)],
   });
 });
 
@@ -135,7 +136,9 @@ export const updateCompany = action(async (data: InferInput<typeof Companies.Upd
     throw new Error("Failed to update company");
   }
 
-  return updated;
+  return json(updated, {
+    revalidate: [getAuthenticatedSession.key, getCompanyById.keyFor(comp.id)],
+  });
 });
 
 export const resetCompanyChargesToOrganization = action(async (c_id, org_id) => {
@@ -168,5 +171,24 @@ export const resetCompanyChargesToOrganization = action(async (c_id, org_id) => 
     throw new Error("Failed to update company");
   }
 
-  return updated;
+  return json(updated, {
+    revalidate: [getAuthenticatedSession.key, getCompanyById.keyFor(comp.id)],
+  });
 });
+
+export const getAllCompanies = cache(async () => {
+  "use server";
+  const [ctx, event] = await ensureAuthenticated();
+  const user = await Users.findById(ctx.user.id);
+  if (!user) {
+    throw redirect("/auth/login");
+  }
+  if (user.role !== "admin") {
+    const companies = await Companies.findByUserId(ctx.user.id);
+    return companies;
+  }
+
+  const companies = await Companies.allNonDeleted();
+
+  return companies;
+}, "all-companies");

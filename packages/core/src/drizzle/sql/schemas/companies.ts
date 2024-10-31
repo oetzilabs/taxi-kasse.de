@@ -9,7 +9,9 @@ import { users } from "./users";
 export const companies = commonTable(
   "companies",
   {
-    ownerId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+    ownerId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
 
     image: text("image").notNull().default("/images/default-company-profile.png"),

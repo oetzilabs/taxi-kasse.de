@@ -80,6 +80,53 @@ export const getAuthenticatedSession = cache(async () => {
   return userSession;
 }, "session");
 
+export const getAuthenticatedAdminSession = cache(async () => {
+  "use server";
+  let userSession = {
+    id: null,
+    token: null,
+    expiresAt: null,
+    user: null,
+    organization: null,
+    organizations: [],
+    company: null,
+    companies: [],
+    workspace: null,
+    createdAt: null,
+  } as UserSession;
+  const event = getEvent()!;
+  const sessionId = getCookie(event, lucia.sessionCookieName) ?? null;
+  if (!sessionId) {
+    // throw redirect("/auth/login");
+    return userSession;
+  }
+  const { session } = await lucia.validateSession(sessionId);
+  if (!session) {
+    // throw redirect("/auth/login");
+    // console.error("invalid session");
+    return userSession;
+  }
+
+  userSession.id = session.id;
+  userSession.token = session.access_token;
+  if (session.organization_id) userSession.organization = await Organizations.findById(session.organization_id);
+  if (session.company_id) userSession.company = await Companies.findById(session.company_id);
+  if (session.userId) {
+    userSession.user = await Users.findById(session.userId);
+    userSession.organizations = await Organizations.findByUserId(session.userId);
+    userSession.companies = await Companies.findByUserId(session.userId);
+  }
+  if (session.createdAt) userSession.createdAt = session.createdAt;
+
+  if (userSession.user?.role) {
+    if (userSession.user.role !== "admin") {
+      throw redirect("/auth/login");
+    }
+  }
+
+  return userSession;
+}, "admin-user");
+
 export const getAuthenticatedSessions = cache(async () => {
   "use server";
   const [ctx, event] = await getContext();

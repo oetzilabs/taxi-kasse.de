@@ -65,6 +65,7 @@ export const userRelation = relations(users, ({ many }) => ({
   sessions: many(sessions),
   orgs: many(user_organizations),
   companies: many(user_companies),
+  vehicles: many(vehicles),
 }));
 
 export type UserSelect = typeof users.$inferSelect;

@@ -377,15 +377,19 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                 }}
               />
               {/* <RideFilters filterValue={filterValue()} onFilterChange={setFilterValue} /> */}
-
-              <AddRideModal
-                vehicle_id_saved={null}
-                vehicle_id_used_last_time={null}
-                base_charge={Number(props.session().company?.base_charge)}
-                distance_charge={Number(props.session().company?.distance_charge)}
-                time_charge={Number(props.session().company?.time_charge)}
-                currency_code={props.session().user?.currency_code ?? "USD"}
-              />
+              <Show when={props.session().company?.id}>
+                {(id) => (
+                  <AddRideModal
+                    company_id={id()}
+                    vehicle_id_saved={null}
+                    vehicle_id_used_last_time={null}
+                    base_charge={Number(props.session().company?.base_charge)}
+                    distance_charge={Number(props.session().company?.distance_charge)}
+                    time_charge={Number(props.session().company?.time_charge)}
+                    currency_code={props.session().user?.currency_code ?? "USD"}
+                  />
+                )}
+              </Show>
             </div>
           </div>
         </div>

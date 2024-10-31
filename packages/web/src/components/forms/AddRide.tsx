@@ -51,6 +51,7 @@ const HourNumberSchema = pipe(
 const ClientRouteMap = clientOnly(() => import("../ClientRouteMap"));
 
 const AddRideModal = (props: {
+  company_id: string;
   vehicle_id_used_last_time: string | null;
   vehicle_id_saved: string | null;
   base_charge: number;
@@ -63,6 +64,7 @@ const AddRideModal = (props: {
   const vehicles = createAsync(() => getVehicles());
 
   const [newRide, setNewRide] = createStore<CreateRide>({
+    comp_id: props.company_id,
     departure: "",
     arrival: "",
     distance: "0.000",
