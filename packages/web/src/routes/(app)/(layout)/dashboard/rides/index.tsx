@@ -19,7 +19,7 @@ export const route = {
 
 export default function RidesPage() {
   const rides = createAsync(() => getRides());
-  const session = createAsync(() => getAuthenticatedSession());
+  const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
   const [search, setSearchParams] = useSearchParams();
 
   return (

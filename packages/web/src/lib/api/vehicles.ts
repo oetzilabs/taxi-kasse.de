@@ -1,10 +1,10 @@
-import { action, cache, redirect } from "@solidjs/router";
+import { action, query, redirect } from "@solidjs/router";
 import { VehicleModels } from "@taxikassede/core/src/entities/vehicle_models";
 import { Vehicles } from "@taxikassede/core/src/entities/vehicles";
 import { InferInput } from "valibot";
 import { ensureAuthenticated } from "../auth/context";
 
-export const getVehicleIds = cache(async () => {
+export const getVehicleIds = query(async () => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
 
@@ -20,7 +20,7 @@ export const getVehicleIds = cache(async () => {
   return ids;
 }, "vehicle-ids");
 
-export const getVehicles = cache(async () => {
+export const getVehicles = query(async () => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
 
@@ -38,7 +38,7 @@ export const addVehicle = action(async (data: CreateVehicle) => {
   throw redirect(`/dashboard/vehicles/${vehicle.id}`);
 });
 
-export const getVehicleModels = cache(async () => {
+export const getVehicleModels = query(async () => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
   const models = await VehicleModels.all();
@@ -79,7 +79,7 @@ export const importVehicles = action(async () => {
   return vehicles;
 });
 
-export const getVehicleById = cache(async (id: string) => {
+export const getVehicleById = query(async (id: string) => {
   "use server";
   if (!id) return undefined;
   const [ctx, event] = await ensureAuthenticated();

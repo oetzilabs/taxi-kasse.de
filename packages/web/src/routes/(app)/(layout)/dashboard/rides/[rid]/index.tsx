@@ -44,7 +44,7 @@ export const route = {
 } satisfies RouteDefinition;
 
 export default function RideRidPage(props: RouteSectionProps) {
-  const session = createAsync(() => getAuthenticatedSession());
+  const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
   const ride = createAsync(() => getRide(props.params.rid));
 
   const obscureId = (id: string) => {

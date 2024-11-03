@@ -1,5 +1,5 @@
 import { setTimeout } from "node:timers/promises";
-import { action, cache, redirect } from "@solidjs/router";
+import { action, query, redirect } from "@solidjs/router";
 import { Companies } from "@taxikassede/core/src/entities/companies";
 import { Organizations } from "@taxikassede/core/src/entities/organizations";
 import { Users } from "@taxikassede/core/src/entities/users";
@@ -7,7 +7,7 @@ import { getCookie, getEvent } from "vinxi/http";
 import { lucia } from ".";
 import { getContext } from "./context";
 
-export const getAuthenticatedUser = cache(async () => {
+export const getAuthenticatedUser = query(async () => {
   "use server";
   const [ctx, event] = await getContext();
   if (!ctx) {
@@ -39,7 +39,7 @@ export type UserSession = {
   createdAt: Date | null;
 };
 
-export const getAuthenticatedSession = cache(async () => {
+export const getAuthenticatedSession = query(async () => {
   "use server";
   let userSession = {
     id: null,
@@ -80,7 +80,7 @@ export const getAuthenticatedSession = cache(async () => {
   return userSession;
 }, "session");
 
-export const getAuthenticatedAdminSession = cache(async () => {
+export const getAuthenticatedAdminSession = query(async () => {
   "use server";
   let userSession = {
     id: null,
@@ -127,7 +127,7 @@ export const getAuthenticatedAdminSession = cache(async () => {
   return userSession;
 }, "admin-user");
 
-export const getAuthenticatedSessions = cache(async () => {
+export const getAuthenticatedSessions = query(async () => {
   "use server";
   const [ctx, event] = await getContext();
   if (!ctx) {
@@ -147,7 +147,7 @@ export const getAuthenticatedSessions = cache(async () => {
   return sessions;
 }, "sessions");
 
-export const getCurrentOrganization = cache(async () => {
+export const getCurrentOrganization = query(async () => {
   "use server";
   const event = getEvent()!;
 
@@ -199,7 +199,7 @@ export const sendVerificationEmail = action(async () => {
   return true;
 });
 
-export const checkVerification = cache(async () => {
+export const checkVerification = query(async () => {
   "use server";
   const [ctx, event] = await getContext();
   if (!ctx) {

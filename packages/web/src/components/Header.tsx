@@ -6,13 +6,12 @@ import Sun from "lucide-solid/icons/sun";
 import { Match, Show, Switch } from "solid-js";
 import { getAuthenticatedSession } from "../lib/auth/util";
 import { cn } from "../lib/utils";
-import { AppSearch } from "./AppSearch";
 import { Logo } from "./Logo";
 import { Button, buttonVariants } from "./ui/button";
 import UserMenu from "./UserMenu";
 
 export function Header() {
-  const session = createAsync(() => getAuthenticatedSession());
+  const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
   const location = useLocation();
   const path = useResolvedPath(() => location.pathname);
 

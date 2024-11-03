@@ -1,18 +1,19 @@
-import { cn } from "@/libs/cn";
-import {
-  DropdownMenu as DropdownMenuPrimitive,
-  type DropdownMenuCheckboxItemProps,
-  type DropdownMenuContentProps,
-  type DropdownMenuGroupLabelProps,
-  type DropdownMenuItemLabelProps,
-  type DropdownMenuItemProps,
-  type DropdownMenuRadioItemProps,
-  type DropdownMenuRootProps,
-  type DropdownMenuSeparatorProps,
-  type DropdownMenuSubTriggerProps,
+import type {
+  DropdownMenuCheckboxItemProps,
+  DropdownMenuContentProps,
+  DropdownMenuGroupLabelProps,
+  DropdownMenuItemLabelProps,
+  DropdownMenuItemProps,
+  DropdownMenuRadioItemProps,
+  DropdownMenuRootProps,
+  DropdownMenuSeparatorProps,
+  DropdownMenuSubTriggerProps,
 } from "@kobalte/core/dropdown-menu";
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
-import { mergeProps, splitProps, type ComponentProps, type ParentProps, type ValidComponent } from "solid-js";
+import type { ComponentProps, ParentProps, ValidComponent } from "solid-js";
+import { cn } from "@/libs/cn";
+import { DropdownMenu as DropdownMenuPrimitive } from "@kobalte/core/dropdown-menu";
+import { mergeProps, splitProps } from "solid-js";
 
 export const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
 export const DropdownMenuGroup = DropdownMenuPrimitive.Group;
@@ -38,7 +39,7 @@ export const DropdownMenuContent = <T extends ValidComponent = "div">(
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
         class={cn(
-          "min-w-8rem z-50 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md transition-shadow focus-visible:outline-none focus-visible:ring-[1.5px] focus-visible:ring-ring data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0 data-[closed]:zoom-out-95 data-[expanded]:zoom-in-95",
+          "min-w-8rem z-50 overflow-hidden rounded-lg border bg-popover p-1 text-popover-foreground shadow-md transition-shadow focus-visible:outline-none focus-visible:ring-[1.5px] focus-visible:ring-ring data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0 data-[closed]:zoom-out-95 data-[expanded]:zoom-in-95",
           local.class,
         )}
         {...rest}

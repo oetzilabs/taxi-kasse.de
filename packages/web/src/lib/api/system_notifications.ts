@@ -1,8 +1,8 @@
-import { action, cache } from "@solidjs/router";
+import { action, query } from "@solidjs/router";
 import { SystemNotifications } from "@taxikassede/core/src/entities/system_notifications";
 import { ensureAuthenticated } from "../auth/context";
 
-export const getSystemNotifications = cache(async () => {
+export const getSystemNotifications = query(async () => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
 

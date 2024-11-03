@@ -18,7 +18,7 @@ export const route = {
 } satisfies RouteDefinition;
 
 export default function CompanyAddPage() {
-  const session = createAsync(() => getAuthenticatedSession());
+  const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
   const [companyName, setCompanyName] = createSignal("");
   const [phoneNumber, setPhoneNumber] = createSignal("");
   const [email, setEmail] = createSignal("");

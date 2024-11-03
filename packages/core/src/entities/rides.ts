@@ -234,7 +234,7 @@ export module Rides {
     if (_sum === null) return 0;
     const __sum = Number(_sum);
     if (Number.isNaN(__sum)) return 0;
-    return __sum;
+    return Math.floor(__sum * 100) / 100;
   };
 
   export const sumByUserIdForThisMonth = async (

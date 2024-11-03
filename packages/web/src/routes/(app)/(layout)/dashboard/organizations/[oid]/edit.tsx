@@ -161,7 +161,7 @@ const OrganizationForm = (props: { organization: Organizations.Info }) => {
 };
 
 export default function OrganizationEditPage(props: RouteSectionProps) {
-  const session = createAsync(() => getAuthenticatedSession());
+  const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
 
   const organization = createAsync(() => getOrganizationById(props.params.oid));
 

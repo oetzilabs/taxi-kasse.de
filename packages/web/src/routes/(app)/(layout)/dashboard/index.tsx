@@ -122,7 +122,7 @@ const Statistic = (props: {
 export default function DashboardPage() {
   const stats = createAsync(() => getStatistics());
   const rides = createAsync(() => getRides());
-  const session = createAsync(() => getAuthenticatedSession());
+  const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
 
   return (
     <div class="w-full grow flex flex-col">

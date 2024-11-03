@@ -333,7 +333,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
 
   return (
     <div class="gap-0 w-full grow">
-      <div class="flex flex-col gap-2 w-full grow">
+      <div class="flex flex-col gap-0 w-full grow">
         <div class="flex flex-row items-center justify-between gap-0">
           <div class="flex flex-row items-center gap-4 w-min"></div>
           <div class="flex flex-row items-center gap-4 w-full">
@@ -344,42 +344,28 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                   query: v,
                 })
               }
-              class="w-full max-w-full"
+              class="w-full max-w-full rounded-xl "
             >
               <TextField
                 ref={searchRef!}
                 placeholder={`Search across ${filteredRides().length} rides`}
-                class="w-full max-w-full h-8 text-xs"
+                class="w-full max-w-full text-xs h-8 bg-neutral-100 dark:bg-neutral-900 !shadow-none"
               />
             </TextFieldRoot>
             <div class="flex flex-row items-center gap-2">
-              <Button
-                size="sm"
-                class="flex flex-row items-center gap-2 select-none size-8 md:size-auto p-2 md:px-3 md:py-2"
-                variant="secondary"
-                onClick={async () => {
-                  await revalidate([getRides.key, getLanguage.key, getStatistics.key]);
-                }}
-              >
-                <span class="sr-only md:not-sr-only">Refresh</span>
-                <RotateClockwise class="size-4" />
-              </Button>
-              <RideSelectionMenu
-                selected={highlightedRows}
-                rides={rides}
-                toggleSelectAll={() => {
-                  const someSelected = highlightedRows().length > 0;
-                  if (someSelected) {
-                    setHighlightedRows([]);
-                  } else {
-                    setHighlightedRows(filteredRides().map((r) => r.id));
-                  }
-                }}
-              />
-              {/* <RideFilters filterValue={filterValue()} onFilterChange={setFilterValue} /> */}
               <Show when={props.session().company?.id}>
                 {(id) => (
-                  <AddRideModal
+                  <RideSelectionMenu
+                    selected={highlightedRows}
+                    rides={rides}
+                    toggleSelectAll={() => {
+                      const someSelected = highlightedRows().length > 0;
+                      if (someSelected) {
+                        setHighlightedRows([]);
+                      } else {
+                        setHighlightedRows(filteredRides().map((r) => r.id));
+                      }
+                    }}
                     company_id={id()}
                     vehicle_id_saved={null}
                     vehicle_id_used_last_time={null}
@@ -407,7 +393,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                 {([month, [rides, d]], i) => (
                   <div class="flex flex-col gap-0 w-full">
                     <div
-                      class={cn("flex flex-row items-center w-full px-0 py-4 transition-[padding] duration-300", {
+                      class={cn("flex flex-row items-center w-full px-0 py-4", {
                         "pb-0": hiddenMonths().includes(dFormat(d)),
                       })}
                     >
@@ -519,7 +505,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                                 },
                               )}
                             >
-                              <div class="flex flex-row w-full p-6 items-center justify-between">
+                              <div class="flex flex-row w-full p-4 py-2 items-center justify-between">
                                 <div class="flex items-center justify-center select-none gap-4">
                                   <div class="flex flex-row items-center gap-4">
                                     <Checkbox
@@ -570,7 +556,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                                 <div class="w-max flex flex-row items-center gap-2">
                                   <Button
                                     size="sm"
-                                    variant="secondary"
+                                    variant="ghost"
                                     class="flex flex-row items-center gap-2 leading-none select-none"
                                     as={A}
                                     href={`/dashboard/rides/${ride.id}`}

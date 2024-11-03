@@ -1,4 +1,4 @@
-import { cache } from "@solidjs/router";
+import { query } from "@solidjs/router";
 import { ensureAuthenticated } from "../auth/context";
 
 type WeatherType =
@@ -23,7 +23,7 @@ type Weather = {
   };
 };
 
-export const getWeather = cache(async () => {
+export const getWeather = query(async () => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
 

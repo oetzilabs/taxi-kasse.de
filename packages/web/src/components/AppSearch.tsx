@@ -1,3 +1,4 @@
+import type { UserSession } from "@/lib/auth/util";
 import {
   CommandDialog,
   CommandEmpty,
@@ -7,7 +8,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { getAuthenticatedSession, type UserSession } from "@/lib/auth/util";
+import { getAuthenticatedSession } from "@/lib/auth/util";
 import { useColorMode } from "@kobalte/core";
 import { createAsync, useLocation, useNavigate } from "@solidjs/router";
 import Search from "lucide-solid/icons/search";
@@ -29,7 +30,7 @@ export const AppSearch = () => {
   const paths = ["/", "/auth/login", "/auth/verify-email"];
   const available = () => paths.includes(location.pathname);
   const [openSearch, setOpenSearch] = createSignal(false);
-  const session = createAsync(() => getAuthenticatedSession());
+  const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
   const { setColorMode, toggleColorMode, colorMode } = useColorMode();
   const navigate = useNavigate();
 

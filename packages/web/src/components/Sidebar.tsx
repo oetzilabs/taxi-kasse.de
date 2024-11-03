@@ -1,3 +1,4 @@
+import { getAuthenticatedSession } from "@/lib/auth/util";
 import { createAsync, useLocation, useResolvedPath } from "@solidjs/router";
 import Building2 from "lucide-solid/icons/building-2";
 import Car from "lucide-solid/icons/car";
@@ -7,25 +8,24 @@ import Settings from "lucide-solid/icons/settings";
 import Store from "lucide-solid/icons/store";
 import Truck from "lucide-solid/icons/truck";
 import { Show } from "solid-js";
-import { getAuthenticatedSession } from "../lib/auth/util";
 import NavLink from "./NavLink";
 
 export default function Sidebar() {
-  const session = createAsync(() => getAuthenticatedSession());
-  const list = [
-    "/dashboard",
-    "/dashboard/rides",
-    "/dashboard/vehicles",
-    "/dashboard/regions",
-    "/dashboard/organizations",
-    "/dashboard/companies",
-    "/settings",
-  ];
+  const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
+  // const list = [
+  //   "/dashboard",
+  //   "/dashboard/rides",
+  //   "/dashboard/vehicles",
+  //   "/dashboard/regions",
+  //   "/dashboard/organizations",
+  //   "/dashboard/companies",
+  //   "/settings",
+  // ];
 
-  const location = useLocation();
+  // const location = useLocation();
 
-  const resolvedPath = useResolvedPath(() => location.pathname);
-  const isNotInList = () => !list.some((item) => item.startsWith(resolvedPath() ?? ""));
+  // const resolvedPath = useResolvedPath(() => location.pathname);
+  // const isNotInList = () => !list.some((item) => item.startsWith(resolvedPath() ?? ""));
 
   return (
     <div class="flex flex-col w-full ">

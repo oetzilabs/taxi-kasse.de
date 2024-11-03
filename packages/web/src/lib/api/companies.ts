@@ -1,6 +1,6 @@
 import type { Validator } from "@taxikassede/core/src/validator";
 import type { InferInput } from "valibot";
-import { action, cache, json, redirect } from "@solidjs/router";
+import { action, json, query, redirect } from "@solidjs/router";
 import { Companies } from "@taxikassede/core/src/entities/companies";
 import { Organizations } from "@taxikassede/core/src/entities/organizations";
 import { Users } from "@taxikassede/core/src/entities/users";
@@ -103,7 +103,7 @@ export const removeCompany = action(async (id: InferInput<typeof Validator.Cuid2
   });
 });
 
-export const getCompanyById = cache(async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+export const getCompanyById = query(async (id: InferInput<typeof Validator.Cuid2Schema>) => {
   "use server";
   if (!id) return undefined;
   const [ctx, event] = await ensureAuthenticated();
@@ -176,7 +176,7 @@ export const resetCompanyChargesToOrganization = action(async (c_id, org_id) => 
   });
 });
 
-export const getAllCompanies = cache(async () => {
+export const getAllCompanies = query(async () => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
   const user = await Users.findById(ctx.user.id);

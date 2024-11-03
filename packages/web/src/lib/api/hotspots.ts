@@ -1,10 +1,10 @@
-import { cache } from "@solidjs/router";
+import { query } from "@solidjs/router";
 import { Orders } from "@taxikassede/core/src/entities/orders";
 import { Organizations } from "@taxikassede/core/src/entities/organizations";
 import { Regions } from "@taxikassede/core/src/entities/regions";
 import { ensureAuthenticated } from "../auth/context";
 
-export const getHotspots = cache(async () => {
+export const getHotspots = query(async () => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
   if (!ctx.session.organization_id) return [];

@@ -17,7 +17,7 @@ export const route = {
 } satisfies RouteDefinition;
 
 export const CompanyPage = (props: RouteSectionProps) => {
-  const session = createAsync(() => getAuthenticatedSession());
+  const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
   const organization = createAsync(() => getOrganizationById(props.params.oid));
   const allRegions = createAsync(() => getAllRegions());
 

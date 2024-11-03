@@ -1,10 +1,10 @@
-import { action, cache, json, redirect } from "@solidjs/router";
+import { action, json, query, redirect } from "@solidjs/router";
 import { Events } from "@taxikassede/core/src/entities/events";
 import { Realtimed } from "@taxikassede/core/src/entities/realtime";
 import { InferInput } from "valibot";
 import { ensureAuthenticated } from "../auth/context";
 
-export const getEvents = cache(async () => {
+export const getEvents = query(async () => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
 
@@ -13,7 +13,7 @@ export const getEvents = cache(async () => {
   return events;
 }, "events");
 
-export const getEvent = cache(async (id: string) => {
+export const getEvent = query(async (id: string) => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
 

@@ -1,11 +1,11 @@
-import { cache } from "@solidjs/router";
+import { query } from "@solidjs/router";
 import { Orders } from "@taxikassede/core/src/entities/orders";
 import { Rides } from "@taxikassede/core/src/entities/rides";
 import { Users } from "@taxikassede/core/src/entities/users";
 import { getCookie, getHeader } from "vinxi/http";
 import { ensureAuthenticated } from "../auth/context";
 
-export const getStatistics = cache(async () => {
+export const getStatistics = query(async () => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
 
@@ -32,7 +32,7 @@ export const getStatistics = cache(async () => {
       value: earningsThisMonth,
       ...preffered_currency,
       priority: 1,
-      description: `You made ${preffered_currency.prefix}${total_earnings} ${preffered_currency.sufix} in total`,
+      description: `You made ${preffered_currency.prefix}${total_earnings.toFixed(2)} ${preffered_currency.sufix} in total`,
     },
     orders: {
       value: orders,
@@ -51,7 +51,7 @@ export const getStatistics = cache(async () => {
   };
 }, "statistics");
 
-export const getSystemStatistics = cache(async () => {
+export const getSystemStatistics = query(async () => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
 

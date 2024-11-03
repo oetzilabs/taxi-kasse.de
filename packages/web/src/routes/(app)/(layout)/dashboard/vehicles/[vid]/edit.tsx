@@ -107,7 +107,7 @@ const VehicleForm = (props: { vehicle: Vehicles.Info }) => {
 };
 
 export default function DashboardEditPage(props: RouteSectionProps) {
-  const session = createAsync(() => getAuthenticatedSession());
+  const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
 
   const vehicle = createAsync(() => getVehicleById(props.params.vid));
 

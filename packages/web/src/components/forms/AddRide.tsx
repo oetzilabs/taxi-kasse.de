@@ -32,22 +32,6 @@ import { language } from "../stores/Language";
 import { Badge } from "../ui/badge";
 import { Checkbox, CheckboxControl, CheckboxDescription, CheckboxLabel } from "../ui/checkbox";
 
-const MinuteNumberSchema = pipe(
-  string("Please provide a number"),
-  transform((v) => Number(v)),
-  number("Please provide a number"),
-  minValue(0, "The time must be greater than 0"),
-  maxValue(59, "The time must be less than 59"),
-);
-
-const HourNumberSchema = pipe(
-  string("Please provide a number"),
-  transform((v) => Number(v)),
-  number("Please provide a number"),
-  minValue(0, "The time must be greater than 0"),
-  maxValue(23, "The time must be less than 23"),
-);
-
 const ClientRouteMap = clientOnly(() => import("../ClientRouteMap"));
 
 const AddRideModal = (props: {
@@ -149,7 +133,11 @@ const AddRideModal = (props: {
     >
       <DialogTrigger
         as={(props: DialogTriggerProps) => (
-          <Button size="sm" {...props} class="flex flex-row items-center gap-2 size-8 md:size-auto p-2 md:px-3 md:py-2">
+          <Button
+            size="sm"
+            {...props}
+            class="flex flex-row items-center gap-2 size-10 md:size-auto p-2 md:px-5 md:py-2 rounded-xl !h-10"
+          >
             <span class="sr-only md:not-sr-only">Add</span>
             <Plus class="size-4" />
           </Button>

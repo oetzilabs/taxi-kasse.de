@@ -28,7 +28,7 @@ export const route = {
 } satisfies RouteDefinition;
 
 export default function Dashboard() {
-  const session = createAsync(() => getAuthenticatedSession());
+  const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
   let bannerRef: HTMLDivElement;
   let heroRef: HTMLDivElement;
   let titleRef: HTMLDivElement;
@@ -46,7 +46,7 @@ export default function Dashboard() {
       },
       {
         threshold: 0.1, // Trigger when 10% of the banner is visible
-      }
+      },
     );
 
     const observer = new IntersectionObserver(
@@ -58,7 +58,7 @@ export default function Dashboard() {
       },
       {
         threshold: 0.1, // Trigger when 10% of the banner is visible
-      }
+      },
     );
 
     const heroObserver = new IntersectionObserver(
@@ -70,7 +70,7 @@ export default function Dashboard() {
       },
       {
         threshold: 0.05, // Trigger when 10% of the banner is visible
-      }
+      },
     );
 
     if (bannerRef) {
@@ -188,7 +188,7 @@ export default function Dashboard() {
               "transition-all bg-white dark:bg-neutral-900 rounded-t-xl w-full aspect-video -z-10 border-x border-t border-neutral-300 dark:border-neutral-800 opacity-5 translate-y-40 ease-in-out",
               {
                 "opacity-100 translate-y-0": showHero(),
-              }
+              },
             )}
             style={{
               "transform-origin": "top center",
@@ -264,7 +264,7 @@ export default function Dashboard() {
                     "transition-all flex flex-col gap-4 duration-1000 delay-500  ease-in-out opacity-0 translate-y-10",
                     {
                       "opacity-100 translate-y-0": isVisible(),
-                    }
+                    },
                   )}
                 >
                   <p class="text-xs font-bold text-white/50 dark:text-black/50">

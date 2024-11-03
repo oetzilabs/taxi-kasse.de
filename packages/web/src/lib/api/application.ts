@@ -1,10 +1,10 @@
-import { action, cache, redirect } from "@solidjs/router";
+import { action, query, redirect } from "@solidjs/router";
 import { currency_code } from "@taxikassede/core/src/drizzle/sql/schema";
 import { Users } from "@taxikassede/core/src/entities/users";
 import { getCookie, getHeader } from "vinxi/http";
 import { getContext } from "../auth/context";
 
-export const getLanguage = cache(async () => {
+export const getLanguage = query(async () => {
   "use server";
   let language = "en";
   const [ctx, event] = await getContext();
@@ -24,7 +24,7 @@ export const getLanguage = cache(async () => {
   return language;
 }, "language");
 
-export const getCurrencies = cache(async () => {
+export const getCurrencies = query(async () => {
   "use server";
   const [ctx, event] = await getContext();
   if (!ctx) return [];

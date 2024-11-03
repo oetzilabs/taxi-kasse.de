@@ -255,7 +255,7 @@ const CompanyForm = (props: { organizations: Organizations.Info[]; company: Acce
 };
 
 export default function DashboardEditPage(props: RouteSectionProps) {
-  const session = createAsync(() => getAuthenticatedSession());
+  const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
 
   const company = createAsync(() => getCompanyById(props.params.cid));
 

@@ -1,4 +1,4 @@
-import { action, cache, json, redirect } from "@solidjs/router";
+import { action, json, query, redirect } from "@solidjs/router";
 import { db } from "@taxikassede/core/src/drizzle/sql";
 import { Companies } from "@taxikassede/core/src/entities/companies";
 import { Organizations } from "@taxikassede/core/src/entities/organizations";
@@ -11,14 +11,14 @@ import { InferInput } from "valibot";
 import { ensureAuthenticated } from "../auth/context";
 import { getStatistics } from "./statistics";
 
-export const getRides = cache(async () => {
+export const getRides = query(async () => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
   const rides = await Rides.findByUserId(ctx.user.id);
   return rides;
 }, "rides");
 
-export const getRidesByUserId = cache(async (id: string) => {
+export const getRidesByUserId = query(async (id: string) => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
   const user = await Users.findById(id);
@@ -92,7 +92,7 @@ export const addRide = action(async (data: CreateRide, lastSavedVehicleId: strin
   });
 });
 
-export const getRide = cache(async (rid: string) => {
+export const getRide = query(async (rid: string) => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
   const ride = await Rides.findById(rid);
@@ -214,7 +214,7 @@ export const setStatus = action(async (rid: string, status: InferInput<typeof Ri
   return updated;
 });
 
-export const getSystemRides = cache(async () => {
+export const getSystemRides = query(async () => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
   const rides = await Rides.allNonDeleted();

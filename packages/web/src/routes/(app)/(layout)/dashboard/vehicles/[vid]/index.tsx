@@ -42,7 +42,7 @@ export const route = {
 } satisfies RouteDefinition;
 
 export default function VehicleVidPage(props: RouteSectionProps) {
-  const session = createAsync(() => getAuthenticatedSession());
+  const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
 
   const vehicle = createAsync(() => getVehicleById(props.params.vid));
 

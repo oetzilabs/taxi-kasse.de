@@ -30,7 +30,7 @@ const LANGUAGES = [
 ];
 
 export default function Settings() {
-  const session = createAsync(() => getAuthenticatedSession());
+  const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
   const currencies = createAsync(() => getCurrencies());
 
   const [loading, setLoading] = createSignal(false);
