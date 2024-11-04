@@ -5,31 +5,28 @@ import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/compone
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider, SliderFill, SliderLabel, SliderThumb, SliderTrack, SliderValueLabel } from "@/components/ui/slider";
 import { TextField, TextFieldRoot } from "@/components/ui/textfield";
+import { update } from "@solid-primitives/signal-builders";
+import dayjs from "dayjs";
 import Filter from "lucide-solid/icons/filter";
-import { createSignal } from "solid-js";
+import { Accessor, createSignal, Setter } from "solid-js";
+import Calendar from "./Calendar";
 
 export type FilterValue = {
-  dateRange?: { start?: string; end?: string };
+  dateRange?: { start?: Date; end?: Date };
   duration?: [number, number];
   distance?: [number, number];
   income?: [number, number];
-  status?: string;
+  status?: Rides.Info["status"];
   rideType?: string;
 };
 
 type RideFiltersProps = {
-  filterValue: FilterValue;
-  onFilterChange: (newFilters: FilterValue) => void;
+  filterValue: Accessor<FilterValue>;
+  onFilterChange: Setter<FilterValue>;
 };
 
 export const RideFilters = (props: RideFiltersProps) => {
   const [popoverOpen, setPopoverOpen] = createSignal(false);
-  const handleFilterChange = (key: keyof FilterValue, value: any) => {
-    props.onFilterChange({
-      ...props.filterValue,
-      [key]: value,
-    });
-  };
 
   return (
     <Popover open={popoverOpen()} onOpenChange={setPopoverOpen} placement="bottom-end">
@@ -42,30 +39,22 @@ export const RideFilters = (props: RideFiltersProps) => {
         <div class="flex flex-col gap-2 w-full">
           <Label>Date Range:</Label>
           <div class="flex flex-row items-center justify-between w-full gap-2">
-            <TextFieldRoot
-              value={props.filterValue.dateRange?.start || ""}
+            <Calendar
               onChange={(value) =>
-                handleFilterChange("dateRange", {
-                  ...props.filterValue.dateRange,
-                  start: value,
-                })
+                props.onFilterChange(
+                  update(props.filterValue, "dateRange", (dateRange) => ({ ...dateRange, start: value })),
+                )
               }
-              class=" w-full"
-            >
-              <TextField type="date" class=" w-full"></TextField>
-            </TextFieldRoot>
-            <TextFieldRoot
-              value={props.filterValue.dateRange?.end || ""}
+              value={props.filterValue().dateRange?.start ?? dayjs().toDate()}
+            />
+            <Calendar
               onChange={(value) =>
-                handleFilterChange("dateRange", {
-                  ...props.filterValue.dateRange,
-                  end: value,
-                })
+                props.onFilterChange(
+                  update(props.filterValue, "dateRange", (dateRange) => ({ ...dateRange, end: value })),
+                )
               }
-              class=" w-full"
-            >
-              <TextField type="date" class=" w-full"></TextField>
-            </TextFieldRoot>
+              value={props.filterValue().dateRange?.start ?? dayjs().toDate()}
+            />
           </div>
         </div>
         <div class="flex flex-col gap-2">
@@ -73,8 +62,12 @@ export const RideFilters = (props: RideFiltersProps) => {
           <Slider
             minValue={0}
             maxValue={120}
-            value={props.filterValue.duration || [0, 120]}
-            onChange={(value) => handleFilterChange("duration", value)}
+            value={props.filterValue().duration || [0, 120]}
+            onChange={(value) =>
+              props.onFilterChange(
+                update(props.filterValue, "duration", (v) => [value[0], value[1]] as [number, number]),
+              )
+            }
             class="flex flex-col gap-4"
           >
             <div class="flex w-full justify-between ">
@@ -85,7 +78,6 @@ export const RideFilters = (props: RideFiltersProps) => {
               <SliderTrack>
                 <SliderFill />
                 <SliderThumb />
-                <SliderThumb />
               </SliderTrack>
             </div>
           </Slider>
@@ -94,17 +86,21 @@ export const RideFilters = (props: RideFiltersProps) => {
           <Label>Distance (km):</Label>
           <div class="flex gap-2">
             <TextFieldRoot
-              value={String(props.filterValue.distance?.[0] || "")}
+              value={String(props.filterValue().distance?.[0] || "")}
               onChange={(value) =>
-                handleFilterChange("distance", [Number(value), props.filterValue.distance?.[1] || 0])
+                props.onFilterChange(
+                  update(props.filterValue, "distance", (v) => [Number(value), v?.[1] || 0] as [number, number]),
+                )
               }
             >
               <TextField type="number" placeholder="Min"></TextField>
             </TextFieldRoot>
             <TextFieldRoot
-              value={String(props.filterValue.distance?.[1] || "")}
+              value={String(props.filterValue().distance?.[1] || "")}
               onChange={(value) =>
-                handleFilterChange("distance", [props.filterValue.distance?.[0] || 0, Number(value)])
+                props.onFilterChange(
+                  update(props.filterValue, "distance", (v) => [Number(value), v?.[0] || 0] as [number, number]),
+                )
               }
             >
               <TextField type="number" placeholder="Max"></TextField>
@@ -115,14 +111,22 @@ export const RideFilters = (props: RideFiltersProps) => {
           <Label>Charge:</Label>
           <div class="flex gap-2">
             <TextFieldRoot
-              value={String(props.filterValue.income?.[0] || "")}
-              onChange={(value) => handleFilterChange("income", [Number(value), props.filterValue.income?.[1] || 0])}
+              value={String(props.filterValue().income?.[0] || "")}
+              onChange={(value) =>
+                props.onFilterChange(
+                  update(props.filterValue, "income", (v) => [Number(value), v?.[1] || 0] as [number, number]),
+                )
+              }
             >
               <TextField type="number" placeholder="Min"></TextField>
             </TextFieldRoot>
             <TextFieldRoot
-              value={String(props.filterValue.income?.[1] || "")}
-              onChange={(value) => handleFilterChange("income", [props.filterValue.income?.[0] || 0, Number(value)])}
+              value={String(props.filterValue().income?.[1] || "")}
+              onChange={(value) =>
+                props.onFilterChange(
+                  update(props.filterValue, "income", (v) => [v?.[0] || 0, Number(value)] as [number, number]),
+                )
+              }
             >
               <TextField type="number" placeholder="Max"></TextField>
             </TextFieldRoot>
@@ -132,8 +136,11 @@ export const RideFilters = (props: RideFiltersProps) => {
           <Label>Status:</Label>
           <Select
             multiple={false}
-            value={props.filterValue.status || "accepted"}
-            onChange={(value) => handleFilterChange("status", value)}
+            value={props.filterValue().status || "accepted"}
+            onChange={(value) => {
+              if (!value) return;
+              props.onFilterChange(update(props.filterValue, "status", (v) => value));
+            }}
             options={
               ["accepted", "pending", "rejected", "completed", "cancelled", "archived"] as Rides.Info["status"][]
             }
@@ -150,8 +157,11 @@ export const RideFilters = (props: RideFiltersProps) => {
           <Label>Ride Type:</Label>
           <Select
             multiple={false}
-            value={props.filterValue.rideType || "all"}
-            onChange={(value) => handleFilterChange("rideType", value)}
+            value={props.filterValue().rideType || "all"}
+            onChange={(value) => {
+              if (!value) return;
+              props.onFilterChange(update(props.filterValue, "rideType", (v) => value));
+            }}
             options={["all", "single", "shared"]}
             placeholder="Select ride type"
             itemComponent={(props) => <SelectItem item={props.item}>{props.item.rawValue}</SelectItem>}

@@ -212,7 +212,7 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
             as={(props: DialogTriggerProps) => (
               <DropdownMenuItem {...props} closeOnSelect={false}>
                 <Plus class="size-4" />
-                <span class="sr-only md:not-sr-only">Add</span>
+                <span>Add Ride</span>
               </DropdownMenuItem>
             )}
           />
@@ -638,6 +638,7 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={() => {
             props.toggleSelectAll();
@@ -650,7 +651,6 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
             </Show>
           </span>
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={() => {
             toast.promise(createReport.mutateAsync, {
@@ -692,6 +692,7 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
         <DropdownMenuSeparator />
         <Dialog open={openDeleteModal()} onOpenChange={setOpenDeleteModal}>
           <DialogTrigger
+            disabled={amount() === 0}
             as={DropdownMenuItem}
             class="flex flex-row items-center gap-2 text-red-500 hover:!bg-red-200 dark:hover:!bg-red-800 hover:!text-red-600 dark:hover:!text-red-500"
             closeOnSelect={false}

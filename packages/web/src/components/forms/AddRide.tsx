@@ -133,12 +133,8 @@ const AddRideModal = (props: {
     >
       <DialogTrigger
         as={(props: DialogTriggerProps) => (
-          <Button
-            size="sm"
-            {...props}
-            class="flex flex-row items-center gap-2 size-10 md:size-auto p-2 md:px-5 md:py-2 rounded-xl !h-10"
-          >
-            <span class="sr-only md:not-sr-only">Add</span>
+          <Button size="sm" {...props} class="flex flex-row items-center gap-2 h-8 w-max flex-1 p-2 md:px-3 md:py-2">
+            <span class="sr-only md:not-sr-only w-max">Add Ride</span>
             <Plus class="size-4" />
           </Button>
         )}

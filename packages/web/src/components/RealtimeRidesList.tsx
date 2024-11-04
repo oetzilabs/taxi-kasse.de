@@ -3,27 +3,29 @@ import type { DotNotation } from "../utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox, CheckboxControl } from "@/components/ui/checkbox";
 import { TextField, TextFieldRoot } from "@/components/ui/textfield";
+import { cn } from "@/lib/utils";
+import { dFormat, traverse } from "@/utils";
 import { concat, filter, remove, removeItems } from "@solid-primitives/signal-builders";
-import { A, revalidate, useSearchParams } from "@solidjs/router";
+import { A, useSearchParams } from "@solidjs/router";
 import { UserSession } from "~/lib/auth/util";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import ChevronRight from "lucide-solid/icons/chevron-right";
-import RotateClockwise from "lucide-solid/icons/rotate-cw";
 import { Accessor, createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
 import { isServer } from "solid-js/web";
-import { getLanguage } from "../lib/api/application";
-import { getRides } from "../lib/api/rides";
-import { getStatistics } from "../lib/api/statistics";
-import { cn } from "../lib/utils";
-import { dFormat, traverse } from "../utils";
-import AddRideModal from "./forms/AddRide";
+import { number, object, optional, parse, string, tuple, union } from "valibot";
 import { useRealtime } from "./Realtime";
 import { RideSelectionMenu } from "./RideSelectionMenu";
-import { FilterValue, RideFilters } from "./RidesFilter";
 import { language } from "./stores/Language";
 
 dayjs.extend(isBetween);
+
+const querySchema = object({
+  duration: optional(union([number(), tuple([number(), number()])])),
+  income: optional(union([number(), tuple([number(), number()])])),
+  distance: optional(union([number(), tuple([number(), number()])])),
+  "vehicle.name": optional(string()),
+});
 
 type RealtimeRidesListProps = {
   ridesList: Accessor<Rides.Info[]>;
@@ -36,96 +38,83 @@ type DotN = Omit<Rides.Info, "vehicle" | "user" | "routes"> & { vehicle: NonNull
 export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
   const [rides, setRides] = createSignal(props.ridesList());
   const rt = useRealtime();
-  const [search, setSearchParams] = useSearchParams();
   const [hiddenMonths, setHiddenMonths] = createSignal<Array<string>>([]);
-  const [filterValue, setFilterValue] = createSignal<FilterValue>({
-    dateRange: undefined,
-    duration: undefined,
-    distance: undefined,
-    income: undefined,
-    status: undefined,
-    rideType: undefined,
-  });
-
+  const [search, setSearchParams] = useSearchParams();
   const filteredRides = createMemo(() => {
     let query = Array.isArray(search.query) ? search.query[0] || "" : search.query || "";
-    const lowerQuery = query.toLowerCase();
     const ridesList = rides();
 
     if (!query) return ridesList;
 
-    const fields: Array<DotNotation<DotN>> = ["id", "added_by", "income", "vehicle.name", "distance"];
-    const filterCriteria = filterValue();
+    // Parse and validate query using Valibot schema
+    const parseQuery = (query: string) => {
+      const filter: Record<string, any> = {};
+      const pairs = query.split(";");
 
-    // Filter rides based on query
+      pairs.forEach((pair) => {
+        const [key, value] = pair.split(":");
+        if (!key || !value) return;
+
+        if (value.startsWith("[") && value.endsWith("]")) {
+          // Convert to array of numbers for range
+          filter[key] = value.slice(1, -1).split(",").map(Number);
+        } else if (!isNaN(Number(value))) {
+          // Parse as single number
+          filter[key] = Number(value);
+        } else {
+          // Parse as string
+          filter[key] = value.toLowerCase();
+        }
+      });
+
+      // Validate and return parsed query based on schema
+      return parse(querySchema, filter);
+    };
+
+    // Attempt to parse and validate query
+    let filters;
+    try {
+      filters = parseQuery(query);
+      console.log(filters);
+    } catch (error) {
+      console.error("Query validation failed:", error);
+      return ridesList;
+    }
+
+    const matchesFilter = (ride: Rides.Info) => {
+      for (const [key, condition] of Object.entries(filters)) {
+        const fieldValue = traverse(ride, key as DotNotation<DotN>);
+        if (fieldValue == null) continue;
+
+        if (Array.isArray(condition)) {
+          // Range check for array values
+          const [min, max] = condition;
+          const numericValue = Number(fieldValue);
+          if (numericValue < min || numericValue > max) return false;
+        } else if (typeof condition === "number") {
+          // Exact match for single numbers
+          if (Number(fieldValue) !== condition) return false;
+        } else {
+          // Substring match for string values
+          const stringValue = fieldValue.toString().toLowerCase();
+          if (!stringValue.includes(condition as string)) return false;
+        }
+      }
+      return true;
+    };
+
+    // Using for loop to gather matching rides
     const filteredByQuery: Array<Rides.Info> = [];
     for (let i = 0; i < ridesList.length; i++) {
       const ride = ridesList[i];
       if (ride.deletedAt) continue;
 
-      for (let j = 0; j < fields.length; j++) {
-        const field = fields[j];
-        const value = traverse(ride, field)?.toString().toLowerCase();
-        if (value && value.includes(lowerQuery)) {
-          filteredByQuery.push(ride);
-          break; // Stop further field checks once a match is found
-        }
+      if (matchesFilter(ride)) {
+        filteredByQuery.push(ride);
       }
     }
 
-    // Apply filter criteria if present
-    if (!Object.values(filterCriteria).some((value) => value !== undefined)) {
-      return filteredByQuery;
-    }
-
-    const finalFiltered: Array<Rides.Info> = [];
-    for (let i = 0; i < filteredByQuery.length; i++) {
-      const ride = filteredByQuery[i];
-      let matchesCriteria = true;
-
-      for (const [key, value] of Object.entries(filterCriteria)) {
-        if (!value) continue;
-
-        switch (key) {
-          case "dateRange": {
-            const { start, end } = value as { start?: string; end?: string };
-            if (start && end && !dayjs(ride.startedAt).isBetween(start, end)) {
-              matchesCriteria = false;
-            }
-            break;
-          }
-          case "duration": {
-            const [min, max] = value as [number, number];
-            const duration = Math.abs(dayjs(ride.endedAt).diff(ride.startedAt, "minute"));
-            if (duration < min || duration > max) matchesCriteria = false;
-            break;
-          }
-          case "distance": {
-            const [min, max] = value as [number, number];
-            if (Number(ride.distance) < min || Number(ride.distance) > max) matchesCriteria = false;
-            break;
-          }
-          case "income": {
-            const [min, max] = value as [number, number];
-            if (Number(ride.income) < min || Number(ride.income) > max) matchesCriteria = false;
-            break;
-          }
-          case "status": {
-            const statuses = value as string[];
-            if (!statuses.includes(ride.status)) matchesCriteria = false;
-            break;
-          }
-          default:
-            break;
-        }
-
-        if (!matchesCriteria) break; // Stop further checks if any criteria fails
-      }
-
-      if (matchesCriteria) finalFiltered.push(ride);
-    }
-
-    return finalFiltered;
+    return filteredByQuery;
   });
 
   const sortByStartedAt = (rides: Array<Rides.Info>) => {
@@ -345,6 +334,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                 })
               }
               class="w-full max-w-full rounded-xl "
+              disabled
             >
               <TextField
                 ref={searchRef!}
@@ -353,6 +343,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
               />
             </TextFieldRoot>
             <div class="flex flex-row items-center gap-2">
+              {/* <RideFilters filterValue={filterValue} onFilterChange={setFilterValue} /> */}
               <Show when={props.session().company?.id}>
                 {(id) => (
                   <RideSelectionMenu
@@ -385,7 +376,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
               <For
                 each={Object.entries(groupByMonth(_rides()))}
                 fallback={
-                  <div class="h-40 w-full flex flex-col items-center justify-center select-none bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl">
+                  <div class="h-40 w-full flex flex-col items-center justify-center select-none bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl mt-4">
                     <span class="text-muted-foreground">There are currently no rides</span>
                   </div>
                 }
