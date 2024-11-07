@@ -22,7 +22,8 @@ export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
     // VITE_WS_LINK: ws.url,
   },
   domain: {
-    name: $interpolate`www.${domain}`,
+    name: domain,
+    redirects: [`www.${domain}`],
     dns: cf,
   },
   invalidation: {

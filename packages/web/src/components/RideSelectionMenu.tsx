@@ -601,10 +601,9 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
               </Button>
               <Button
                 onClick={() => {
-                  const r = Object.assign({}, newRide);
+                  const r = newRide;
 
                   const lang = language();
-                  r.income = r.income;
                   r.distance = String(Number(r.distance) * 1000);
                   r.rating = String(parseLocaleNumber(lang, r.rating));
 

@@ -1,9 +1,11 @@
 import type { Realtimed } from "@taxikassede/core/src/entities/realtime";
 import type { JSX } from "solid-js";
 import { createGlobalEmitter } from "@solid-primitives/event-bus";
+import { createAsync } from "@solidjs/router";
 import mqtt from "mqtt";
 import { createContext, createSignal, onCleanup, onMount, useContext } from "solid-js";
 import { isServer } from "solid-js/web";
+import { getAuthenticatedSession } from "../lib/auth/util";
 
 type MqttContextType = {
   prefix: string;
@@ -16,7 +18,7 @@ type MqttContextType = {
     TA extends `${T}.${A}`,
   >(
     target: TA,
-    callback: (payload: P) => void
+    callback: (payload: P) => void,
   ) => VoidFunction;
   publish: <
     T extends Realtimed.Events["realtime"]["type"],
@@ -25,7 +27,7 @@ type MqttContextType = {
   >(
     topic: T,
     payload: P,
-    action: A
+    action: A,
   ) => void;
 };
 
@@ -44,18 +46,28 @@ export const Realtime = (props: RealtimeProps) => {
   const [client, setClient] = createSignal<mqtt.MqttClient | null>(null);
   const [isConnected, setIsConnected] = createSignal(false);
 
+  const session = createAsync(() => getAuthenticatedSession());
+
   onMount(() => {
     if (isServer) {
       console.log("RealtimeContext: realtime is not available on the server");
       return;
     }
 
+    const s = session();
+    if (!s) return;
+    const user = s.user;
+    if (!user) return;
+    const userid = user.id;
+
     // Connect to MQTT broker
     const mqttClient = mqtt.connect(`wss://${props.endpoint}/mqtt?x-amz-customauthorizer-name=${props.authorizer}`, {
       protocolVersion: 5,
+      clean: true,
+      protocol: "wss",
       manualConnect: true,
       username: "", // !! KEEP EMPTY !!
-      password: "PLACEHOLDER_TOKEN",
+      password: userid,
       clientId: `client_${window.crypto.randomUUID()}`,
       keepalive: 60,
     });
@@ -118,7 +130,7 @@ export const Realtime = (props: RealtimeProps) => {
           TA extends `${T}.${A}`,
         >(
           target: TA,
-          callback: (payload: P) => void
+          callback: (payload: P) => void,
         ) => {
           const [type, action] = target.split(".") as [T, A];
           if (!type || !action) return;
@@ -139,7 +151,7 @@ export const Realtime = (props: RealtimeProps) => {
           TA extends `${T}.${A}`,
         >(
           target: TA,
-          payload: P
+          payload: P,
         ) => {
           const c = client();
           if (c) {

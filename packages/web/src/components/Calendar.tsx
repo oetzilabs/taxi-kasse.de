@@ -15,20 +15,19 @@ import {
   DatePickerViewControl,
   DatePickerViewTrigger,
 } from "@/components/ui/date-picker";
+import { parseDate } from "@internationalized/date";
 import dayjs from "dayjs";
 import tz from "dayjs/plugin/timezone";
-import { createSignal, For, Index, Show } from "solid-js";
-import { Portal } from "solid-js/web";
-import { date, minValue, pipe, safeParse } from "valibot";
+import { Index } from "solid-js";
 
 dayjs.extend(tz);
 
-const Calendar = (props: { value: Date; onChange: (v: Date) => void; min?: Date }) => {
+const Calendar = (props: { value: Date; onChange: (v: Date) => void; min?: Date; max?: Date }) => {
   const timezone = dayjs.tz.guess();
   return (
     <DatePicker
       selectionMode="single"
-      value={[props.value, props.value].map((d) => dayjs(d).format("YYYY-MM-DD"))}
+      value={[props.value, props.value].map((d) => parseDate(d.toISOString()))}
       onValueChange={(v) => {
         const lcd = dayjs(props.value).format("YYYY-MM-DD");
         // find the index of the last changed date and take the other one
@@ -41,7 +40,8 @@ const Calendar = (props: { value: Date; onChange: (v: Date) => void; min?: Date 
 
         props.onChange(theOtherDate);
       }}
-      min={props.min ? dayjs(props.min).format("YYYY-MM-DD") : undefined}
+      min={props.min ? parseDate(props.min.toISOString()) : undefined}
+      max={props.max ? parseDate(props.max.toISOString()) : undefined}
     >
       <DatePickerInput placeholder="Pick a date" />
       <DatePickerContent>
