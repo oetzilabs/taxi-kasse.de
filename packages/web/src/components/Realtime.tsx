@@ -63,13 +63,13 @@ export const Realtime = (props: RealtimeProps) => {
     // Connect to MQTT broker
     const mqttClient = mqtt.connect(`wss://${props.endpoint}/mqtt?x-amz-customauthorizer-name=${props.authorizer}`, {
       protocolVersion: 5,
-      clean: true,
       protocol: "wss",
       manualConnect: true,
       username: "", // !! KEEP EMPTY !!
       password: userid,
       clientId: `client_${window.crypto.randomUUID()}`,
       keepalive: 60,
+      connectTimeout: 60 * 1000,
     });
 
     mqttClient.on("connect", () => {
@@ -173,6 +173,9 @@ export const useRealtime = () => {
   const ctx = useContext(RealtimeContext);
   if (!ctx) {
     throw new Error("RealtimeContext is not set");
+  }
+  if (!ctx.client()) {
+    throw new Error("RealtimeContext: client is not connected");
   }
 
   return ctx;
