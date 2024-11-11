@@ -130,6 +130,9 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
     vehicle_id: props.vehicle_id_saved ?? "",
     startedAt: dayjs().toDate(),
     endedAt: dayjs().toDate(),
+    arrivalCoordinates: [0, 0],
+    departureCoordinates: [0, 0],
+    geometry: "",
   });
 
   const [isVehiclePreferred, setIsVehiclePreferred] = createSignal(props.vehicle_id_saved !== null);
@@ -176,6 +179,8 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
     setNewRide("endedAt", dayjs().toDate());
     setNewRide("arrival", "");
     setNewRide("departure", "");
+    setNewRide("departureCoordinates", [0, 0]);
+    setNewRide("arrivalCoordinates", [0, 0]);
     setFromCoords(undefined);
     setToCoords(undefined);
     setRouteGeometry(undefined);
@@ -417,6 +422,9 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
                                 if (calced.coords.from && calced.coords.to) {
                                   setFromCoords(calced.coords.from);
                                   setToCoords(calced.coords.to);
+                                  setNewRide("departureCoordinates", calced.coords.from);
+                                  setNewRide("arrivalCoordinates", calced.coords.to);
+                                  setNewRide("geometry", calced.routes?.geometry);
                                 }
                                 if (!calced.routes) return;
                                 setRouteGeometry(calced.routes.geometry);
@@ -650,7 +658,7 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
           <span>Create Report</span>
         </DropdownMenuItem>
         <DropdownMenuItem
-          disabled={amount() === 0}
+          disabled={amount() === 0 || true}
           onSelect={async () => {
             toast.promise(createCSV.mutateAsync, {
               loading: "Preparing CSV",

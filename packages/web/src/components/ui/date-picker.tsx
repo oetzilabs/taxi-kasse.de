@@ -18,8 +18,11 @@ import type { VoidProps } from "solid-js";
 import { cn } from "@/libs/cn";
 import { DatePicker as DatePickerPrimitive } from "@ark-ui/solid/date-picker";
 import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
 import { splitProps } from "solid-js";
 import { buttonVariants } from "./button";
+
+dayjs.extend(timezone);
 
 export const DatePickerLabel = DatePickerPrimitive.Label;
 export const DatePickerTableHead = DatePickerPrimitive.TableHead;

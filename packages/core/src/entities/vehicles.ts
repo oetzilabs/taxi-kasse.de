@@ -141,6 +141,9 @@ export module Vehicles {
     return tsx.query.vehicles.findMany({
       where: (fields, ops) => ops.and(ops.eq(fields.owner_id, isValid.output), isNull(fields.deletedAt)),
       with: _with,
+      orderBy(fields, operators) {
+        return operators.asc(fields.name);
+      },
     });
   };
 
@@ -180,7 +183,7 @@ export module Vehicles {
       }
     }
 
-    const vehicle_models = await VehicleModels.upsert(models);
+    const vehicle_models = await VehicleModels.upsert(models, tsx);
 
     return vehicle_models;
   };
@@ -205,6 +208,9 @@ export module Vehicles {
     const vehiclesFound = await tsx.query.vehicles.findMany({
       where: (fields, ops) => ops.and(ops.inArray(fields.id, isValid.output)),
       with: _with,
+      orderBy(fields, operators) {
+        return operators.asc(fields.name);
+      },
     });
 
     return vehiclesFound;

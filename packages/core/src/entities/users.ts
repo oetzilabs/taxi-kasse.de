@@ -58,6 +58,9 @@ export module Users {
           with: {
             model: true,
           },
+          orderBy(fields, operators) {
+            return operators.desc(fields.name);
+          },
         },
       },
     });
@@ -75,6 +78,9 @@ export module Users {
         vehicles: {
           with: {
             model: true,
+          },
+          orderBy(fields, operators) {
+            return operators.desc(fields.name);
           },
         },
       },

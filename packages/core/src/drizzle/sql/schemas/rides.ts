@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { decimal, text, timestamp } from "drizzle-orm/pg-core";
+import { decimal, geometry, json, text, timestamp } from "drizzle-orm/pg-core";
 import { companies } from "./companies";
 import { customer_payments } from "./customer_payments";
 import { commonTable } from "./entity";
@@ -35,8 +35,13 @@ export const rides = commonTable(
     added_by: ride_added_by("added_by").notNull().default("system:auto"),
     startedAt: timestamp("startedAt").notNull(),
     endedAt: timestamp("endedAt").notNull(),
+    departure: text("departure").notNull().default(""),
+    arrival: text("arrival").notNull().default(""),
+    departureCoordinates: json("departureCoordinates").notNull().$type<[number, number]>().default([0, 0]),
+    arrivalCoordinates: json("arrivalCoordinates").notNull().$type<[number, number]>().default([0, 0]),
+    geometry: text("geometry").notNull().default(""),
   },
-  "ride"
+  "ride",
 );
 
 export type RideSelect = typeof rides.$inferSelect;

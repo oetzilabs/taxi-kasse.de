@@ -26,6 +26,7 @@ import {
   useNavigate,
   useSubmission,
 } from "@solidjs/router";
+import { clientOnly } from "@solidjs/start";
 import { getStatistics } from "~/lib/api/statistics";
 import Car from "lucide-solid/icons/car";
 import Loader2 from "lucide-solid/icons/loader-2";
@@ -42,6 +43,8 @@ export const route = {
     return { ride, session };
   },
 } satisfies RouteDefinition;
+
+const ClientRouteMap = clientOnly(() => import("@/components/ClientRouteMap"));
 
 export default function RideRidPage(props: RouteSectionProps) {
   const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
@@ -70,12 +73,20 @@ export default function RideRidPage(props: RouteSectionProps) {
                   <div class="flex flex-col p-2 w-full">
                     <div class="flex flex-row items-start justify-between gap-2 w-full">
                       <div class="flex flex-col w-full gap-2">
-                        <span class="text-xs text-muted-foreground">{obscureId(r().id.split("ride_")[1])}</span>
+                        <div class="flex flex-row gap-4">
+                          <span class="text-xs text-muted-foreground">{obscureId(r().id.split("ride_")[1])}</span>
+                          <span class="text-xs">{r().status}</span>
+                        </div>
                         <div class="flex flex-row items-center gap-2">
                           <Car class="size-4" />
                           <Show when={r().vehicle}>{(v) => <span class="text-sm font-bold">{v().name}</span>}</Show>
                         </div>
-                        <span class="text-sm">{r().status}</span>
+                        <div class="flex flex-row items-center gap-2">
+                          <span class="text-sm font-bold">Route:</span>
+                          <span class="text-sm font-bold">
+                            {r().departure} - {r().arrival}
+                          </span>
+                        </div>
                         <div class="flex flex-row items-center gap-2">
                           <span class="text-sm font-bold">Charged</span>
                           <span class="text-sm font-bold">
@@ -151,7 +162,31 @@ export default function RideRidPage(props: RouteSectionProps) {
                   </div>
                   <div class="flex flex-col p-2 w-full border border-neutral-200 dark:border-neutral-800 rounded-xl">
                     <span class="font-bold pb-2 pl-1">Map</span>
-                    <div class="flex flex-col w-full border border-nuetral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 min-h-[450px] rounded-lg"></div>
+                    <div class="min-h-[600px] border border-neutral-200 dark:border-neutral-800 overflow-clip rounded-lg">
+                      <Show
+                        when={
+                          r().geometry &&
+                          r().arrivalCoordinates[0] !== 0 &&
+                          r().arrivalCoordinates[1] !== 0 &&
+                          r().departureCoordinates[0] !== 0 &&
+                          r().departureCoordinates[1] !== 0
+                        }
+                        fallback={
+                          <div class="flex flex-col w-full bg-neutral-100 dark:bg-neutral-900 rounded-lg h-full items-center justify-center">
+                            <span class="text-sm text-muted-foreground">No route found</span>
+                          </div>
+                        }
+                      >
+                        <ClientRouteMap
+                          from={() => r().departureCoordinates}
+                          to={() => r().arrivalCoordinates}
+                          geometry={() => r().geometry}
+                          fallback={
+                            <div class="flex flex-col w-full bg-neutral-100 dark:bg-neutral-900 rounded-lg h-full"></div>
+                          }
+                        />
+                      </Show>
+                    </div>
                   </div>
                   <div class="flex flex-col p-2 w-full">
                     <span class="text-xs text-muted-foreground"></span>

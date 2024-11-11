@@ -23,7 +23,7 @@ export module Routing {
     //   lat: json[0].lat,
     //   lng: json[0].lon,
     // };
-    return [json[0].lat, json[0].lon];
+    return [Number(json[0].lat), Number(json[0].lon)];
   };
 
   // Get distance and duration using OSRM

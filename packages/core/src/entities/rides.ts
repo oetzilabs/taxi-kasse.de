@@ -33,6 +33,9 @@ export module Rides {
       endedAt: date(),
       departure: string(),
       arrival: string(),
+      departureCoordinates: tuple([number(), number()]),
+      arrivalCoordinates: tuple([number(), number()]),
+      geometry: string(),
     }),
   );
   export const UpdateSchema = intersect([partial(CreateSchema.item), object({ id: Validator.Cuid2Schema })]);
@@ -103,13 +106,7 @@ export module Rides {
     if (!isValid.success) {
       throw isValid.issues;
     }
-    const toBeCreated = [];
-    for (const ride of isValid.output) {
-      const { departure, arrival, ...rest } = ride;
-      // do stuff with the departure, arrival
-      toBeCreated.push(rest);
-    }
-    const [created] = await tsx.insert(rides).values(toBeCreated).returning();
+    const [created] = await tsx.insert(rides).values(isValid.output).returning();
     const ride = await Rides.findById(created.id);
     return ride!;
   };

@@ -51,12 +51,12 @@ const RealtimeHotspotButton = (props: RealtimeHotspotButtonProps) => {
   });
 
   return (
-    <div class="flex flex-col w-full items-center justify-between rounded-xl border border-neutral-200 dark:border-neutral-800">
+    <div class="flex flex-col w-full items-center justify-between rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-clip">
       <Button
         as={A}
         variant="ghost"
         href="/dashboard/hotspots"
-        class={cn("flex flex-row w-full gap-2 items-center justify-between rounded-lg px-3", {
+        class={cn("flex flex-row w-full gap-2 items-center justify-between rounded-xl px-3 overflow-clip", {
           "rounded-b-none": hs().length > 0,
         })}
       >
@@ -74,7 +74,7 @@ const RealtimeHotspotButton = (props: RealtimeHotspotButtonProps) => {
               as={A}
               href={`/dashboard/hotspots/${h.id}`}
               variant="ghost"
-              class={cn("flex flex-row w-full gap-2 items-center justify-between rounded-lg", {
+              class={cn("flex flex-row w-full gap-2 items-center justify-between rounded-xl overflow-clip", {
                 "rounded-t-none": index() == hs().length - 1,
               })}
             >
