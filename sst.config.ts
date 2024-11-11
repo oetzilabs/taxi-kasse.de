@@ -5,7 +5,7 @@ export default $config({
     return {
       name: "taxikassede",
       region: "eu-central-1",
-      removal: input?.stage === "production" ? "retain" : "remove",
+      removal: input.stage === "production" ? "retain" : "remove",
       home: "aws",
       providers: {
         aws: {

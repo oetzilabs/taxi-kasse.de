@@ -29,6 +29,7 @@ export module Users {
         user: true,
       },
     },
+
     sessions: true,
   };
 
@@ -51,7 +52,14 @@ export module Users {
     }
     return tsx.query.users.findFirst({
       where: (fields, ops) => ops.eq(fields.id, isValid.output),
-      with: _with,
+      with: {
+        ..._with,
+        vehicles: {
+          with: {
+            model: true,
+          },
+        },
+      },
     });
   };
 
@@ -62,7 +70,14 @@ export module Users {
     }
     return tsx.query.users.findFirst({
       where: (fields, ops) => ops.eq(fields.email, isValid.output),
-      with: _with,
+      with: {
+        ..._with,
+        vehicles: {
+          with: {
+            model: true,
+          },
+        },
+      },
     });
   };
 

@@ -174,9 +174,6 @@ export const useRealtime = () => {
   if (!ctx) {
     throw new Error("RealtimeContext is not set");
   }
-  if (!ctx.client()) {
-    throw new Error("RealtimeContext: client is not connected");
-  }
 
   return ctx;
 };

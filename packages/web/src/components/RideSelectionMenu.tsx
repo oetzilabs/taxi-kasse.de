@@ -132,7 +132,7 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
     endedAt: dayjs().toDate(),
   });
 
-  const [checkSavedVehicleId, setCheckSavedVehicleId] = createSignal(props.vehicle_id_saved ?? "");
+  const [isVehiclePreferred, setIsVehiclePreferred] = createSignal(props.vehicle_id_saved !== null);
 
   const [error, setError] = createSignal<string | undefined>();
   const [errors, setErrors] = createStore({
@@ -179,7 +179,7 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
     setFromCoords(undefined);
     setToCoords(undefined);
     setRouteGeometry(undefined);
-    setCheckSavedVehicleId("");
+    setIsVehiclePreferred(false);
     addRideStatus.clear();
     calculateDistanceAndChargeSubmission.clear();
     setOpen(false);
@@ -249,8 +249,8 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
                               <For each={vs()}>
                                 {(vehicle) => {
                                   if (vehicle.preferred !== null && vehicle.preferred) {
-                                    setCheckSavedVehicleId(vehicle.id);
                                     setNewRide("vehicle_id", vehicle.id);
+                                    setIsVehiclePreferred(vehicle.preferred);
                                   }
                                   return (
                                     <div
@@ -262,18 +262,10 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
                                         },
                                       )}
                                       onClick={() => {
-                                        if (vehicle.id === newRide.vehicle_id) {
-                                          setNewRide("vehicle_id", "");
-                                          return;
-                                        } else {
-                                          setNewRide("vehicle_id", vehicle.id);
-                                          if (checkSavedVehicleId() !== vehicle.id) {
-                                            setCheckSavedVehicleId("");
-                                          }
-                                          if (vehicle.preferred !== null && vehicle.preferred) {
-                                            setCheckSavedVehicleId(vehicle.id);
-                                          }
+                                        if (vehicle.preferred !== null) {
+                                          setIsVehiclePreferred(vehicle.preferred);
                                         }
+                                        setNewRide("vehicle_id", vehicle.id);
                                       }}
                                     >
                                       <Show
@@ -302,7 +294,7 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
                           >
                             {(vehicle) => {
                               if (vehicle.preferred !== null && vehicle.preferred) {
-                                setCheckSavedVehicleId(vehicle.id);
+                                setIsVehiclePreferred(true);
                                 setNewRide("vehicle_id", vehicle.id);
                               }
                               return (
@@ -315,13 +307,10 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
                                     },
                                   )}
                                   onClick={() => {
-                                    if (vehicle.id === newRide.vehicle_id) {
-                                      setNewRide("vehicle_id", "");
-                                      setCheckSavedVehicleId("");
-                                      return;
-                                    } else {
-                                      setNewRide("vehicle_id", vehicle.id);
+                                    if (vehicle.preferred !== null) {
+                                      setIsVehiclePreferred(vehicle.preferred);
                                     }
+                                    setNewRide("vehicle_id", vehicle.id);
                                   }}
                                 >
                                   <Show
@@ -368,22 +357,15 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
                             <Checkbox
                               class="flex items-start space-x-2 w-full"
                               disabled={addRideStatus.pending || newRide.vehicle_id === ""}
-                              checked={checkSavedVehicleId().length > 0}
-                              onChange={(v) => {
-                                if (v) {
-                                  setCheckSavedVehicleId(newRide.vehicle_id);
-                                } else {
-                                  setCheckSavedVehicleId("");
-                                }
-                              }}
+                              checked={isVehiclePreferred()}
+                              onChange={setIsVehiclePreferred}
                             >
                               <div class="grid gap-1.5 leading-none w-full">
                                 <CheckboxLabel class="text-sm font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-20">
                                   Save for next ride
                                 </CheckboxLabel>
                                 <CheckboxDescription class="text-xs text-muted-foreground">
-                                  This vehicle will {checkSavedVehicleId().length > 0 ? "be used" : "not be used"} for
-                                  the next ride
+                                  This vehicle will {isVehiclePreferred() ? "be used" : "not be used"} for the next ride
                                 </CheckboxDescription>
                               </div>
                               <CheckboxControl />
@@ -565,8 +547,12 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
                       toCoords() !== undefined
                     }
                     fallback={
-                      <div class="flex w-full h-full items-center justify-center text-sm text-muted-foreground select-none">
-                        Please enter the departure and arrival address.
+                      <div class="flex flex-col w-full h-full items-center justify-center text-sm text-muted-foreground select-none gap-4 bg-neutral-50 dark:bg-neutral-900/50">
+                        <Map class="size-8 opacity-20" />
+                        <div class="flex flex-col gap-1 items-center justify-center opacity-50">
+                          <span>Please enter a departure</span>
+                          <span>and arrival address</span>
+                        </div>
                       </div>
                     }
                   >
@@ -612,7 +598,7 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
                     return;
                   }
 
-                  toast.promise(addRideAction(r, checkSavedVehicleId()), {
+                  toast.promise(addRideAction(r, isVehiclePreferred()), {
                     loading: "Adding ride",
                     success: () => {
                       setOpen(false);

@@ -33,7 +33,7 @@ export const getRidesByUserId = query(async (id: string) => {
 
 export type CreateRide = Omit<InferInput<typeof Rides.CreateSchema.item>, "user_id" | "org_id">;
 
-export const addRide = action(async (data: CreateRide, lastSavedVehicleId: string | null) => {
+export const addRide = action(async (data: CreateRide, vehicleIsPreferred: boolean) => {
   "use server";
   const [ctx, _event] = await ensureAuthenticated();
   if (!ctx.session.organization_id)
@@ -41,31 +41,48 @@ export const addRide = action(async (data: CreateRide, lastSavedVehicleId: strin
       statusText: "Please add an organization",
       status: 401,
     });
+
+  const user = await Users.findById(ctx.user.id);
+  if (!user) throw new Error("User not found");
+
+  const vhs = user.vehicles;
+  if (!vhs || vhs.length === 0) throw new Error("User has no vehicles");
+
+  const rideVehicle = await Vehicles.findById(data.vehicle_id);
+  if (!rideVehicle) throw new Error("Vehicle not found");
+
+  const isOwnerOfVehicle = rideVehicle.owner_id === ctx.user.id;
+  if (!isOwnerOfVehicle) throw new Error("You are not the owner of this vehicle");
+
   const newR = { ...data, user_id: ctx.user.id, org_id: ctx.session.organization_id };
   const ride = await Rides.create([newR]);
 
-  const v = await Vehicles.findById(data.vehicle_id);
-  if (!v) throw new Error("Vehicle not found");
+  await Realtimed.sendToMqtt("ride.created", ride);
 
+  if (!vehicleIsPreferred) {
+    return json(ride, {
+      revalidate: [getRides.key, getStatistics.key],
+    });
+  }
+  if (!ride.vehicle_id) {
+    return json(ride, {
+      revalidate: [getRides.key, getStatistics.key],
+    });
+  }
   // TODO: set lastSavedVehicleId somewhere...
-  if (lastSavedVehicleId && lastSavedVehicleId !== data.vehicle_id && v.preferred !== null && !v.preferred) {
+  if (vehicleIsPreferred) {
     const c = await db.transaction(async (tsx) => {
       let collection: Array<Vehicles.Info> = [];
       try {
         const updatedVehicle = await Vehicles.update(
           {
-            id: data.vehicle_id,
-            preferred: data.vehicle_id === lastSavedVehicleId,
+            id: ride.vehicle_id!,
+            preferred: true,
           },
           // @ts-ignore
           tsx,
         );
-        const allVehicles = await Vehicles.findByUserId(
-          ctx.user.id,
-          // @ts-ignore
-          tsx,
-        );
-        const unPreferredVehicles = allVehicles.filter((v) => v.id !== data.vehicle_id);
+        const unPreferredVehicles = vhs.filter((v) => v.id !== ride.vehicle_id! && v.preferred);
         const updatedOtherVehicles = await Vehicles.updateBulk(
           unPreferredVehicles.map((v) => v.id),
           { preferred: false },
@@ -84,8 +101,6 @@ export const addRide = action(async (data: CreateRide, lastSavedVehicleId: strin
       await Realtimed.sendToMqtt("vehicle.updated", vehicle);
     }
   }
-
-  await Realtimed.sendToMqtt("ride.created", ride);
 
   return json(ride, {
     revalidate: [getRides.key, getStatistics.key],

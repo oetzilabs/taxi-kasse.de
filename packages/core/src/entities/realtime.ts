@@ -57,9 +57,10 @@ export module Realtimed {
   };
 
   export const sendToMqtt = async <
-    T extends Realtimed.Events["realtime"]["type"],
-    P extends Extract<Realtimed.Events["realtime"], { type: T }>["payload"],
-    A extends Extract<Realtimed.Events["realtime"], { type: T }>["action"],
+    RT extends Realtimed.Events["realtime"],
+    T extends RT["type"],
+    P extends Extract<RT, { type: T }>["payload"],
+    A extends Extract<RT, { type: T }>["action"],
     TA extends `${T}.${A}`,
   >(
     target: TA,
@@ -68,14 +69,15 @@ export module Realtimed {
     let response_: PublishCommandOutput | null = null;
     // const endpoint = `https://${Resource.RealtimeServer.endpoint}?x-amz-customauthorizer-name=${Resource.RealtimeServer.authorizer}`;
 
-    const [type, action] = target.split(".");
+    const [type, action] = target.split(".") as [T, A];
     if (!type || !action) return response_;
 
     const client = new IoTDataPlaneClient();
     try {
+      const pl = { type, action, payload } as unknown as RT;
       const command = new PublishCommand({
         topic: `${Resource.App.name}/${Resource.App.stage}/realtime`, // Topic to publish to
-        payload: Buffer.from(JSON.stringify({ action, payload, type } as Realtimed.Events["realtime"])), // Convert the payload to a JSON string
+        payload: Buffer.from(JSON.stringify(pl)), // Convert the payload to a JSON string
         qos: 1, // Quality of Service level (0 or 1)
       });
       const response = await client.send(command);
