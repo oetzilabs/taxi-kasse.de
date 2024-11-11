@@ -147,6 +147,7 @@ export module Routing {
             .returning();
 
           // Save segment points based on the polyline geometry or intersection points
+          let previous_segment_point_id: string | undefined = undefined;
           for (const intersection of step.intersections) {
             let pt = "unknown" as (typeof segment_point_type.enumValues)[number];
             const isPT = safeParse(Routing.ptList, step.maneuver.type);
@@ -155,7 +156,7 @@ export module Routing {
             } else {
               pt = isPT.output;
             }
-            await tsx
+            const [seg] = await tsx
               .insert(segment_points)
               .values([
                 {
@@ -165,9 +166,11 @@ export module Routing {
                   direction: intersection.bearings ? intersection.bearings[0] : 0,
                   point_type: pt,
                   unknown_point_type: pt === "unknown" ? step.maneuver.type : undefined,
+                  previous_segment_point_id,
                 },
               ])
               .returning();
+            previous_segment_point_id = seg.id;
           }
         }
       }
