@@ -133,6 +133,8 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
     arrivalCoordinates: [0, 0],
     departureCoordinates: [0, 0],
     geometry: "",
+    duration: 0,
+    route: undefined,
   });
 
   const [isVehiclePreferred, setIsVehiclePreferred] = createSignal(props.vehicle_id_saved !== null);
@@ -424,10 +426,11 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
                                   setToCoords(calced.coords.to);
                                   setNewRide("departureCoordinates", calced.coords.from);
                                   setNewRide("arrivalCoordinates", calced.coords.to);
-                                  setNewRide("geometry", calced.routes?.geometry);
+                                  setNewRide("geometry", calced.route?.geometry);
                                 }
-                                if (!calced.routes) return;
-                                setRouteGeometry(calced.routes.geometry);
+                                if (!calced.route) return;
+                                setNewRide("route", calced.route);
+                                setRouteGeometry(calced.route.geometry);
                               }}
                             >
                               <Show

@@ -1,12 +1,15 @@
+import OSRM from "@project-osrm/osrm";
 import dayjs from "dayjs";
 import { and, count, eq, gte, isNull, lte, sum } from "drizzle-orm";
 import {
   array,
+  custom,
   date,
   InferInput,
   intersect,
   number,
   object,
+  optional,
   partial,
   picklist,
   safeParse,
@@ -16,6 +19,7 @@ import {
 import { db } from "../drizzle/sql";
 import { ride_added_by, ride_status, rides, RideSelect } from "../drizzle/sql/schemas/rides";
 import { Validator } from "../validator";
+import { Routing } from "./routing";
 
 export module Rides {
   export const CreateSchema = array(
@@ -36,6 +40,16 @@ export module Rides {
       departureCoordinates: tuple([number(), number()]),
       arrivalCoordinates: tuple([number(), number()]),
       geometry: string(),
+      duration: number(),
+      route: optional(
+        custom<OSRM.Route>((c: any): c is OSRM.Route => {
+          const keys = ["distance", "duration", "geometry", "weight", "weight_name", "legs"];
+          for (const key of keys) {
+            if (c[key] === undefined) return false;
+          }
+          return true;
+        }),
+      ),
     }),
   );
   export const UpdateSchema = intersect([partial(CreateSchema.item), object({ id: Validator.Cuid2Schema })]);

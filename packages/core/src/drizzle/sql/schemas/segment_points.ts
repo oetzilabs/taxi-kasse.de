@@ -6,6 +6,12 @@ import { routes } from "./routes";
 import { schema } from "./utils";
 
 export const segment_point_type = schema.enum("segment_point_type", [
+  "arrive",
+  "depart",
+  "continue",
+  "exit roundabout",
+  "new name",
+  "exit rotary",
   "start",
   "waypoint",
   "u_turn",
@@ -56,9 +62,10 @@ export const segment_points = commonTable(
     direction: integer("direction").notNull(), // degrees clockwise from north
     elevation: decimal("elevation", { scale: 2 }), // Optional: Elevation at the point
     point_type: segment_point_type("point_type").notNull().default("unknown"),
+    unknown_point_type: text("unknown_point_type"),
     previous_segment_point_id: text("previous_segment_point_id").references((): AnyPgColumn => segment_points.id),
   },
-  "segment_point"
+  "segment_point",
 );
 
 export type SegmentPointSelect = typeof segment_points.$inferSelect;

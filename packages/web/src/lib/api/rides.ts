@@ -56,6 +56,17 @@ export const addRide = action(async (data: CreateRide, vehicleIsPreferred: boole
 
   const newR = { ...data, user_id: ctx.user.id, org_id: ctx.session.organization_id };
   const ride = await Rides.create([newR]);
+  if (!data.departureCoordinates || !data.arrivalCoordinates)
+    throw new Error("Please enter a departure and arrival address");
+  const route = await Routing.save(ride.id, ctx.user.id, {
+    coords: {
+      from: data.departureCoordinates,
+      to: data.arrivalCoordinates,
+    },
+    distance: Number(data.distance),
+    duration: data.duration,
+    route: data.route,
+  });
 
   await Realtimed.sendToMqtt("ride.created", ride);
 
@@ -315,7 +326,7 @@ export const calculateDistanceAndCharge = action(
       duration: newDuration,
       result,
       coords: routeResult.coords,
-      routes: routeResult.routes,
+      route: routeResult.route,
     };
   },
 );

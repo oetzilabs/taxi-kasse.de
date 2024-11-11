@@ -1,0 +1,1 @@
+ALTER TABLE "taxikassede"."segment_points" ADD COLUMN "unknown_point_type" text;
