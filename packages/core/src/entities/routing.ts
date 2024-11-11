@@ -13,8 +13,8 @@ export module Routing {
       },
     });
     const json = (await result.json()) as Array<{
-      lat: number;
-      lon: number;
+      lat: string;
+      lon: string;
     }>;
     if (json.length === 0) {
       throw new Error("Location not found");
