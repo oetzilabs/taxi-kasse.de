@@ -4,7 +4,7 @@ import { Companies } from "@taxikassede/core/src/entities/companies";
 import { Organizations } from "@taxikassede/core/src/entities/organizations";
 import { Users } from "@taxikassede/core/src/entities/users";
 import { getCookie, getEvent } from "vinxi/http";
-import { lucia } from ".";
+import { Auth } from ".";
 import { getContext } from "./context";
 
 export const getAuthenticatedUser = query(async () => {
@@ -23,8 +23,8 @@ export const getAuthenticatedUser = query(async () => {
     console.error("Unauthorized");
     throw redirect("/auth/login");
   }
-  const { user } = await lucia.validateSession(ctx.session.id);
-  return user;
+
+  return ctx.user;
 }, "user");
 
 export type UserSession = {
@@ -54,12 +54,12 @@ export const getAuthenticatedSession = query(async () => {
     createdAt: null,
   } as UserSession;
   const event = getEvent()!;
-  const sessionId = getCookie(event, lucia.sessionCookieName) ?? null;
-  if (!sessionId) {
+  const sessionToken = getCookie(event, Auth.SESSION_COOKIE_NAME) ?? null;
+  if (!sessionToken) {
     // throw redirect("/auth/login");
     return userSession;
   }
-  const { session } = await lucia.validateSession(sessionId);
+  const { session } = await Auth.validateSessionToken(sessionToken);
   if (!session) {
     // throw redirect("/auth/login");
     // console.error("invalid session");
@@ -95,12 +95,12 @@ export const getAuthenticatedAdminSession = query(async () => {
     createdAt: null,
   } as UserSession;
   const event = getEvent()!;
-  const sessionId = getCookie(event, lucia.sessionCookieName) ?? null;
-  if (!sessionId) {
+  const sessionToken = getCookie(event, Auth.SESSION_COOKIE_NAME) ?? null;
+  if (!sessionToken) {
     // throw redirect("/auth/login");
     return userSession;
   }
-  const { session } = await lucia.validateSession(sessionId);
+  const { session } = await Auth.validateSessionToken(sessionToken);
   if (!session) {
     // throw redirect("/auth/login");
     // console.error("invalid session");
@@ -143,38 +143,9 @@ export const getAuthenticatedSessions = query(async () => {
     console.error("Unauthorized");
     throw redirect("/auth/login");
   }
-  const sessions = await lucia.getUserSessions(ctx.user.id);
+  const sessions = await Auth.getSessionsByUserId(ctx.user.id);
   return sessions;
 }, "sessions");
-
-export const getCurrentOrganization = query(async () => {
-  "use server";
-  const event = getEvent()!;
-
-  if (!event.context.session) {
-    return redirect("/auth/login");
-  }
-
-  const { id } = event.context.session;
-
-  const { user, session } = await lucia.validateSession(id);
-
-  if (!user || !session) {
-    throw redirect("/auth/login");
-  }
-
-  if (!session.organization_id) {
-    throw redirect("/setup/organization");
-  }
-
-  const org = Organizations.findById(session.organization_id);
-
-  if (!org) {
-    throw redirect("/setup/organization");
-  }
-
-  return org;
-}, "current-organization");
 
 export const sendVerificationEmail = action(async () => {
   "use server";

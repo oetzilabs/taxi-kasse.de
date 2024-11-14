@@ -4,8 +4,7 @@ import { action, json, query, redirect } from "@solidjs/router";
 import { Companies } from "@taxikassede/core/src/entities/companies";
 import { Organizations } from "@taxikassede/core/src/entities/organizations";
 import { Users } from "@taxikassede/core/src/entities/users";
-import { appendHeader } from "vinxi/http";
-import { lucia } from "../auth";
+import { Auth } from "../auth";
 import { ensureAuthenticated } from "../auth/context";
 import { getAuthenticatedSession } from "../auth/util";
 
@@ -20,21 +19,17 @@ export const createCompany = action(async (data: InferInput<typeof Companies.Cre
   const oldSession = ctx.session;
 
   // invalidate session
-  await lucia.invalidateSession(oldSession.id);
+  await Auth.invalidateSession(oldSession.id);
 
-  const session = await lucia.createSession(
-    ctx.user.id,
-    {
-      ...oldSession,
-      createdAt: new Date(),
-      company_id: comp.id,
-    },
-    {
-      sessionId: oldSession.id,
-    },
-  );
+  const sessionToken = Auth.generateSessionToken();
 
-  appendHeader(event, "Set-Cookie", lucia.createSessionCookie(session.id).serialize());
+  const session = await Auth.createSession(sessionToken, {
+    ...oldSession,
+    company_id: comp.id,
+  });
+
+  Auth.setSessionCookie(event, sessionToken);
+
   event.context.session = session;
 
   throw redirect(`/dashboard/companies/${comp.id}`, {
@@ -76,26 +71,20 @@ export const removeCompany = action(async (id: InferInput<typeof Validator.Cuid2
   if (!removed) {
     throw new Error("Failed to remove company");
   }
-  // set lucia cookie session
 
   const oldSession = ctx.session;
 
   // invalidate session
-  await lucia.invalidateSession(oldSession.id);
+  await Auth.invalidateSession(oldSession.id);
 
-  const session = await lucia.createSession(
-    ctx.user.id,
-    {
-      ...oldSession,
-      createdAt: new Date(),
-      company_id: null,
-    },
-    {
-      sessionId: oldSession.id,
-    },
-  );
+  const sessionToken = Auth.generateSessionToken();
 
-  appendHeader(event, "Set-Cookie", lucia.createSessionCookie(session.id).serialize());
+  const session = await Auth.createSession(sessionToken, {
+    ...oldSession,
+    company_id: null,
+  });
+
+  Auth.setSessionCookie(event, sessionToken);
   event.context.session = session;
 
   throw redirect("/dashboard", {

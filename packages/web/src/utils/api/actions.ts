@@ -1,7 +1,6 @@
-import { lucia } from "@/lib/auth";
+import { Auth } from "@/lib/auth";
 import { getAuthenticatedSession } from "@/lib/auth/util";
 import { action, redirect, reload } from "@solidjs/router";
-import { appendHeader } from "vinxi/http";
 import { getContext } from "../../lib/auth/context";
 
 export const logout = action(async () => {
@@ -10,8 +9,8 @@ export const logout = action(async () => {
   if (!ctx) throw redirect("/auth/login");
   if (!ctx.session) throw redirect("/auth/login");
   if (!ctx.user) throw redirect("/auth/login");
-  await lucia.invalidateSession(ctx.session.id);
-  appendHeader(event, "Set-Cookie", lucia.createBlankSessionCookie().serialize());
+  await Auth.invalidateSession(ctx.session.id);
+  Auth.setSessionCookie(event, "");
   event.context.session = null;
 
   throw reload({ headers: { Location: "/auth/login" }, status: 303, revalidate: getAuthenticatedSession.key });
@@ -23,7 +22,7 @@ export const revokeAllSessions = action(async () => {
   if (!ctx) throw redirect("/auth/login");
   if (!ctx.session) throw redirect("/auth/login");
   if (!ctx.user) throw redirect("/auth/login");
-  await lucia.invalidateUserSessions(ctx.user.id);
+  await Auth.invalidateSessions(ctx.user.id);
   reload({ headers: { Location: "/auth/login" }, status: 303, revalidate: getAuthenticatedSession.key });
 });
 
@@ -34,7 +33,7 @@ export const revokeSession = action(async (session_id: string) => {
   if (!ctx.session) throw redirect("/auth/login");
   if (!ctx.user) throw redirect("/auth/login");
 
-  await lucia.invalidateSession(session_id);
+  await Auth.invalidateSession(ctx.session.id);
 
   return true;
 });

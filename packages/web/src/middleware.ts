@@ -1,7 +1,11 @@
+import type { SessionSelect, UserSelect } from "@taxikassede/core/src/drizzle/sql/schema";
 import { createMiddleware } from "@solidjs/start/middleware";
-import { Session, User, verifyRequestOrigin } from "lucia";
-import { appendHeader, getCookie, getEvent, getHeader, getQuery } from "vinxi/http";
-import { lucia } from "./lib/auth";
+import { getCookie, getEvent, getHeader } from "vinxi/http";
+import { Auth } from "./lib/auth";
+
+const verifyRequestOrigin = (origin: string, hosts: Array<string>) => {
+  return hosts.some((h) => h === origin);
+};
 
 export default createMiddleware({
   onRequest: async () => {
@@ -20,22 +24,20 @@ export default createMiddleware({
       }
     }
 
-    const sessionId = getCookie(event, lucia.sessionCookieName) ?? null;
-    if (!sessionId) {
+    const sessionToken = getCookie(event, Auth.SESSION_COOKIE_NAME) ?? null;
+    if (!sessionToken) {
       event.context.session = null;
       event.context.user = null;
       return;
     }
 
-    const { session, user } = await lucia.validateSession(sessionId);
-
-    if (session && session.fresh) {
-      appendHeader(event, "Set-Cookie", lucia.createSessionCookie(session.id).serialize());
-    }
+    const { session, user } = await Auth.validateSessionToken(sessionToken);
 
     if (!session) {
-      console.warn("Session not found, creating a blank one");
-      appendHeader(event, "Set-Cookie", lucia.createBlankSessionCookie().serialize());
+      Auth.setSessionCookie(event, "");
+      event.context.session = null;
+      event.context.user = null;
+      return;
     }
 
     event.context.session = session;
@@ -45,7 +47,7 @@ export default createMiddleware({
 
 declare module "vinxi/http" {
   interface H3EventContext {
-    user: User | null;
-    session: Session | null;
+    user: UserSelect | null;
+    session: SessionSelect | null;
   }
 }

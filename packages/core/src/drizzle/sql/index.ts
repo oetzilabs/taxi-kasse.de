@@ -1,5 +1,4 @@
 import { join } from "node:path";
-import { DrizzlePostgreSQLAdapter } from "@lucia-auth/adapter-drizzle";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { migrate as mig } from "drizzle-orm/neon-http/migrator";
@@ -45,5 +44,3 @@ export const migrate = async () => {
     return mig(db, config);
   }
 };
-
-export const luciaAdapter = new DrizzlePostgreSQLAdapter(db, schema.sessions, schema.users);

@@ -156,7 +156,9 @@ export module Routing {
             } else {
               pt = isPT.output;
             }
-            const [seg] = await tsx
+            const upt = pt === "unknown" ? step.maneuver.type : undefined;
+            // @ts-ignore this is not a type error, its not `any`
+            const segments_pointed = await tsx
               .insert(segment_points)
               .values([
                 {
@@ -165,12 +167,13 @@ export module Routing {
                   longitude: String(intersection.location[0]),
                   direction: intersection.bearings ? intersection.bearings[0] : 0,
                   point_type: pt,
-                  unknown_point_type: pt === "unknown" ? step.maneuver.type : undefined,
+                  unknown_point_type: upt,
                   previous_segment_point_id,
                 },
               ])
               .returning();
-            previous_segment_point_id = seg.id;
+            if (!segments_pointed.length) throw new Error("Segment point could not be inserted");
+            previous_segment_point_id = segments_pointed[0].id as string;
           }
         }
       }

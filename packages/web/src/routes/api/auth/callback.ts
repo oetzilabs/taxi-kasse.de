@@ -1,7 +1,7 @@
 import type { APIEvent } from "@solidjs/start/server";
-import { lucia } from "@/lib/auth";
+import { Auth } from "@/lib/auth";
 import { Users } from "@taxikassede/core/src/entities/users";
-import { appendHeader, sendRedirect } from "vinxi/http";
+import { sendRedirect } from "vinxi/http";
 
 export async function GET(e: APIEvent) {
   const event = e.nativeEvent;
@@ -40,14 +40,15 @@ export async function GET(e: APIEvent) {
     return sendRedirect(event, "/auth/error?error=missing_user", 303);
   }
 
-  const session = await lucia.createSession(id, {
-    access_token: response.access_token,
-    organization_id: organization_id ?? null,
-    company_id: company_id ?? null,
-    createdAt: new Date(),
+  const sessionToken = Auth.generateSessionToken();
+
+  const session = await Auth.createSession(sessionToken, {
+    userId: id,
+    company_id,
+    organization_id,
   });
 
-  appendHeader(event, "Set-Cookie", lucia.createSessionCookie(session.id).serialize());
+  Auth.setSessionCookie(event, sessionToken);
 
   event.context.session = session;
 

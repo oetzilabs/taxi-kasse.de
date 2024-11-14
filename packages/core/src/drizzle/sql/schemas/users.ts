@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
+import { Utils } from "../../../entities/utils";
 import { Validator } from "../../../validator";
 import { commonTable } from "./entity";
 import { user_role } from "./roles";
@@ -10,12 +11,6 @@ import { schema } from "./utils";
 import { vehicles } from "./vehicles";
 
 export const currency_code = schema.enum("currency_code", ["USD", "EUR", "GBP", "CHF", "JPY", "AUD", "CAD", "NZD"]);
-
-const generateReferralCode = () => {
-  // the referral code can only be 6 characters long, and it must be uppercase. it needs to have letters and numbers.
-  const code = Math.random().toString(36).slice(2, 7).toUpperCase();
-  return code;
-};
 
 export const users = commonTable(
   "users",
@@ -29,7 +24,7 @@ export const users = commonTable(
     }),
     role: user_role("role").default("member").notNull(),
     currency_code: currency_code("currency_code").notNull().default("USD"),
-    referral_code: varchar("referral_code").$defaultFn(() => generateReferralCode()),
+    referral_code: varchar("referral_code").$defaultFn(() => Utils.generateReferralCode()),
   },
   "user",
 );

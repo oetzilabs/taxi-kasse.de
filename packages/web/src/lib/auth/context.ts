@@ -1,18 +1,19 @@
 import { redirect } from "@solidjs/router";
 import { getCookie, getEvent } from "vinxi/http";
-import { lucia } from ".";
+import { Auth } from ".";
 
 export const getContext = async () => {
   const event = getEvent()!;
-  const sessionId = getCookie(event, lucia.sessionCookieName) ?? null;
-  if (!sessionId) {
+  const sessionToken = getCookie(event, Auth.SESSION_COOKIE_NAME) ?? null;
+  if (!sessionToken) {
     return [null, event] as const;
   }
-  const luciaContext = await lucia.validateSession(sessionId);
-  if (!luciaContext) {
+
+  const authContext = await Auth.validateSessionToken(sessionToken);
+  if (!authContext) {
     return [null, event] as const;
   }
-  return [luciaContext!, event] as const;
+  return [authContext, event] as const;
 };
 
 export const ensureAuthenticated = async () => {
