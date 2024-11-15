@@ -219,10 +219,14 @@ export default function Dashboard() {
                     "opacity-100 translate-y-0": isVisible(),
                   })}
                 >
-                  <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none text-white dark:text-black">
-                    You love it? <br />
-                    Recommend it to your friends & colleagues!
-                  </h2>
+                  <div class="flex flex-col gap-6">
+                    <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none text-neutral-700 dark:text-neutral-400">
+                      You love it?
+                    </h2>
+                    <span class="text-xl font-bold tracking-tighter sm:text-2xl md:text-3xl lg:text-4xl/none text-white dark:text-black">
+                      Recommend it to your friends & colleagues!
+                    </span>
+                  </div>
                   <p class="text-sm font-bold text-white md:text-lg/relaxed lg:text-xl/relaxed xl:text-2xl/relaxed dark:text-black uppercase">
                     It's Free for two weeks!
                   </p>

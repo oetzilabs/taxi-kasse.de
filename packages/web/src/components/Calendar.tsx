@@ -15,7 +15,7 @@ import {
   DatePickerViewControl,
   DatePickerViewTrigger,
 } from "@/components/ui/date-picker";
-import { parseDate } from "@internationalized/date";
+import { parseAbsolute, parseDateTime, parseZonedDateTime } from "@internationalized/date";
 import dayjs from "dayjs";
 import tz from "dayjs/plugin/timezone";
 import { Index } from "solid-js";
@@ -27,7 +27,7 @@ const Calendar = (props: { value: Date; onChange: (v: Date) => void; min?: Date;
   return (
     <DatePicker
       selectionMode="single"
-      value={[props.value, props.value].map((d) => parseDate(d.toISOString()))}
+      value={[props.value, props.value].map((d) => parseAbsolute(dayjs(d).toISOString(), timezone))}
       onValueChange={(v) => {
         const lcd = dayjs(props.value).format("YYYY-MM-DD");
         // find the index of the last changed date and take the other one
@@ -40,8 +40,8 @@ const Calendar = (props: { value: Date; onChange: (v: Date) => void; min?: Date;
 
         props.onChange(theOtherDate);
       }}
-      min={props.min ? parseDate(props.min.toISOString()) : undefined}
-      max={props.max ? parseDate(props.max.toISOString()) : undefined}
+      min={props.min ? parseAbsolute(dayjs(props.min).toISOString(), timezone) : undefined}
+      max={props.max ? parseAbsolute(dayjs(props.max).toISOString(), timezone) : undefined}
     >
       <DatePickerInput placeholder="Pick a date" />
       <DatePickerContent>
