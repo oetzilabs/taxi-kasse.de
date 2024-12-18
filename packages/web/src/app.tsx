@@ -22,7 +22,6 @@ import { Toaster } from "solid-sonner";
 import "./app.css";
 import { ClientIdProvider } from "./components/ClientId";
 import { Realtime } from "./components/Realtime";
-import { ServiceWorker } from "./components/ServiceWorker";
 import { logout } from "./utils/api/actions";
 
 export default function App() {
@@ -77,7 +76,6 @@ export default function App() {
                 //   </div>
                 // }
                 >
-                  <ServiceWorker />
                   <ColorModeScript storageType={storageManager.type} initialColorMode="system" />
                   <ColorModeProvider storageManager={storageManager}>
                     <Toaster

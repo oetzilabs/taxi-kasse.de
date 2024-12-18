@@ -3,18 +3,14 @@ import { defineConfig } from "@solidjs/start/config";
 /* @ts-ignore */
 import pkg from "@vinxi/plugin-mdx";
 import devtools from "solid-devtools/vite";
-import { VitePWA as pwaPlugin } from "vite-plugin-pwa";
 
 const { default: mdx } = pkg;
 
 export default defineConfig({
   server: {
     preset: "aws-lambda",
-    esbuild: {
-      options: {
-        target: "esnext",
-        treeShaking: true,
-      },
+    awsLambda: {
+      streaming: true,
     },
   },
   middleware: "./src/middleware.ts",
@@ -37,18 +33,6 @@ export default defineConfig({
       target: "esnext",
     },
     plugins: [
-      pwaPlugin({
-        srcDir: "src",
-        filename: "entry-serviceworker.ts",
-        strategies: "injectManifest",
-        devOptions: {
-          enabled: true,
-          type: "module",
-        },
-        injectRegister: false,
-        manifest: false,
-        injectManifest: { injectionPoint: undefined, rollupFormat: "iife" },
-      }),
       devtools({
         /* features options - all disabled by default */
         autoname: true, // e.g. enable autoname

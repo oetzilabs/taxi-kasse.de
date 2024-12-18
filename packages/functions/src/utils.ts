@@ -1,7 +1,8 @@
 import { Users } from "@taxikassede/core/src/entities/users";
 import { APIGatewayProxyHandlerV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { StatusCodes } from "http-status-codes";
-import { createSessionBuilder } from "sst/auth";
+import { createSubjects } from "@openauthjs/openauth";
+import { object, string } from "valibot";
 
 export const getUser = async (token: string) => {
   const session = await sessions.verify(token);
@@ -101,10 +102,3 @@ export const ApiHandler =
   <T extends any = any>(handler: APIGatewayProxyHandlerV2<T>) =>
   async (...args: Parameters<APIGatewayProxyHandlerV2<T>>) =>
     handler(...args);
-
-export const sessions = createSessionBuilder<{
-  user: {
-    id: string;
-    email: string;
-  };
-}>();

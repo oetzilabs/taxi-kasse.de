@@ -1,4 +1,4 @@
-import { domain } from "./Domain";
+import { cf, domain } from "./Domain";
 // import { mainEmailWorker } from "./Email";
 import { allSecrets } from "./Secrets";
 
@@ -10,7 +10,7 @@ const copyFiles = [
 ];
 
 export const auth = new sst.aws.Auth(`Auth`, {
-  authenticator: {
+  authorizer: {
     handler: "packages/functions/src/auth.handler",
     link: [
       ...allSecrets,
@@ -20,7 +20,11 @@ export const auth = new sst.aws.Auth(`Auth`, {
       AUTH_FRONTEND_URL: $dev ? "http://localhost:3000" : "https://" + domain,
       EMAIL_DOMAIN: domain,
     },
-    runtime: "nodejs20.x",
+    runtime: "nodejs22.x",
     copyFiles,
   },
+  domain: {
+    name: $interpolate`auth.${domain}`,
+    dns: cf,
+  }
 });

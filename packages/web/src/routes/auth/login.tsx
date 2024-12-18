@@ -13,7 +13,7 @@ export const route = {
 } satisfies RouteDefinition;
 
 const generateAuthUrl = (provider: string) => {
-  const url = new URL(`${import.meta.env.VITE_AUTH_URL}${provider}/authorize`);
+  const url = new URL(`${import.meta.env.VITE_AUTH_URL}/authorize`);
   url.searchParams.set("provider", provider);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("client_id", provider);
@@ -45,19 +45,14 @@ const randomPersonTesimonial = {
 };
 
 export default function LoginPage() {
-  const [email, setEmail] = createSignal<string>("");
-
-  const [submitting, setSubmitting] = createSignal<boolean>();
-
-  let formRef: HTMLFormElement;
 
   return (
-    <div class="md:container h-[calc(100vh-73px)] flex flex-col items-center justify-center md:px-10">
-      <div class="w-full h-[650px] md:border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-clip">
-        <div class="w-full relative flex h-full flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-          <div class="relative hidden h-full flex-col bg-muted p-10 dark:border-r lg:flex">
-            <div class="absolute inset-0 bg-neutral-100 dark:bg-neutral-900" />
-            <div class="relative z-20 flex items-center text-lg gap-2 font-bold">Caby</div>
+    <div class="h-[calc(100vh-60px)] grow flex flex-col container p-4">
+      <div class="w-full h-full flex flex-col grow">
+        <div class="w-full relative flex h-full flex-col items-center justify-center lg:grid lg:max-w-none lg:grid-cols-12 lg:px-0 border border-neutral-200 dark:border-neutral-800 rounded-sm">
+          <div class="relative hidden h-full flex-col text-white p-10 lg:flex flex-1 col-span-8">
+            {/* <div class="absolute inset-0 bg-neutral-100 dark:bg-neutral-900" /> */}
+            <div class="relative z-20 flex items-center text-lg gap-2 font-bold">Caby.</div>
             <div class="relative z-20 mt-auto">
               <blockquote class="space-y-2">
                 <p class="">&ldquo;{randomPersonTesimonial.testimonial}&rdquo;</p>
@@ -67,12 +62,11 @@ export default function LoginPage() {
               </blockquote>
             </div>
           </div>
-          <div class="p-8 w-full">
-            <div class="mx-auto flex w-full flex-col justify-center space-y-6 max-w-[300px]">
-              <div class="relative z-20 flex lg:hidden items-center text-lg font-bold gap-2 justify-center">Caby</div>
-              <div class="flex flex-col space-y-4 text-center">
-                <h1 class="text-2xl font-semibold tracking-tight">Caby</h1>
-                <p class="text-sm text-muted-foreground">Login via your preferred method</p>
+          <div class="p-8 w-full col-span-full lg:col-span-4 h-full items-center justify-center flex">
+            <div class="flex w-full flex-col justify-center gap-12 max-w-[400px]">
+              <div class="flex flex-col items-center justify-center w-full gap-4">
+                <h1 class="text-2xl font-semibold tracking-tight lg:sr-only not-sr-only">Caby.</h1>
+                <h2 class="text-xl lg:text-2xl font-semibold tracking-tight">Login</h2>
               </div>
               <div class="flex flex-col gap-4 items-center w-full">
                 <For each={Object.entries(logins) as [Logins, string][]}>
@@ -81,17 +75,20 @@ export default function LoginPage() {
                     return (
                       <Button
                         as={A}
-                        class="w-full flex items-center justify-center text-sm font-medium gap-4 capitalize !py-5"
+                        class="w-fit w-max-full flex items-center justify-center text-sm font-medium gap-4 rounded-sm !py-5 leading-none"
                         href={url}
                       >
                         <L class="h-5 w-5" />
-                        <span>{provider}</span>
+                        <div class="flex flex-row gap-1">
+                          <span>Login via </span>
+                          <span class="capitalize">{provider}</span>
+                        </div>
                       </Button>
                     );
                   }}
                 </For>
               </div>
-              <div class="px-8 text-center text-sm text-muted-foreground gap-4 flex flex-col">
+              <div class="px-8 text-center text-sm text-muted-foreground gap-2 flex flex-col">
                 <span>By continuing, you agree to our</span>
                 <div class="">
                   <A href="/terms-of-service" class="underline underline-offset-4 hover:text-primary">

@@ -1,80 +1,54 @@
-import { env } from "node:process";
+import { authorizer } from "@openauthjs/openauth";
+import { GoogleOidcAdapter } from "@openauthjs/openauth/adapter/google";
+import { subjects } from "@taxikassede/core/src/auth/subjects";
 import { Users } from "@taxikassede/core/src/entities/users";
+import { handle } from "hono/aws-lambda";
 import { StatusCodes } from "http-status-codes";
 import { Resource } from "sst";
-import { GoogleAdapter } from "sst/auth/adapter";
-import { auth } from "sst/aws/auth";
-import { sessions } from "./utils";
 
-export const handler = auth.authorizer({
-  session: sessions,
-  providers: {
-    google: GoogleAdapter({
-      clientID: Resource.GoogleClientId.value,
-      mode: "oidc",
-    }),
-  },
-  callbacks: {
-    error: async (e, req) => {
-      console.log("upps error: ", e);
-      const response = new Response(e.message, {
-        status: StatusCodes.BAD_REQUEST,
-        headers: {
-          Location: env.AUTH_FRONTEND_URL + "/auth/error?error=unknown",
-        },
-      });
-      return response;
+export const handler = handle(
+  authorizer({
+    subjects,
+    providers: {
+      google: GoogleOidcAdapter({
+        clientID: Resource.GoogleClientId.value,
+        scopes: ["openid", "email", "profile"],
+      }),
     },
-    auth: {
-      async allowClient(clientID, redirect) {
-        console.log(clientID, redirect);
-        const clients = ["google"];
-        if (!clients.includes(clientID)) {
-          return false;
-        }
-
-        return true;
-      },
-      async error(error, request) {
-        console.log("auth-error", error);
-        const response = new Response(error.message, {
-          status: StatusCodes.BAD_REQUEST,
-          headers: {
-            Location: env.AUTH_FRONTEND_URL + "/auth/error?error=unknown",
-          },
-        });
-        return response;
-      },
-      async success(response, input) {
-        if (input.provider !== "google") {
-          throw new Error("Unknown provider");
-        }
-        const claims = input.tokenset.claims();
+    async success(ctx, input, req) {
+      if (input.provider === "google") {
+        // These claims are always available, because of the JWTPayload from Google.
+        const claims = input.id as {
+          email: string | undefined;
+          preferred_username: string | undefined;
+          name: string | undefined;
+          picture: string | undefined;
+        };
         const email = claims.email;
         const name = claims.preferred_username ?? claims.name;
         const image = claims.picture ?? "/assets/images/avatar.png";
         if (!email || !name) {
-          console.error("No email or name found in tokenset", input.tokenset);
-          return response.session({
-            type: "public",
-            properties: {},
+          console.error("No email or name found in tokenset", input);
+          return new Response("No email or name found", {
+            status: StatusCodes.BAD_REQUEST,
+            headers: {
+              "Content-Type": "text/plain",
+            },
           });
         }
 
         let user_ = await Users.findByEmail(email);
 
         if (!user_) {
-          user_ = await Users.create({ email, name, image })!;
+          user_ = await Users.create({ email, name, image, verifiedAt: new Date() })!;
         }
 
-        return response.session({
-          type: "user",
-          properties: {
-            id: user_!.id,
-            email: user_!.email,
-          },
+        return ctx.subject("user", {
+          id: user_!.id,
+          email: user_!.email,
         });
-      },
+      }
+      throw new Error("Unknown provider");
     },
-  },
-});
+  }),
+);

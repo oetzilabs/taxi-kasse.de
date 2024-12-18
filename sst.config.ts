@@ -90,7 +90,7 @@ export default $config({
       seedUrn: seed.urn,
       dbStudioUrn: studio.urn,
 
-      authUrl: auth.auth.authenticator.url,
+      authUrl: auth.auth.url,
       api: api.api.url,
 
       solidStartUrl: $dev ? "http://localhost:3000" : solidStart.solidStartApp.url,
