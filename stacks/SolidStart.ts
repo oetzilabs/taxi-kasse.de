@@ -23,7 +23,7 @@ export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
   },
   domain: {
     name: domain,
-    redirects: [`www.${domain}`],
+    aliases: [`www.${domain}`],
     dns: cf,
   },
   invalidation: {
