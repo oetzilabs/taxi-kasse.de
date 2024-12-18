@@ -5,12 +5,11 @@ import { mainEmail } from "./Email";
 import { realtime } from "./Realtime";
 import { allSecrets } from "./Secrets";
 
-const main_app_url = $dev ? "http://localhost:3000" : $interpolate`https://www.${domain}`;
+const main_app_url = $dev ? "http://localhost:3000" : $interpolate`https://${domain}`;
 
 export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
   link: [...allSecrets, api, auth, realtime, mainEmail],
   path: "packages/web",
-  buildCommand: "pnpm build",
   environment: {
     VITE_API_URL: api.url,
     VITE_APP_URL: main_app_url,

@@ -13,10 +13,10 @@ export const route = {
 } satisfies RouteDefinition;
 
 const generateAuthUrl = (provider: string) => {
-  const url = new URL(`${import.meta.env.VITE_AUTH_URL}/authorize`);
-  url.searchParams.set("provider", provider);
+  const url = new URL(`${import.meta.env.VITE_AUTH_URL}/${provider}/authorize`);
+  // url.searchParams.set("provider", provider);
   url.searchParams.set("response_type", "code");
-  url.searchParams.set("client_id", provider);
+  url.searchParams.set("client_id", "solidstart");
   url.searchParams.set("redirect_uri", import.meta.env.VITE_LOGIN_REDIRECT_URI);
   return url.toString();
 };
@@ -45,7 +45,6 @@ const randomPersonTesimonial = {
 };
 
 export default function LoginPage() {
-
   return (
     <div class="h-[calc(100vh-60px)] grow flex flex-col container p-4">
       <div class="w-full h-full flex flex-col grow">
