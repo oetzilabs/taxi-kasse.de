@@ -54,7 +54,7 @@ type DotN = Omit<Rides.Info, "vehicle" | "user" | "routes"> & {
 
 type RideSelectionMenuProps = {
   selected: Accessor<Array<string>>;
-  rides: Accessor<Array<Rides.Info>>;
+  records: Accessor<Array<Rides.Info>>;
   toggleSelectAll: () => void;
   company_id: string;
   vehicle_id_used_last_time: string | null;
@@ -95,7 +95,7 @@ export const RideSelectionMenu = (props: RideSelectionMenuProps) => {
       CSV += "\n";
       for (let i = 0; i < props.selected().length; i++) {
         const selectedRide = props.selected()[i];
-        const ride = props.rides().find((r) => r.id === selectedRide);
+        const ride = props.records().find((r) => r.id === selectedRide);
         if (!ride) continue;
         const row: Array<string> = [];
         for (let j = 0; j < headers.length; j++) {

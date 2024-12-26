@@ -42,7 +42,7 @@ export default function Sidebar() {
                       <Home class="size-5 not-sr-only lg:sr-only" />
                       <span class="sr-only lg:not-sr-only">Dashboard</span>
                     </NavLink>
-                    <NavLink href="/dashboard/rides">
+                    {/* <NavLink href="/dashboard/rides">
                       <Car class="size-5 not-sr-only lg:sr-only" />
                       <span class="sr-only lg:not-sr-only">Rides</span>
                     </NavLink>
@@ -53,7 +53,7 @@ export default function Sidebar() {
                     <NavLink href="/dashboard/regions">
                       <Map class="size-5 not-sr-only lg:sr-only" />
                       <span class="sr-only lg:not-sr-only">Regions</span>
-                    </NavLink>
+                    </NavLink> */}
                     <NavLink href="/dashboard/organizations">
                       <Building2 class="size-5 not-sr-only lg:sr-only" />
                       <span class="sr-only lg:not-sr-only">Central</span>

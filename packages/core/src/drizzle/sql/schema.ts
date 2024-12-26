@@ -25,6 +25,8 @@ export * from "./schemas/user_companies";
 export * from "./schemas/company_regions";
 export * from "./schemas/company_discounts";
 
+export * from "./schemas/daily_records";
+
 export * from "./schemas/organization_companies";
 
 export * from "./schemas/organizations";

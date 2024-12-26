@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { text, timestamp, varchar } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
+import { createInsertSchema } from "drizzle-valibot";
+import { object, omit, partial } from "valibot";
 import { Utils } from "../../../entities/utils";
 import { Validator } from "../../../validator";
 import { commonTable } from "./entity";
@@ -66,10 +67,10 @@ export const userRelation = relations(users, ({ many }) => ({
 export type UserSelect = typeof users.$inferSelect;
 export type UserInsert = typeof users.$inferInsert;
 
-export const UserUpdateSchema = createInsertSchema(users)
-  .partial()
-  .omit({ createdAt: true, updatedAt: true })
-  .extend({ id: Validator.prefixed_cuid2 });
+export const UserUpdateSchema = object({
+  ...omit(partial(createInsertSchema(users)), ["createdAt", "updatedAt"]).entries,
+  id: Validator.Cuid2Schema,
+});
 
 export const sessionRelation = relations(sessions, ({ one, many }) => ({
   user: one(users, {
@@ -81,7 +82,7 @@ export const sessionRelation = relations(sessions, ({ one, many }) => ({
 
 export type SessionSelect = typeof sessions.$inferSelect;
 export type SessionInsert = typeof sessions.$inferInsert;
-export const SessionUpdateSchema = createInsertSchema(sessions)
-  .partial()
-  .omit({ createdAt: true, updatedAt: true })
-  .extend({ id: Validator.prefixed_cuid2 });
+export const SessionUpdateSchema = object({
+  ...omit(partial(createInsertSchema(sessions)), ["createdAt", "updatedAt"]).entries,
+  id: Validator.Cuid2Schema,
+});

@@ -4,6 +4,7 @@ import type { Orders } from "./orders";
 import type { Rides } from "./rides";
 import { IoTDataPlaneClient, PublishCommand, PublishCommandOutput } from "@aws-sdk/client-iot-data-plane";
 import { Resource } from "sst";
+import { Calendar } from "./calendar";
 import { Vehicles } from "./vehicles";
 
 export module Realtimed {
@@ -18,6 +19,11 @@ export module Realtimed {
     payload: {
       id: string;
     };
+  };
+  export type DailyRecord = {
+    type: "daily_record";
+    action: "created" | "updated" | "deleted" | "unknown";
+    payload: Calendar.Info;
   };
   export type Ride = {
     type: "ride";
@@ -46,7 +52,7 @@ export module Realtimed {
   };
 
   export type Events = {
-    realtime: Payment | Ride | Vehicle | SystemNotification | Hotspot | Event | Unknown;
+    realtime: Payment | Ride | Vehicle | SystemNotification | Hotspot | Event | DailyRecord | Unknown;
   };
 
   export const Events = {

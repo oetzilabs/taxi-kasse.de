@@ -348,7 +348,7 @@ export const RealtimeRidesList = (props: RealtimeRidesListProps) => {
                 {(id) => (
                   <RideSelectionMenu
                     selected={highlightedRows}
-                    rides={rides}
+                    records={rides}
                     toggleSelectAll={() => {
                       const someSelected = highlightedRows().length > 0;
                       if (someSelected) {

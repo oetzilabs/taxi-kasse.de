@@ -17,7 +17,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "3.637.0",
     "@aws-sdk/s3-request-presigner": "3.637.0",
-    "@openauthjs/openauth": "^0.2.4",
+    "@openauthjs/openauth": "^0.2.5",
     "dayjs": "1.11.13",
     "emailjs": "4.0.3",
     "hono": "4.5.11",
