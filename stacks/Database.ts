@@ -9,6 +9,13 @@ export const migrate = new sst.x.DevCommand("DatabaseMigrate", {
   link: [secret.SECRET_DATABASE_URL, secret.SECRET_DATABASE_PROVIDER],
 });
 
+export const db_start = new sst.x.DevCommand("DatabaseStart", {
+  dev: {
+    command: "docker compose up -d",
+    autostart: true,
+  },
+});
+
 export const seed = new sst.x.DevCommand("DatabaseSeed", {
   dev: {
     command: "bun run ./src/entities/seed.ts",

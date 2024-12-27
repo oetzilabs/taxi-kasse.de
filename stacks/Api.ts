@@ -47,3 +47,9 @@ api.route("POST /user/report/create", {
   copyFiles,
   timeout: "20 seconds",
 });
+
+api.route("POST /pdf/create-report", {
+  runtime: "go",
+  handler: "packages/pdf",
+  link,
+});

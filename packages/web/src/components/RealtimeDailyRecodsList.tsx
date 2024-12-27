@@ -3,7 +3,7 @@ import { concat, filter } from "@solid-primitives/signal-builders";
 import { UserSession } from "~/lib/auth/util";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
-import { Accessor, createEffect, createSignal, For, onCleanup, Show } from "solid-js";
+import { Accessor, createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
 import { isServer } from "solid-js/web";
 import { CalendarView } from "./CalendarView";
 import { useRealtime } from "./Realtime";
@@ -13,11 +13,16 @@ dayjs.extend(isBetween);
 type RealtimeDailyRecordsListProps = {
   daily_records_list: Accessor<Calendar.Info[]>;
   session: Accessor<UserSession>;
+  year?: Accessor<number>;
+  month?: Accessor<number>;
 };
 
 export const RealtimeDailyRecordsList = (props: RealtimeDailyRecordsListProps) => {
   const [daily_records, set_daily_records] = createSignal(props.daily_records_list());
   const rt = useRealtime();
+
+  const year = createMemo(() => props.year?.() ?? new Date().getFullYear());
+  const month = createMemo(() => props.month?.() ?? new Date().getMonth() + 1);
 
   createEffect(() => {
     const rs = props.daily_records_list();
@@ -63,7 +68,7 @@ export const RealtimeDailyRecordsList = (props: RealtimeDailyRecordsListProps) =
         <Show when={daily_records()}>
           {(_records) => (
             <div class="h-max w-full flex flex-col">
-              <CalendarView records={_records()} month={new Date()} />
+              <CalendarView records={_records()} month={month} year={year} />
             </div>
           )}
         </Show>
