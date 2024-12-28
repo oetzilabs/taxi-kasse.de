@@ -15,10 +15,10 @@ import (
 
 type DailyReport struct {
 	Date         string  `json:"date"`
-	TotalKm      float64 `json:"totalKm"`
-	OccupiedKm   float64 `json:"occupiedKm"`
+	TotalKm      float64 `json:"total_distance"`
+	OccupiedKm   float64 `json:"occupied_distance"`
 	Tour         int     `json:"tour"`
-	DailyRevenue float64 `json:"dailyRevenue"`
+	DailyRevenue float64 `json:"revenue"`
 	Language     string  `json:"language"`
 }
 
@@ -31,21 +31,35 @@ type TableHeaders struct {
 }
 
 var translations = map[string]TableHeaders{
-	"de": {
+	"de-DE": {
 		Date:         "Datum",
 		TotalKm:      "Gesamt km",
 		OccupiedKm:   "Besetzt km",
 		Tour:         "Tour",
 		DailyRevenue: "Tageskasse",
 	},
-	"en": {
+	"de-CH": {
+		Date:         "Datum",
+		TotalKm:      "Gesamt km",
+		OccupiedKm:   "Besetzt km",
+		Tour:         "Tour",
+		DailyRevenue: "Tageskasse",
+	},
+	"en-US": {
 		Date:         "Date",
 		TotalKm:      "Total km",
 		OccupiedKm:   "Occupied km",
 		Tour:         "Tour",
 		DailyRevenue: "Daily Revenue",
 	},
-	"fr": {
+	"en-GB": {
+		Date:         "Date",
+		TotalKm:      "Total km",
+		OccupiedKm:   "Occupied km",
+		Tour:         "Tour",
+		DailyRevenue: "Daily Revenue",
+	},
+	"fr-FR": {
 		Date:         "Date",
 		TotalKm:      "Total km",
 		OccupiedKm:   "Km occupé",

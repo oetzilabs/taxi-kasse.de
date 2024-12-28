@@ -85,6 +85,161 @@ export module Calendar {
     });
   };
 
+  export const getDaysWorkedByUserId = async (
+    id: InferInput<typeof Validator.Cuid2Schema>,
+    cid: InferInput<typeof Validator.Cuid2Schema>,
+    tsx = db,
+  ) => {
+    const is_valid_user_id = safeParse(Validator.Cuid2Schema, id);
+    if (!is_valid_user_id.success) {
+      throw is_valid_user_id.issues;
+    }
+    const is_valid_company_id = safeParse(Validator.Cuid2Schema, cid);
+    if (!is_valid_company_id.success) {
+      throw is_valid_company_id.issues;
+    }
+    const days = await tsx.query.daily_records.findMany({
+      where: (fields, ops) =>
+        ops.and(
+          ops.eq(fields.created_by, is_valid_user_id.output),
+          ops.eq(fields.company_id, is_valid_company_id.output),
+          ops.isNull(fields.deletedAt),
+        ),
+    });
+
+    return days.length;
+  };
+
+  export const getToursByUserId = async (
+    id: InferInput<typeof Validator.Cuid2Schema>,
+    cid: InferInput<typeof Validator.Cuid2Schema>,
+    tsx = db,
+  ) => {
+    const is_valid_user_id = safeParse(Validator.Cuid2Schema, id);
+    if (!is_valid_user_id.success) {
+      throw is_valid_user_id.issues;
+    }
+    const is_valid_company_id = safeParse(Validator.Cuid2Schema, cid);
+    if (!is_valid_company_id.success) {
+      throw is_valid_company_id.issues;
+    }
+    const days = await tsx.query.daily_records.findMany({
+      where: (fields, ops) =>
+        ops.and(
+          ops.eq(fields.created_by, is_valid_user_id.output),
+          ops.eq(fields.company_id, is_valid_company_id.output),
+          ops.isNull(fields.deletedAt),
+        ),
+      orderBy(fields, ops) {
+        return [ops.desc(fields.date)];
+      },
+    });
+    let total = 0;
+    for (const day of days) {
+      total += day.tour;
+    }
+    return total;
+  };
+
+  export const getOccupiedDistanceByUserId = async (
+    id: InferInput<typeof Validator.Cuid2Schema>,
+    cid: InferInput<typeof Validator.Cuid2Schema>,
+    tsx = db,
+  ) => {
+    const is_valid_user_id = safeParse(Validator.Cuid2Schema, id);
+    if (!is_valid_user_id.success) {
+      throw is_valid_user_id.issues;
+    }
+    const is_valid_company_id = safeParse(Validator.Cuid2Schema, cid);
+    if (!is_valid_company_id.success) {
+      throw is_valid_company_id.issues;
+    }
+    const days = await tsx.query.daily_records.findMany({
+      where: (fields, ops) =>
+        ops.and(
+          ops.eq(fields.created_by, is_valid_user_id.output),
+          ops.eq(fields.company_id, is_valid_company_id.output),
+          ops.isNull(fields.deletedAt),
+        ),
+      orderBy(fields, ops) {
+        return [ops.desc(fields.date)];
+      },
+    });
+    let total = 0;
+    for (const day of days) {
+      const i = Number(day.occupied_distance);
+      if (isNaN(i)) continue;
+      total += i;
+    }
+    return total;
+  };
+
+  export const getTotalDistanceByUserId = async (
+    id: InferInput<typeof Validator.Cuid2Schema>,
+    cid: InferInput<typeof Validator.Cuid2Schema>,
+    tsx = db,
+  ) => {
+    const is_valid_user_id = safeParse(Validator.Cuid2Schema, id);
+    if (!is_valid_user_id.success) {
+      throw is_valid_user_id.issues;
+    }
+    const is_valid_company_id = safeParse(Validator.Cuid2Schema, cid);
+    if (!is_valid_company_id.success) {
+      throw is_valid_company_id.issues;
+    }
+    const days = await tsx.query.daily_records.findMany({
+      where: (fields, ops) =>
+        ops.and(
+          ops.eq(fields.created_by, is_valid_user_id.output),
+          ops.eq(fields.company_id, is_valid_company_id.output),
+          ops.isNull(fields.deletedAt),
+        ),
+      orderBy(fields, ops) {
+        return [ops.desc(fields.date)];
+      },
+    });
+    let total = 0;
+    for (const day of days) {
+      const i = Number(day.total_distance);
+      if (isNaN(i)) continue;
+      total += i;
+    }
+    return total;
+  };
+
+  export const getTotalRevenueByUserId = async (
+    id: InferInput<typeof Validator.Cuid2Schema>,
+    cid: InferInput<typeof Validator.Cuid2Schema>,
+    tsx = db,
+  ) => {
+    const is_valid_user_id = safeParse(Validator.Cuid2Schema, id);
+    if (!is_valid_user_id.success) {
+      throw is_valid_user_id.issues;
+    }
+    const is_valid_company_id = safeParse(Validator.Cuid2Schema, cid);
+    if (!is_valid_company_id.success) {
+      throw is_valid_company_id.issues;
+    }
+    const days = await tsx.query.daily_records.findMany({
+      where: (fields, ops) =>
+        ops.and(
+          ops.eq(fields.created_by, is_valid_user_id.output),
+          ops.eq(fields.company_id, is_valid_company_id.output),
+          ops.isNull(fields.deletedAt),
+        ),
+      orderBy(fields, ops) {
+        return [ops.desc(fields.date)];
+      },
+    });
+    let total = 0;
+    for (const day of days) {
+      const i = Number(day.revenue);
+      if (isNaN(i)) continue;
+      total += i;
+    }
+    return total;
+  };
+
   export const update = async (data: InferInput<typeof Calendar.UpdateSchema>, tsx = db) => {
     const isValid = safeParse(Calendar.UpdateSchema, data);
     if (!isValid.success) {

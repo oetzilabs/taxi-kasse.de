@@ -24,8 +24,12 @@ import { createMutation } from "@tanstack/solid-query";
 import dayjs from "dayjs";
 import germanLanguage from "dayjs/locale/de";
 import englishLanguage from "dayjs/locale/en";
+import frenchLanguage from "dayjs/locale/fr";
 import isBetween from "dayjs/plugin/isBetween";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 import ArrowLeft from "lucide-solid/icons/arrow-left";
+import FilePdf from "lucide-solid/icons/file-spreadsheet";
+import Loader2 from "lucide-solid/icons/loader-2";
 import Pencil from "lucide-solid/icons/pencil";
 import Plus from "lucide-solid/icons/plus";
 import Trash from "lucide-solid/icons/trash";
@@ -36,6 +40,7 @@ import { language } from "./stores/Language";
 import { NumberField, NumberFieldErrorMessage, NumberFieldInput, NumberFieldLabel } from "./ui/number-field";
 
 dayjs.extend(isBetween);
+dayjs.extend(localizedFormat);
 
 type DayData = {
   id: string;
@@ -53,20 +58,20 @@ type CalendarViewProps = {
 };
 // Helper function to fill missing records
 function fillMissingRecords(records: DayData[], year: number, month: number): DayData[] {
-  const daysInMonth = dayjs(`${year}-${month}`, "YYYY-MM").daysInMonth();
+  const x = dayjs().year(year).month(month);
+  const daysInMonth = x.daysInMonth();
   const recordMap = new Map(records.map((r) => [dayjs(r.date).format("YYYY-MM-DD"), r]));
 
   const filledRecords: DayData[] = [];
   for (let day = 1; day <= daysInMonth; day++) {
-    const date = dayjs(`${year}-${month}-${day}`, "YYYY-MM-DD").toDate();
-    const formattedDate = dayjs(date).format("YYYY-MM-DD");
+    const formattedDate = x.date(day).format("YYYY-MM-DD");
     if (recordMap.has(formattedDate)) {
       filledRecords.push(recordMap.get(formattedDate)!);
     } else {
       // Add an empty record
       filledRecords.push({
         id: `empty-${formattedDate}`, // Generate a unique ID
-        date,
+        date: x.date(day).toDate(),
         total_distance: "",
         occupied_distance: "",
         revenue: "",
@@ -82,10 +87,19 @@ export const CalendarView = (props: CalendarViewProps) => {
   createEffect(() => {
     const lang = language();
     switch (lang) {
-      case "de":
+      case "de-DE":
         dayjs.locale(germanLanguage);
         break;
-      case "en":
+      case "en-GB":
+        dayjs.locale(englishLanguage);
+        break;
+      case "fr-FR":
+        dayjs.locale(frenchLanguage);
+        break;
+      case "de-CH":
+        dayjs.locale(germanLanguage);
+        break;
+      case "en-US":
         dayjs.locale(englishLanguage);
         break;
       default:
@@ -142,19 +156,27 @@ export const CalendarView = (props: CalendarViewProps) => {
 
   const createPDFFile = createMutation(() => ({
     mutationFn: async (payload: { records: DayData[]; year: number; month: number }) => {
+      console.log(language());
+
       const filledRecords = fillMissingRecords(payload.records, payload.year, payload.month);
+
+      const records = filledRecords.map((r) => ({
+        date: dayjs(r.date).format("dd DD MMM"),
+        total_distance: Number(r.total_distance),
+        occupied_distance: Number(r.occupied_distance),
+        tour: Number(r.tour),
+        revenue: Number(r.revenue),
+        language: language(),
+      }));
+
+      console.log(records);
 
       const fetched = await fetch(import.meta.env.VITE_API_URL + "/pdf/create-report", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(
-          filledRecords.map((r) => ({
-            ...r,
-            date: dayjs(r.date).format("dd DD"),
-          })),
-        ),
+        body: JSON.stringify(records),
       });
 
       return fetched.blob();
@@ -240,7 +262,10 @@ export const CalendarView = (props: CalendarViewProps) => {
                   );
                 }}
               >
-                Create PDF
+                <Show when={!createPDFFile.isPending} fallback={<Loader2 class="size-4 animate-spin" />}>
+                  <FilePdf class="size-4" />
+                </Show>
+                <span>Create PDF</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

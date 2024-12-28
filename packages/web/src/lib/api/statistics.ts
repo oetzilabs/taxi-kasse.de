@@ -1,14 +1,48 @@
-import { query } from "@solidjs/router";
+import { query, redirect } from "@solidjs/router";
+import { Calendar } from "@taxikassede/core/src/entities/calendar";
 import { Orders } from "@taxikassede/core/src/entities/orders";
 import { Rides } from "@taxikassede/core/src/entities/rides";
 import { Users } from "@taxikassede/core/src/entities/users";
 import { getCookie, getHeader } from "vinxi/http";
 import { ensureAuthenticated } from "../auth/context";
 
-export const getStatistics = query(async () => {
+export type StatisticsResponse =
+  | {
+      type: "simple";
+      days_worked: number;
+      tours: number;
+      occupied_distance: number;
+      total_distance: number;
+      total_revenue: string;
+    }
+  | {
+      type: "advanced";
+      rides: { value: number; prefix: string; sufix: string; priority: number; description: string };
+      earnings: { value: number; prefix: string; sufix: string; priority: number; description: string };
+      orders: { value: number; prefix: string; sufix: string; priority: number; description: string };
+      performance: { value: number; prefix: string; sufix: string; priority: number; description: string };
+    };
+export type StatisticsSimple = Extract<StatisticsResponse, { type: "simple" }>;
+export const getStatistics = query(async (options: { type: "simple" | "advanced" }) => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
-
+  if (!ctx.session.company_id) {
+    throw redirect("/dashboard/companies/add");
+  }
+  let preffered_currency = await Users.getPreferredCurrencyByUserId(ctx.user.id);
+  if (!preffered_currency) preffered_currency = { prefix: "$", sufix: "", code: "USD" };
+  if (options.type === "simple") {
+    const total_revenue = await Calendar.getTotalRevenueByUserId(ctx.user.id, ctx.session.company_id);
+    const total_earnings = `${preffered_currency.prefix}${total_revenue.toFixed(2)} ${preffered_currency.sufix}`;
+    return {
+      type: "simple",
+      days_worked: await Calendar.getDaysWorkedByUserId(ctx.user.id, ctx.session.company_id),
+      tours: await Calendar.getToursByUserId(ctx.user.id, ctx.session.company_id),
+      occupied_distance: await Calendar.getOccupiedDistanceByUserId(ctx.user.id, ctx.session.company_id),
+      total_distance: await Calendar.getTotalDistanceByUserId(ctx.user.id, ctx.session.company_id),
+      total_revenue: total_earnings,
+    } satisfies StatisticsResponse;
+  }
   const rides = await Rides.countByUserId(ctx.user.id);
   const total_earnings = await Rides.sumByUserId(ctx.user.id, "income");
   const earningsThisMonth = await Rides.sumByUserIdForThisMonth(ctx.user.id, "income");
@@ -17,10 +51,8 @@ export const getStatistics = query(async () => {
   let performance = orders > 0 ? Math.round((rides / orders) * 100) : 0;
   if (Number.isNaN(performance)) performance = 0;
 
-  let preffered_currency = await Users.getPreferredCurrencyByUserId(ctx.user.id);
-  if (!preffered_currency) preffered_currency = { prefix: "$", sufix: "", code: "USD" };
-
   return {
+    type: "advanced",
     rides: {
       value: rides,
       prefix: "",
@@ -48,7 +80,7 @@ export const getStatistics = query(async () => {
       priority: 2,
       description: "Your performance",
     },
-  };
+  } satisfies StatisticsResponse;
 }, "statistics");
 
 export const getSystemStatistics = query(async () => {

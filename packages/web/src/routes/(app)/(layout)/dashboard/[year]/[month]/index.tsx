@@ -63,8 +63,13 @@ export default function DashboardPage() {
                   <div class="flex flex-col w-full gap-2 ">
                     <h2 class="font-bold leading-none">{c().name}</h2>
                     <div class="flex flex-row items-center gap-2">
+                      <A
+                        href={(c().website ?? "").trim().length > 0 ? c().website!.trim() : "#"}
+                        class="text-xs font-medium text-muted-foreground"
+                      >
+                        {(c().website ?? "").trim().length > 0 ? c().website!.trim() : "No website set"}
+                      </A>
                       <span class="text-xs font-medium text-muted-foreground">{c().email}</span>
-                      <span class="text-xs font-medium text-muted-foreground">({c().phoneNumber})</span>
                     </div>
                   </div>
                   <div class="flex flex-col w-full gap-4 grow">
