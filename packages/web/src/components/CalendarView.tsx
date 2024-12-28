@@ -156,8 +156,6 @@ export const CalendarView = (props: CalendarViewProps) => {
 
   const createPDFFile = createMutation(() => ({
     mutationFn: async (payload: { records: DayData[]; year: number; month: number }) => {
-      console.log(language());
-
       const filledRecords = fillMissingRecords(payload.records, payload.year, payload.month);
 
       const records = filledRecords.map((r) => ({
@@ -166,17 +164,21 @@ export const CalendarView = (props: CalendarViewProps) => {
         occupied_distance: Number(r.occupied_distance),
         tour: Number(r.tour),
         revenue: Number(r.revenue),
-        language: language(),
       }));
-
-      console.log(records);
 
       const fetched = await fetch(import.meta.env.VITE_API_URL + "/pdf/create-report", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(records),
+        body: JSON.stringify({
+          records,
+          meta: {
+            language: language(),
+            year: dayjs().year(payload.year).format("YYYY"),
+            month: dayjs().month(payload.month).format("MMMM"),
+          },
+        }),
       });
 
       return fetched.blob();
@@ -230,7 +232,7 @@ export const CalendarView = (props: CalendarViewProps) => {
                 {years.map((year) => (
                   <DropdownMenuItem
                     as={A}
-                    href={`/dashboard/${year.value}/${props.month()}`}
+                    href={`/dashboard/${year.value}/${props.month() + 1}`}
                     class={cn("justify-end", {
                       "bg-neutral-100 dark:bg-neutral-900": year.value === props.year(),
                     })}

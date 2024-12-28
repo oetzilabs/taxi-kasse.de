@@ -19,24 +19,38 @@ type DailyReport struct {
 	OccupiedKm   float64 `json:"occupied_distance"`
 	Tour         int     `json:"tour"`
 	DailyRevenue float64 `json:"revenue"`
-	Language     string  `json:"language"`
 }
 
-type TableHeaders struct {
+type MetaData struct {
+	Language string `json:"language"`
+	Month    string `json:"month"`
+	Year     string `json:"year"`
+}
+
+type Payload struct {
+	Reports []DailyReport `json:"records"`
+	Meta    MetaData      `json:"meta"`
+}
+
+type Translations struct {
 	Date         string
 	TotalKm      string
 	OccupiedKm   string
 	Tour         string
 	DailyRevenue string
+	Footer       string
+	PreText      string
 }
 
-var translations = map[string]TableHeaders{
+var translations = map[string]Translations{
 	"de-DE": {
 		Date:         "Datum",
 		TotalKm:      "Gesamt km",
 		OccupiedKm:   "Besetzt km",
 		Tour:         "Tour",
 		DailyRevenue: "Tageskasse",
+		Footer:       "Diese Tabelle wurde am %s erstellt und ist nur für die aktuelle Monatsdaten gültig.",
+		PreText:      "Diese Tabelle zeigt die aktuellen Tagesdaten für den aktuellen Monat, %s %s.",
 	},
 	"de-CH": {
 		Date:         "Datum",
@@ -44,6 +58,8 @@ var translations = map[string]TableHeaders{
 		OccupiedKm:   "Besetzt km",
 		Tour:         "Tour",
 		DailyRevenue: "Tageskasse",
+		Footer:       "Diese Tabelle wurde am %s erstellt und ist nur für die aktuelle Monatsdaten gültig.",
+		PreText:      "Diese Tabelle zeigt die aktuellen Tagesdaten für den aktuellen Monat, %s %s.",
 	},
 	"en-US": {
 		Date:         "Date",
@@ -51,6 +67,8 @@ var translations = map[string]TableHeaders{
 		OccupiedKm:   "Occupied km",
 		Tour:         "Tour",
 		DailyRevenue: "Daily Revenue",
+		Footer:       "This table was created on %s and is only valid for the current month's data.",
+		PreText:      "This table shows the current day's data for the current month, %s %s.",
 	},
 	"en-GB": {
 		Date:         "Date",
@@ -58,6 +76,8 @@ var translations = map[string]TableHeaders{
 		OccupiedKm:   "Occupied km",
 		Tour:         "Tour",
 		DailyRevenue: "Daily Revenue",
+		Footer:       "This table was created on %s and is only valid for the current month's data.",
+		PreText:      "This table shows the current day's data for the current month, %s %s.",
 	},
 	"fr-FR": {
 		Date:         "Date",
@@ -65,6 +85,8 @@ var translations = map[string]TableHeaders{
 		OccupiedKm:   "Km occupé",
 		Tour:         "Tour",
 		DailyRevenue: "Recette",
+		Footer:       "Ce tableau a été créé le %s et n'est valide que pour les données du mois en cours.",
+		PreText:      "Ce tableau affiche les données du jour en cours pour le mois en cours, %s %s.",
 	},
 }
 
@@ -106,14 +128,26 @@ func drawFooter(c *creator.Creator, font *model.PdfFont) {
 	})
 }
 
-func createTable(c *creator.Creator, font, fontBold *model.PdfFont, reports []DailyReport) error {
-	lang := "en"
+func createTable(c *creator.Creator, font, fontBold *model.PdfFont, reports []DailyReport, meta MetaData) error {
+	lang := "en-US"
 	if len(reports) > 0 {
-		if _, ok := translations[reports[0].Language]; ok {
-			lang = reports[0].Language
+		if _, ok := translations[meta.Language]; ok {
+			lang = meta.Language
 		}
 	}
 	headers := translations[lang]
+
+	// Add pretext to the table
+	pretext := fmt.Sprintf(translations[lang].PreText, meta.Month, meta.Year)
+
+	p := c.NewStyledParagraph()
+	p.SetTextAlignment(creator.TextAlignmentJustify)
+	chunk := p.Append(pretext)
+	chunk.Style.Font = font
+	chunk.Style.FontSize = 10
+	chunk.Style.Color = creator.ColorRGBFrom8bit(0, 0, 0)
+
+	c.Draw(p)
 
 	// Create table
 	table := c.NewTable(5)
@@ -197,15 +231,30 @@ func createTable(c *creator.Creator, font, fontBold *model.PdfFont, reports []Da
 		cell.SetContent(p)
 	}
 
+	// Add footer
+
+	c.DrawFooter(func(block *creator.Block, args creator.FooterFunctionArgs) {
+		var today = time.Now()
+		footer := fmt.Sprintf(translations[lang].Footer, today.Format("02.01.2006"))
+		p := c.NewStyledParagraph()
+		p.SetTextAlignment(creator.TextAlignmentCenter)
+		chunk := p.Append(footer)
+		chunk.Style.Font = font
+		chunk.Style.FontSize = 8
+		block.Draw(p)
+	})
+
 	return c.Draw(table)
 }
 
 func Handler(request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
-	var reports []DailyReport
-	err := json.Unmarshal([]byte(request.Body), &reports)
+	var payload Payload
+	err := json.Unmarshal([]byte(request.Body), &payload)
 	if err != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 400, Body: "Invalid JSON input"}, nil
 	}
+	reports := payload.Reports
+	metadata := payload.Meta
 
 	font, err := model.NewStandard14Font("Helvetica")
 	if err != nil {
@@ -222,7 +271,7 @@ func Handler(request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResp
 
 	drawFooter(c, font)
 
-	if err := createTable(c, font, fontBold, reports); err != nil {
+	if err := createTable(c, font, fontBold, reports, metadata); err != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 500}, err
 	}
 

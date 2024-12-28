@@ -84,7 +84,7 @@ export default function DashboardPage() {
                         {(st) => (
                           <Show when={st().type === "simple" && (st() as unknown as StatisticsSimple)}>
                             {(sst) => (
-                              <div class="w-full h-fit flex flex-row items-end justify-between bg-black dark:bg-white rounded-sm text-white dark:text-black p-2">
+                              <div class="w-full h-fit flex flex-row items-end justify-between bg-black dark:bg-white rounded-sm text-white dark:text-black p-2 select-none">
                                 <div class="flex flex-col items-start justify-end w-full">
                                   <span class="text-6xl font-black font-mono leading-none">{sst().total_revenue}</span>
                                 </div>
