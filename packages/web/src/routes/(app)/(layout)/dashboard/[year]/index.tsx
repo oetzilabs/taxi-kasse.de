@@ -95,7 +95,7 @@ export default function DashboardPage() {
                                 "flex flex-col gap-2 w-full items-center justify-center rounded-md px-4 py-20 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 h-fit",
                                 {
                                   "bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700":
-                                    m.value === dayjs().month(),
+                                    m.value === dayjs().year() && year() === dayjs().month() + 1,
                                 },
                               )}
                             >

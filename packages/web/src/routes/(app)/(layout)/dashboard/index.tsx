@@ -34,10 +34,17 @@ export default function DashboardPage() {
   const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
   const statistics = createAsync(() => getStatistics(STAT_OPTION), { deferStream: true });
   const startYear = 2024;
-  const years = Array.from({ length: 9 }, (_, i) => {
+  const endYear = 2040;
+  const years = Array.from({ length: endYear - startYear + 1 }, (_, i) => {
     const year = startYear + i;
     return { value: year, label: year.toString() };
   });
+
+  const months = (year: number) =>
+    Array.from({ length: 12 }, (_, i) => {
+      const month = i + 1;
+      return { value: month, label: dayjs().year(year).month(i).format("MMMM") };
+    });
 
   return (
     <div class="w-full grow flex flex-col">
@@ -111,21 +118,37 @@ export default function DashboardPage() {
                       </Show>
                     </Suspense>
                   </div>
-                  <div class="grid grid-cols-3 gap-2 h-fit">
+                  <div class="flex flex-col gap-4 h-fit">
                     <For each={years}>
                       {(y) => (
-                        <A
-                          href={`/dashboard/${y.value}`}
-                          class={cn(
-                            "flex flex-col gap-2 w-full items-center justify-center rounded-md px-4 py-20 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 h-fit",
-                            {
-                              "bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700":
-                                y.value === dayjs().year(),
-                            },
-                          )}
-                        >
-                          {y.label}
-                        </A>
+                        <div class="flex flex-col gap-4 h-fit border-b border-neutral-200 dark:border-neutral-800 pb-4">
+                          <div class="flex flex-col w-full">
+                            <A
+                              class="text-xl font-bold leading-none hover:underline underline-offset-2"
+                              href={`/dashboard/${y.value}`}
+                            >
+                              {y.label}
+                            </A>
+                          </div>
+                          <div class="grid grid-cols-3 w-full h-fit bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-sm overflow-clip">
+                            <For each={months(y.value)}>
+                              {(d) => (
+                                <A
+                                  href={`/dashboard/${y.value}/${d.value}`}
+                                  class={cn(
+                                    "flex flex-col w-full items-center justify-center px-4 py-6 h-fit hover:bg-neutral-100 dark:hover:bg-neutral-800",
+                                    {
+                                      "bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700":
+                                        y.value === dayjs().year() && d.value === dayjs().month() + 1,
+                                    },
+                                  )}
+                                >
+                                  {d.label}
+                                </A>
+                              )}
+                            </For>
+                          </div>
+                        </div>
                       )}
                     </For>
                   </div>

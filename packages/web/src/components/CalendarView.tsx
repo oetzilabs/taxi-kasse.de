@@ -166,6 +166,12 @@ export const CalendarView = (props: CalendarViewProps) => {
         revenue: Number(r.revenue),
       }));
 
+      const meta = {
+        language: language(),
+        year: dayjs().year(payload.year).format("YYYY"),
+        month: dayjs().month(payload.month).format("MMMM"),
+      };
+
       const fetched = await fetch(import.meta.env.VITE_API_URL + "/pdf/create-report", {
         method: "POST",
         headers: {
@@ -173,11 +179,7 @@ export const CalendarView = (props: CalendarViewProps) => {
         },
         body: JSON.stringify({
           records,
-          meta: {
-            language: language(),
-            year: dayjs().year(payload.year).format("YYYY"),
-            month: dayjs().month(payload.month).format("MMMM"),
-          },
+          meta,
         }),
       });
 
